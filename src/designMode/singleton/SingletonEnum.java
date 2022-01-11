@@ -1,4 +1,4 @@
-package designMode.singleton;
+package src.designMode.singleton;
 
 /**
  * 枚举实现单例

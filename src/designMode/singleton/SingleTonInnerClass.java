@@ -1,4 +1,4 @@
-package designMode.singleton;
+package src.designMode.singleton;
 
 /**
  * 静态内部类实现单例

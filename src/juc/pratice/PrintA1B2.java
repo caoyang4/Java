@@ -1,4 +1,4 @@
-package juc.pratice;
+package src.juc.pratice;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;

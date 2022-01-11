@@ -1,6 +1,6 @@
-package sort.mergeSortExtension;
+package src.algorithm.sort.mergeSortExtension;
 
-import utils.SortUtils;
+import src.algorithm.utils.SortUtils;
 
 import static java.lang.System.*;
 

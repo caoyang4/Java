@@ -1,4 +1,4 @@
-package utils;
+package src.algorithm.utils;
 
 import static java.lang.System.*;
 

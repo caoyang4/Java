@@ -1,4 +1,4 @@
-package algorithm.src.container;
+package src.container;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package juc;
+package src.juc;
 
 /**
  * @author caoyang

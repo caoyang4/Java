@@ -1,4 +1,4 @@
-package designMode.singleton;
+package src.designMode.singleton;
 
 /**
  * 饿汉式

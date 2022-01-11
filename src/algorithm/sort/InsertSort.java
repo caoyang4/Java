@@ -1,6 +1,6 @@
-package sort;
+package src.algorithm.sort;
 
-import utils.SortUtils;
+import src.algorithm.utils.SortUtils;
 
 import static java.lang.System.out;
 

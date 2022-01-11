@@ -1,5 +1,5 @@
-package sort;
-import utils.SortUtils;
+package src.algorithm.sort;
+import src.algorithm.utils.SortUtils;
 
 import static java.lang.Math.*;
 import static java.lang.System.*;
