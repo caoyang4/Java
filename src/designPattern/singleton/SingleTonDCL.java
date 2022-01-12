@@ -1,4 +1,4 @@
-package src.designMode.singleton;
+package src.designPattern.singleton;
 
 import java.util.concurrent.TimeUnit;
 

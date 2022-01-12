@@ -21,4 +21,8 @@ public interface FunctionInterfaceTest {
     default void m(){
         System.out.println("interface default 方法");
     }
+
+    static void n(){
+        System.out.println("interface static 方法");
+    }
 }
