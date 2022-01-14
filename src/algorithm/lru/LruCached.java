@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
+ * LRU，即 Least Recently Use ，直译为 “最近最少使用”
  * 链表 + HashMap 实现
  * 利用链表记录访问记录，
  * 有新数据加入时放在链表的 head 节点，每次访问也将该数据放在 head 节点，链表的 tail 一定是最早访问的节点，
