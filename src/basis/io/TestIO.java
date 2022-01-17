@@ -32,19 +32,7 @@ public class TestIO {
         properties.load(fr);
         System.out.println(properties.getProperty("name") + " " + properties.getProperty("password"));
 
-
-//        FileReader fileReader = new FileReader(
-//                Thread.currentThread().getContextClassLoader()
-//                        .getResource("properties/cfg.properties")
-//                        .getPath()
-//        );
-//
-//        properties.load(fileReader);
-//        fileReader.close();
-
-        InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("src/properties/fish.properties");
-
+        InputStream in = new FileInputStream("src/properties/fish.properties");
         properties.load(in);
         in.close();
 
@@ -57,10 +45,10 @@ public class TestIO {
         stu.setName("stu");
         System.out.println(stu.getName());
 
-
+        /*
         ResourceBundle rb = ResourceBundle.getBundle("src/properties/fish");
         System.out.println(rb.getString("user"));
-
+        */
 
     }
 }
