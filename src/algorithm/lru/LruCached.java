@@ -38,12 +38,16 @@ public class LruCached<K,V> {
         this.map = new HashMap<>();
     }
 
+    public Map<K, LruNode> getMap() {
+        return map;
+    }
+
     /**
      * 线程安全添加 k,v
      * @param key
      * @param value
      */
-    synchronized void put(K key, V value){
+    public synchronized void put(K key, V value){
         LruNode node = this.map.get(key);
         if (node != null){
             node.value = value;
@@ -66,7 +70,7 @@ public class LruCached<K,V> {
      * @param key
      * @return
      */
-    synchronized V get(K key){
+    public synchronized V get(K key){
         LruNode node = this.map.get(key);
         if (node != null){
             // 将刚刚访问的节点置于链表头部
@@ -82,7 +86,7 @@ public class LruCached<K,V> {
      * @param node
      * @param flag 是否从链表中真正删除
      */
-    private void remove(LruNode node, boolean flag){
+    private synchronized void remove(LruNode node, boolean flag){
         if (node.prev != null){
             node.prev.next = node.next;
         } else {
@@ -105,10 +109,17 @@ public class LruCached<K,V> {
     }
 
     /**
+     * 删除最不常访问元素，即尾部元素
+     */
+    public synchronized void removeRecent(){
+        remove(tail, true);
+    }
+
+    /**
      * 将节点置为头部
      * @param node
      */
-    private void setHead(LruNode node){
+    private synchronized void setHead(LruNode node){
         if (head != null) {
             node.next = head;
             head.prev = node;
@@ -155,15 +166,25 @@ public class LruCached<K,V> {
         lru.put("3","c");
         lru.put("4","d");
         lru.put("5","e");
-        System.out.println("插入 5 个元素");
+//        Iterator it = lru.getMap().keySet().iterator();
+//        while (it.hasNext()){
+//            System.out.println(it.next());
+//        }
+
+        System.out.println("插入 (5,e) 个元素");
         lru.printLru();
-        System.out.println("插入 3 元素");
-        lru.put("3","c");
+
+        System.out.println("删除 (1,a) 个元素");
+        lru.removeRecent();
         lru.printLru();
-        System.out.println("插入第 6 个元素");
+
+        System.out.println("插入 (3,x) 元素");
+        lru.put("3","x");
+        lru.printLru();
+        System.out.println("插入第 (6,f) 个元素");
         lru.put("6","f");
         lru.printLru();
-        System.out.println("访问 4 元素");
+        System.out.println("获取 (4,c) 元素");
         lru.get("4");
         lru.printLru();
     }

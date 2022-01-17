@@ -1,4 +1,4 @@
-package src.designPattern.strategy.tankwar;
+package src.designPattern.strategy;
 
 /**
  * 默认开火策略

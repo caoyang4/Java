@@ -1,4 +1,4 @@
-package src.designPattern.strategy.tankwar;
+package src.designPattern.strategy;
 
 /**
  * @author caoyang
