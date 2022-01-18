@@ -26,12 +26,9 @@ public class TestThread {
         }, "Thread3").start();
 
         // [3]实现callable接口实现线程
-        Callable<String> call = new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Thread.sleep(1000);
-                return "Hi, Callable";
-            }
+        Callable<String> call = () -> {
+            Thread.sleep(1000);
+            return "Hi, Callable";
         };
         // lambda 表达式
         /*Callable<String> call = () -> "Callable 启动线程...";*/
