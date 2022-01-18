@@ -5,6 +5,9 @@ package src.basis.fish;
  */
 public class TestCreateClass {
     private int i;
+    static {
+        System.out.println("load block");
+    }
     {
         System.out.println("init block");
     }
