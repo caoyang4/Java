@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
  * @author caoyang
  */
 public class SingleThreadPool extends AbstractThreadPool{
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     public SingleThreadPool() {
         executorService = Executors.newSingleThreadExecutor();

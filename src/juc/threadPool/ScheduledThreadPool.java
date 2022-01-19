@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  * @author caoyang
  */
 public class ScheduledThreadPool{
-    private ScheduledExecutorService scheduledExecutorService;
-    private Map<String, Future> futureMap = new HashMap<>();
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final Map<String, Future<?>> futureMap = new HashMap<>();
 
     public ScheduledThreadPool(int poolSize) {
         scheduledExecutorService = Executors.newScheduledThreadPool(poolSize);
@@ -27,7 +27,7 @@ public class ScheduledThreadPool{
      * @param threadTag
      */
     public void cycleExecute(Runnable task, int delay, int period, String threadTag){
-        Future future = scheduledExecutorService.scheduleAtFixedRate(task, delay, period, TimeUnit.MILLISECONDS);
+        Future<?> future = scheduledExecutorService.scheduleAtFixedRate(task, delay, period, TimeUnit.MILLISECONDS);
         futureMap.put(threadTag, future);
     }
 
@@ -36,7 +36,7 @@ public class ScheduledThreadPool{
      * @param task
      */
     public void defaultCycleExecute(Runnable task){
-        Future future = scheduledExecutorService.scheduleAtFixedRate(task, 0, 1000, TimeUnit.SECONDS);
+        Future<?> future = scheduledExecutorService.scheduleAtFixedRate(task, 0, 1000, TimeUnit.SECONDS);
         futureMap.put(task.getClass().getName(), future);
     }
 
@@ -63,7 +63,7 @@ public class ScheduledThreadPool{
      * @param threadTag
      */
     public void cancelTask(String threadTag){
-        Future future = futureMap.get(threadTag);
+        Future<?> future = futureMap.get(threadTag);
         if (future != null) {
             future.cancel(true);
             futureMap.remove(threadTag);

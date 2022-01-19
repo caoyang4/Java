@@ -7,14 +7,16 @@ import java.util.concurrent.*;
  * @author caoyang
  */
 public class CommonThreadPool extends AbstractThreadPool{
-    // 单例
-    private ThreadPoolExecutor threadPoolExecutor;
+    /**
+     *   单例
+     */
+    private volatile ThreadPoolExecutor threadPoolExecutor;
 
-    private int poolSize;
+    private final int poolSize;
 
-    private int maxPoolSize;
+    private final int maxPoolSize;
 
-    private long keepAliveTime;
+    private final long keepAliveTime;
 
     public CommonThreadPool(int poolSize, int maxPoolSize, long keepAliveTime) {
         this.poolSize = poolSize;
@@ -23,7 +25,9 @@ public class CommonThreadPool extends AbstractThreadPool{
         initThreadPoolExecutor();
     }
 
-    // DCL
+    /**
+     * DCL 双重锁检验
+     */
     private void initThreadPoolExecutor(){
         if(threadPoolExecutor == null){
             synchronized (CommonThreadPool.class){
