@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * 动态代理
+ * jdk动态代理基于接口实现
  * @author caoyang
  */
 public class Bird implements Flyable{

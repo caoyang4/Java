@@ -2,11 +2,9 @@ package src.designPattern.proxy.dynamicProxy.cglib;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
-
-import java.lang.reflect.Method;
 
 /**
+ * cglib 代理基于父子类继承
  * @author caoyang
  */
 public class Animal {
@@ -34,6 +32,5 @@ public class Animal {
         animalCglib.eat();
         System.out.println("=============");
         animalCglib.drink();
-
     }
 }
