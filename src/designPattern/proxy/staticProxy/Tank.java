@@ -1,6 +1,7 @@
 package src.designPattern.proxy.staticProxy;
 
 /**
+ * 静态代理
  * @author caoyang
  */
 public class Tank implements Movable {
