@@ -1,5 +1,7 @@
 package src.algorithm.leetcode;
 
+import src.algorithm.utils.CommonUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ public class Leetcode1 {
     /**
      * O(N^2)
      */
-    public int[] twoSum1(int[] nums, int target) {
+    public static int[] twoSum1(int[] nums, int target) {
         int [] res = new int[2];
         for (int i = 0; i < nums.length - 1; i++) {
             for (int j = i+1; j < nums.length; j++) {
@@ -27,7 +29,7 @@ public class Leetcode1 {
         return res;
     }
 
-    public int[] twoSum2(int[] nums, int target) {
+    public static int[] twoSum2(int[] nums, int target) {
         int [] res = new int[2];
         Map<Integer, Integer> map = new HashMap<>();
         for (int i = 0; i < nums.length; i++) {
@@ -43,5 +45,11 @@ public class Leetcode1 {
     }
 
 
+
+    public static void main(String[] args) {
+        int[] nums = {2, 4, 5};
+        CommonUtils.printArray(twoSum1(nums, 7));
+        CommonUtils.printArray(twoSum2(nums, 7));
+    }
 
 }
