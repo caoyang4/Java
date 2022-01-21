@@ -42,6 +42,7 @@ public class LruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > capacity;
     }
+
     private static void printlnLru(LruLinkedHashMap lru){
         Iterator it = lru.keySet().iterator();
         while (it.hasNext()){
