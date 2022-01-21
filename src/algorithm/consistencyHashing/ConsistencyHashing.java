@@ -16,6 +16,7 @@ public class ConsistencyHashing {
     /**
      * 物理节点至虚拟节点的复制倍数
      * virtualCopies = 1 表示无虚拟节点
+     * 1 、32 、1048576
      */
     private static final int VIRTUAL_COPIES = 32;
 

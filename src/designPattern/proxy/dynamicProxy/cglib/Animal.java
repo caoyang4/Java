@@ -5,6 +5,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 
 /**
  * cglib 代理基于父子类继承
+ * 底层 ASM
  * @author caoyang
  */
 public class Animal {
