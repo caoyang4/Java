@@ -35,5 +35,12 @@ public class InterestTest {
 
         interest();
 
+        int a = 11 % 4;
+        System.out.println(a);
+
+        // (n-1) & hash
+        int b = 11 & (4 - 1);
+        System.out.println(b);
+
     }
 }
