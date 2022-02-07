@@ -4,6 +4,12 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * - ThreadLocal 被回收
+ * - 线程被复用
+ * - 线程复用后未调用 ThreadLocal 的 set/get/remove 方法
+ */
+
 public class MyThreadLocalOOM {
     public static final Integer SIZE = 500;
     static ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -27,6 +33,8 @@ public class MyThreadLocalOOM {
             }
             // local设置为null，依旧会造成内存泄漏
             local = null;
+            System.gc();
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -43,6 +51,8 @@ public class MyThreadLocalOOM {
                 });
                 Thread.sleep(100);
             }
+            System.gc();
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -50,9 +60,9 @@ public class MyThreadLocalOOM {
 
     public static void main(String[] args) {
         // 泄漏
-//        revealTest();
+        revealTest();
 
         // 回收
-         recycleTest();
+        // recycleTest();
     }
 }
