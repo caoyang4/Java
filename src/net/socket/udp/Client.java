@@ -1,4 +1,4 @@
-package src.socket.udp;
+package src.net.socket.udp;
 
 import java.io.IOException;
 import java.net.*;

@@ -1,4 +1,4 @@
-package src.socket.tcp;
+package src.net.socket.tcp;
 
 import java.io.Serializable;
 

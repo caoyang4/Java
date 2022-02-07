@@ -30,10 +30,12 @@ public class TestIO {
         FileReader fr = new FileReader(file);
         Properties properties = new Properties();
         properties.load(fr);
+        System.out.println("读取 /Users/caoyang/caoyang_dev/properties");
         System.out.println(properties.getProperty("name") + " " + properties.getProperty("password"));
 
         InputStream in = new FileInputStream("src/properties/fish.properties");
         properties.load(in);
+        System.out.println("读取 src/properties/fish.properties");
         in.close();
 
         System.out.println(properties.get("user"));
