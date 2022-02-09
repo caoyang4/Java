@@ -17,6 +17,9 @@ public class TestReflection {
 
         Class xxs = Class.forName("src.basis.reflection.Young");
         Object o = xxs.newInstance();
+        Object o1 = xxs.getConstructor().newInstance();
+        System.out.println("o: "+o);
+        System.out.println("o1: "+o1);
 
         System.out.println("反射获取属性");
         Field[] fields = xxs.getFields();
