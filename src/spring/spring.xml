@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="testA" class="src.spring.ioc.circular.TestA">
+        <property name="testB" ref="testB"/>
+    </bean>
+    <bean id="testB" class="src.spring.ioc.circular.TestB">
+        <property name="testA" ref="testA"/>
+    </bean>
+    <bean id="x" class="src.spring.ioc.circular.X">
+        <property name="y" ref="y"/>
+        <property name="z" ref="z"/>
+        <property name="name" value="xObj"/>
+    </bean>
+    <bean id="y" class="src.spring.ioc.circular.Y">
+        <property name="x" ref="x"/>
+        <property name="name" value="yObj"/>
+    </bean>
+    <bean id="z" class="src.spring.ioc.circular.Z">
+        <property name="x" ref="x"/>
+        <property name="name" value="zObj"/>
+    </bean>
+</beans>
