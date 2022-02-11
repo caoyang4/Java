@@ -6,6 +6,9 @@
         <property name="testB" ref="testB"/>
     </bean>
     <bean id="testB" class="src.spring.ioc.circular.TestB">
+        <property name="testC" ref="testC"/>
+    </bean>
+    <bean id="testC" class="src.spring.ioc.circular.TestC">
         <property name="testA" ref="testA"/>
     </bean>
     <bean id="x" class="src.spring.ioc.circular.X">

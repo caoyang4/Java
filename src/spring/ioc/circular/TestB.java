@@ -1,15 +1,13 @@
 package src.spring.ioc.circular;
 
 public class TestB {
-    TestA testA;
+    TestC testC;
 
-    public TestA getTestA() {
-        return testA;
+    public TestC getTestC() {
+        return testC;
     }
 
-    public void setTestA(TestA testA) {
-        this.testA = testA;
+    public void setTestC(TestC testC) {
+        this.testC = testC;
     }
-
-
 }

@@ -15,8 +15,10 @@ public class CircularDependency {
          */
         TestA testA = (TestA) ctx.getBean("testA");
         TestB testB = (TestB) ctx.getBean("testB");
+        TestC testC = (TestC) ctx.getBean("testC");
         System.out.println("TestA: " + testA + "\n\ttestB: " + testA.getTestB());
-        System.out.println("TestB: " + testB + "\n\ttestA: " + testB.getTestA());
+        System.out.println("TestB: " + testB + "\n\ttestC: " + testB.getTestC());
+        System.out.println("TestC: " + testC + "\n\ttestC: " + testC.getTestA());
 
         System.out.println();
 
