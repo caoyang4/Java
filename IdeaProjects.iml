@@ -31,5 +31,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="mybatis" level="project" />
+    <orderEntry type="library" name="tk.mybatis.mapper" level="project" />
+    <orderEntry type="library" name="alibaba.druid.wrapper" level="project" />
   </component>
 </module>
