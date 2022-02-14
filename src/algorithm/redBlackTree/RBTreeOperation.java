@@ -25,7 +25,12 @@ public class RBTreeOperation {
         // 保证输入的树不为空
         if (currNode == null) {return;}
         // 先将当前节点保存到二维数组中
-        res[rowIndex][columnIndex] = String.valueOf(currNode.getKey() + "-" + (currNode.isColor() ? "B" : "R") + "");
+        String content = String.valueOf(currNode.getKey());
+        if (! currNode.isColor()){
+           content = String.format("\033[%dm%s\033[0m", 31, content);
+        }
+
+        res[rowIndex][columnIndex] = content;
 //        res[rowIndex][columnIndex] = String.valueOf(currNode.getKey());
 
         // 计算当前位于树的第几层
@@ -50,7 +55,6 @@ public class RBTreeOperation {
 
 
     public static void show(RBTree.RBNode root) {
-        System.out.println("root: " + root.getKey());
         if (root == null) {System.out.println("EMPTY!");}
         // 得到树的深度
         int treeDepth = getTreeDepth(root);
@@ -91,6 +95,7 @@ public class RBTreeOperation {
         RBTree<String, Object> rbt = new RBTree();
 
         while (true) {
+            System.out.println();
             System.out.println("请输入插入节点key: ");
             String key = scanner.next();
             // 此处 key 仅支持三位数
