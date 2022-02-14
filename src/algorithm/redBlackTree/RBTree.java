@@ -47,6 +47,7 @@ public class RBTree<K extends Comparable<K>, V> {
         }
 
         // p 是否存在父节点
+        pr.parent = p.parent;
         if(p.parent == null){
             root = pr;
         } else if(p.parent.left == p){
@@ -80,6 +81,7 @@ public class RBTree<K extends Comparable<K>, V> {
             pl.right.parent = p;
         }
 
+        pl.parent = p.parent;
         if (p.parent == null) {
             root = pl;
         } else if (p.parent.left == p){
