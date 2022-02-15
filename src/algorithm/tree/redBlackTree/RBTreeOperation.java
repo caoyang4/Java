@@ -89,19 +89,17 @@ public class RBTreeOperation {
         }
     }
 
-    public static void main(String[] args) {
+    public static void showInput() {
         Scanner scanner = new Scanner(System.in);
-
         RBTree<String, Object> rbt = new RBTree();
-
         while (true) {
             System.out.println();
             System.out.print("input node key: ");
             String key = scanner.next();
             // 此处 key 仅支持三位数
-            if(key.length() == 1){
+            if (key.length() == 1) {
                 key = "00" + key;
-            } else if(key.length() == 2){
+            } else if (key.length() == 2) {
                 key = "0" + key;
             }
             System.out.println();
@@ -110,6 +108,45 @@ public class RBTreeOperation {
             // 调用 红黑树控制台打印类
             RBTreeOperation.show(rbt.getRoot());
         }
+    }
+
+    public static void showRemove(){
+        System.out.println("init redBlackTree");
+        RBTree<String, Object> rbt = new RBTree();
+        for (int i = 0; i < 10; i++) {
+            String key = String.valueOf((i + 1));
+            if (key.length() == 1) {
+                key = "00" + key;
+            } else if (key.length() == 2) {
+                key = "0" + key;
+            }
+            rbt.put(key, null);
+        }
+        RBTreeOperation.show(rbt.getRoot());
+        System.out.println("now start remove node");
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.print("remove node key: ");
+            String key = scanner.next();
+            // 此处 key 仅支持三位数
+            if (key.length() == 1) {
+                key = "00" + key;
+            } else if (key.length() == 2) {
+                key = "0" + key;
+            }
+            System.out.println();
+            rbt.remove(key);
+
+            // 调用 红黑树控制台打印类
+            RBTreeOperation.show(rbt.getRoot());
+        }
+    }
+
+    public static void main(String[] args) {
+        // showInput();
+
+        showRemove();
+
     }
 }
 

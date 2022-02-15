@@ -215,6 +215,179 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     /**
+     * 根据 key 删除红黑树节点
+     * @param key
+     * @return
+     */
+    public V remove(K key){
+        RBNode node = getNode(key);
+        if (node == null) {
+            return null;
+        }
+        V oldValue = (V) node.value;
+        deleteNode(node);
+        return oldValue;
+    }
+
+    /**
+     * 删除节点，并平衡调整红黑树
+     * 3种情况：
+     *   1、删除叶子节点，直接删除
+     *   2、删除节点有一个子节点，直接用子节点替代
+     *   3、删除节点有两个子节点，此时需要先找到删除节点的前驱或后继节点来替代，可以转换为两种情况
+     *     3.1
+     *     3.2
+     * @param node
+     */
+    private void deleteNode(RBNode node) {
+        // 情况3：有左右两个子节点
+        if(leftOf(node) != null && rightOf(node) != null){
+            // 找到后继节点，JDK 的 TreeMap 删除也是用后继节点替代
+            RBNode successor = successor(node);
+            // 用后继节点信息替换删除节点
+            node.key = successor.key;
+            node.value = successor.value;
+            // 如此，删除节点就变为后继节点了
+            node = successor;
+        }
+        RBNode replacement = node.left != null ? node.left : node.right;
+        if (replacement != null) {
+            // 情况2：有一个子节点
+            replacement.parent = node.parent;
+            if (node.parent == null) {
+                root = replacement;
+            } else if (node == leftOf(parentOf(node))){
+                parentOf(node).left = replacement;
+            } else {
+                parentOf(node).right = replacement;
+            }
+            // 先将 node 节点的子节点，父节点都只为 null，再调整；等待 GC
+            node.left = node.right = node.parent = null;
+
+            // 替换完成后平衡红黑树
+            if (node.color == BLACK){
+                fixAfterRemove(replacement);
+            }
+        } else if (node.parent == null){
+            // 既没有子节点，也没有父节点
+            root = null;
+        } else {
+            // 情况1：叶子结点
+            // 先调整，再删除
+            if (node.color == BLACK){
+                fixAfterRemove(node);
+            }
+            if (node == leftOf(parentOf(node))){
+                parentOf(node).left = null;
+            } else {
+                parentOf(node).right = null;
+            }
+            node = null;
+        }
+
+    }
+
+    /**
+     * 删除后的调整处理
+     * 2-3-4树的删除操作
+     * 情况 1、自己能搞定，对应3节点或4节点
+     * 情况 2、自己搞不定，向兄弟节点借，但兄弟节点不借，于是找父节点，父节点下来，兄弟节点找一个人替父节点当家
+     * 情况 3、向兄弟节点借，但兄弟节点没得借
+     * @param node
+     */
+    private void fixAfterRemove(RBNode node) {
+        // 情况 2 和 3：
+        while (node != root && colorOf(node) == BLACK){
+            if (node == leftOf(parentOf(node))){
+                RBNode broNode = rightOf(parentOf(node));
+                if (colorOf(broNode) == RED){
+                    // 不是真正的兄弟节点
+                    setColor(broNode, BLACK);
+                    setColor(parentOf(node), RED);
+                    leftRotation(parentOf(node));
+                    broNode = rightOf(parentOf(node));
+                }
+                if (colorOf(leftOf(broNode)) == BLACK && colorOf(rightOf(broNode)) == BLACK){
+                    // 情况 3、向兄弟节点借，但兄弟节点没得借
+                    // 先把兄弟节点设置为红色
+                    setColor(broNode, RED);
+                    node = parentOf(node);
+
+                } else {
+                    // 情况 2、向兄弟节点借，但兄弟节点有得借
+                    if (colorOf(rightOf(broNode)) == BLACK){
+                        // 不存在右子节点，必然存在左子节点
+                        setColor(broNode, RED);
+                        setColor(leftOf(broNode), BLACK);
+                        rightRotation(broNode);
+                        broNode = rightOf(parentOf(node));
+                    }
+                    setColor(broNode, colorOf(parentOf(node)));
+                    setColor(parentOf(node), BLACK);
+                    setColor(rightOf(broNode), BLACK);
+                    leftRotation(parentOf(node));
+                    node = root;
+                }
+            } else {
+                // 与上述 if 分支反向
+                RBNode broNode = leftOf(parentOf(node));
+                if (colorOf(broNode) == RED){
+                    // 不是真正的兄弟节点
+                    setColor(broNode, BLACK);
+                    setColor(parentOf(node), RED);
+                    rightRotation(parentOf(node));
+                    broNode = leftOf(parentOf(node));
+                }
+                if (colorOf(leftOf(broNode)) == BLACK && colorOf(rightOf(broNode)) == BLACK){
+                    // 情况 3、向兄弟节点借，但兄弟节点没得借
+                    // 先把兄弟节点设置为红色
+                    setColor(broNode, RED);
+                    node = parentOf(node);
+
+                } else {
+                    // 情况 2、向兄弟节点借，但兄弟节点有得借
+                    if (colorOf(leftOf(broNode)) == BLACK){
+                        // 不存在右子节点，必然存在左子节点
+                        setColor(broNode, RED);
+                        setColor(rightOf(broNode), BLACK);
+                        leftRotation(broNode);
+                        broNode = leftOf(parentOf(node));
+                    }
+                    setColor(broNode, colorOf(parentOf(node)));
+                    setColor(parentOf(node), BLACK);
+                    setColor(leftOf(broNode), BLACK);
+                    rightRotation(parentOf(node));
+                    node = root;
+                }
+            }
+        }
+        // 情况1：自己能搞定，对应3节点或4节点
+        // 替代的节点是红色，直接置为黑色
+        setColor(node, BLACK);
+
+    }
+
+    /**
+     * 根据 key 找到红黑树节点
+     * @param key
+     * @return
+     */
+    private RBNode getNode(K key) {
+        RBNode node = this.root;
+        while (node != null){
+            int cmp = key.compareTo((K) node.key);
+            if (cmp < 0){
+                node = node.left;
+            } else if (cmp > 0){
+                node = node.right;
+            } else {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 查找节点n的前驱节点
      * @param n
      * @return
