@@ -1,4 +1,4 @@
-package src.algorithm.redBlackTree;
+package src.algorithm.tree.redBlackTree;
 
 /**
  * 红黑树
@@ -212,6 +212,58 @@ public class RBTree<K extends Comparable<K>, V> {
         // root 节点是黑色节点
         setColor(root, BLACK);
 
+    }
+
+    /**
+     * 查找节点n的前驱节点
+     * @param n
+     * @return
+     */
+    private RBNode predecessor(RBNode n){
+        if (n == null) {
+            return null;
+        } else if(n.left != null) {
+            RBNode pre = n.left;
+            while (pre.right != null){
+                pre = pre.right;
+            }
+            return pre;
+        } else {
+            // 这种情况再实际删除中不会存在，因为就是叶子结点，但是再查找前驱和后继节点中是有意义的
+            RBNode pre = n.parent;
+            RBNode t = n;
+            while (pre != null && t == pre.left){
+                t = pre;
+                pre = pre.parent;
+            }
+            return pre;
+        }
+    }
+
+    /**
+     * 查找节点n的后继节点
+     * @param n
+     * @return
+     */
+    private RBNode successor(RBNode n){
+        if (n == null) {
+            return null;
+        } else if(n.right != null) {
+            RBNode pre = n.right;
+            while (pre.left != null){
+                pre = pre.left;
+            }
+            return pre;
+        } else {
+            // 这种情况再实际删除中不会存在，因为就是叶子结点，但是再查找前驱和后继节点中是有意义的
+            RBNode pre = n.parent;
+            RBNode t = n;
+            while (pre != null && t == pre.right){
+                t = pre;
+                pre = pre.parent;
+            }
+            return pre;
+        }
     }
 
     private boolean colorOf(RBNode n){

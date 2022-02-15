@@ -1,4 +1,4 @@
-package src.algorithm.redBlackTree;
+package src.algorithm.tree.redBlackTree;
 
 import java.util.Scanner;
 
@@ -96,7 +96,7 @@ public class RBTreeOperation {
 
         while (true) {
             System.out.println();
-            System.out.println("请输入插入节点key: ");
+            System.out.print("input node key: ");
             String key = scanner.next();
             // 此处 key 仅支持三位数
             if(key.length() == 1){
