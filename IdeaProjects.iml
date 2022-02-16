@@ -40,5 +40,7 @@
     <orderEntry type="library" name="google.code.findbugs.annotations" level="project" />
     <orderEntry type="library" name="lmax.disruptor" level="project" />
     <orderEntry type="library" name="alibaba.fastjson" level="project" />
+    <orderEntry type="library" name="google.code.gson" level="project" />
+    <orderEntry type="library" name="io.netty" level="project" />
   </component>
 </module>
