@@ -39,7 +39,7 @@ public class Leetcode19 {
     }
 
     /**
-    垃圾解法
+        本人的垃圾解法
      */
     public static ListNode removeNthFromEnd1(ListNode head, int n) {
         if(head == null){
