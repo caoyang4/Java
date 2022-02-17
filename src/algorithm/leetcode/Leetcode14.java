@@ -7,7 +7,7 @@ package src.algorithm.leetcode;
  * 二分归并思想
  * @author caoyang
  */
-public class leetcode14 {
+public class Leetcode14 {
     public static String longestCommonPrefix(String[] strs) {
         int length = strs.length;
         return subCommonPrefix(strs, 0, length - 1);
@@ -25,9 +25,6 @@ public class leetcode14 {
 
     public static String mergeStr(String str1, String str2){
         while (!str1.startsWith(str2)){
-            if (str2.length()==0){
-                return "";
-            }
             // 公共前缀不匹配就让它变短
             str2 = str2.substring(0, str2.length()-1);
         }
