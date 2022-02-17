@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  *
- * 请你来实现一个myAtoi(string s) 函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
+ * 请你来实现一个myAtoi(string s)函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
  *
  * 函数myAtoi(string s) 的算法如下：
  *

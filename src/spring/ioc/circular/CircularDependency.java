@@ -2,6 +2,7 @@ package src.spring.ioc.circular;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import src.spring.ioc.MyFileSystemXmlApplicationContext;
 
 /**
  * IoC 循环依赖
@@ -9,7 +10,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  */
 public class CircularDependency {
     public static void main(String[] args) {
-        ApplicationContext ctx = new FileSystemXmlApplicationContext("src/spring/spring.xml");
+//        ApplicationContext ctx = new FileSystemXmlApplicationContext("src/spring/spring.xml");
+        ApplicationContext ctx = new MyFileSystemXmlApplicationContext("src/spring/spring.xml");
         /*
          循环依赖示例
          */
