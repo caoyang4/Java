@@ -22,6 +22,7 @@
     <orderEntry type="library" exported="" name="ow2.asm" level="project" />
     <orderEntry type="library" exported="" name="projectlombok.lombok" level="project" />
     <orderEntry type="library" exported="" name="springframework.spring.context" level="project" />
+    <orderEntry type="library" name="spring.web" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -34,7 +35,6 @@
     <orderEntry type="library" name="mybatis" level="project" />
     <orderEntry type="library" name="tk.mybatis.mapper" level="project" />
     <orderEntry type="library" name="alibaba.druid.wrapper" level="project" />
-    <orderEntry type="library" name="spring.web" level="project" />
     <orderEntry type="library" name="spring.webmvc" level="project" />
     <orderEntry type="library" name="google.guava" level="project" />
     <orderEntry type="library" name="google.code.findbugs.annotations" level="project" />
@@ -42,5 +42,6 @@
     <orderEntry type="library" name="alibaba.fastjson" level="project" />
     <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="io.netty" level="project" />
+    <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
   </component>
 </module>
