@@ -43,5 +43,6 @@
     <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="io.netty" level="project" />
     <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
+    <orderEntry type="library" name="springframework.boot.spring" level="project" />
   </component>
 </module>
