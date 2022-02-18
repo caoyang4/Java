@@ -14,7 +14,8 @@ package src.algorithm.targetOffer;
 public class TargetOffer103 {
     public static int coinChange(int[] coins, int amount) {
         // 保存 0, 1, 2,..., M 的所需最少硬币数
-        // f(0), f(10),...f(x),...f(M)
+        // f(0), f(10),...f(i),...f(M)
+        // 转移方程：f(i) = min{f(i - coins[0])+1, f(i - coins[1])+1,...,f(i - coins[-1])+1}
         int[] f = new int[amount + 1];
         f[0] = 0;
         for (int i = 1; i <= amount; i++) {
