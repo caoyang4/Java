@@ -12,6 +12,28 @@ import java.util.Map;
  * @author caoyang
  */
 public class Leetcode1 {
+
+    /**
+     * 哈希解法
+     * @param nums
+     * @param target
+     * @return
+     */
+    public static int[] twoSum(int[] nums, int target) {
+        int [] res = new int[2];
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            if(map.containsKey(nums[i])){
+                res[0] = map.get(nums[i]);
+                res[1] = i;
+                return res;
+            }
+            map.put(target-nums[i], i);
+        }
+
+        return res;
+    }
+
     /**
      * O(N^2)
      */
@@ -29,27 +51,12 @@ public class Leetcode1 {
         return res;
     }
 
-    public static int[] twoSum2(int[] nums, int target) {
-        int [] res = new int[2];
-        Map<Integer, Integer> map = new HashMap<>();
-        for (int i = 0; i < nums.length; i++) {
-            if(map.containsKey(nums[i])){
-                res[0] = map.get(nums[i]);
-                res[1] = i;
-                return res;
-            }
-            map.put(target-nums[i], i);
-        }
-
-        return res;
-    }
-
 
 
     public static void main(String[] args) {
         int[] nums = {2, 4, 5};
+        CommonUtils.printArray(twoSum(nums, 7));
         CommonUtils.printArray(twoSum1(nums, 7));
-        CommonUtils.printArray(twoSum2(nums, 7));
     }
 
 }
