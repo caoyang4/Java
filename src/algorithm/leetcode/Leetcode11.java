@@ -32,6 +32,7 @@ public class Leetcode11 {
             if (leftMax < height[left] || rightMax < height[right]){
                 leftMax = Math.max(leftMax, height[left]);
                 rightMax = Math.max(rightMax, height[right]);
+                mArea = Math.max(mArea, Math.min(leftMax, rightMax) * (right - left));
             } else {
                 // 左值小于左最大值，直接向右移动，无需计算
                 // 右值小于右最大值，直接向左移动，无需计算
@@ -42,9 +43,7 @@ public class Leetcode11 {
                     // 左数大于右数，右指针向左移动
                     right--;
                 }
-                continue;
             }
-            mArea = Math.max(mArea, Math.min(leftMax, rightMax) * (right - left));
         }
         return mArea;
     }
