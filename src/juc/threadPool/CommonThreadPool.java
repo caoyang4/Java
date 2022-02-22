@@ -40,14 +40,15 @@ public class CommonThreadPool extends AbstractThreadPool{
                             poolSize,
                             // 最大线程数
                             maxPoolSize,
-                            // 保持时间
+                            // 空闲时间
                             keepAliveTime,
+                            // 时间单位
                             TimeUnit.MILLISECONDS,
                             // 阻塞队列
                             blockingQueue,
                             // 线程工厂
                             threadFactory,
-                            // 异常捕获器
+                            // 拒绝策略
                             handler
                     );
                 }

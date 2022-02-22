@@ -75,7 +75,14 @@ public class SelfThreadFactory {
     }
 
     /**
-     * 获取自定义线程池
+     * 获取自定义线程池，通过 ThreadPoolExecutor 全参构造函数配置
+     * ThreadPoolExecutor(int corePoolSize,
+     *                    int maximumPoolSize,
+     *                    long keepAliveTime,
+     *                    TimeUnit unit,
+     *                    BlockingQueue<Runnable> workQueue,
+     *                    ThreadFactory threadFactory,
+     *                    RejectedExecutionHandler handler)
      * @param poolSize
      * @param maxPoolSize
      * @param keepAliveTime

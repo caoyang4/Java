@@ -15,6 +15,12 @@ public class ScheduledThreadPool{
     private final ScheduledExecutorService scheduledExecutorService;
     private final Map<String, Future<?>> futureMap = new HashMap<>();
 
+    /**
+     *  也是通过 ThreadPoolExecutor 创建线程池
+     *  super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS, new DelayedWorkQueue());
+     *  最大线程个数 Integer.MAX_VALUE
+     *  空闲时间为 0
+     */
     public ScheduledThreadPool(int poolSize) {
         scheduledExecutorService = Executors.newScheduledThreadPool(poolSize);
     }
