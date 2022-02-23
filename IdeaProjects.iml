@@ -41,11 +41,12 @@
     <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="io.netty" level="project" />
     <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
-    <orderEntry type="library" name="springframework.boot.spring" level="project" />
     <orderEntry type="library" name="springframework.spring.tx" level="project" />
     <orderEntry type="library" name="springframework.spring.jdbc" level="project" />
     <orderEntry type="library" name="springframework.spring.webmvc" level="project" />
     <orderEntry type="library" name="javax.javaee.web.api" level="project" />
     <orderEntry type="library" name="javax.javaee.api" level="project" />
+    <orderEntry type="library" name="springframework.boot.spring.starter.jta.atomikos" level="project" />
+    <orderEntry type="library" name="springframework.boot.spring" level="project" />
   </component>
 </module>

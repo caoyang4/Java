@@ -5,8 +5,8 @@ package src.juc.thread;
  * @author caoyang
  */
 public class TestReorder {
-    private  static int x =0, y =0;
-    private  static int a =0, b =0;
+    private static int x =0, y =0;
+    private static int a =0, b =0;
 
     public static void main(String[] args) throws InterruptedException {
         int i =0;
@@ -31,7 +31,7 @@ public class TestReorder {
             t1.join();
             t2.join();
 
-            String result ="第" + i +"次 (" +x +"," +y +"）";
+            String result ="第" + i +"次, (x,y): (" +x +"," +y +"）";
             if(x == 0 && y == 0) {
                 System.out.println(result + "，发生指令重排序！");
                 break;
