@@ -5,7 +5,7 @@ import java.lang.reflect.*;
 /**
  * @author caoyang
  */
-public class TestReflection {
+public class YoungReflectionTest {
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException, NoSuchMethodException, InvocationTargetException {
         Class cls1 = Class.forName("java.lang.String");
 

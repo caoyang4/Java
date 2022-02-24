@@ -7,6 +7,16 @@ import java.util.*;
 
 public class TestIO {
     public static void main(String[] args) throws Exception {
+        // try-with-resource 用法
+        try(FileInputStream input = new FileInputStream("/Users/caoyang/caoyang_dev/stu")) {
+            int data = input.read();
+            while(data != -1){
+                System.out.print((char) data);
+                data = input.read();
+            }
+        }
+
+        System.out.println();
         List<Student> list = new ArrayList<>();
         Student s1 = new Student("001", "james");
         Student s2 = new Student("002", "tom", "0806");

@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
  * 反射机制破坏破坏不可变性
  * @author caoyang
  */
-public class StringReflection {
+public class StringReflectionTest {
     public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
         String str0 = "young";
         String name = "young";
