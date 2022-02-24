@@ -42,10 +42,12 @@ public class Leetcode18 {
                     int rightV = nums[right];
                     int r = curr1 + curr2 + nums[left] + nums[right];
                     if (r < target){
+                        // 左去重
                         while (left < right && nums[left] == leftV){
                             left++;
                         }
                     }else if(r > target){
+                        // 右去重
                         while (left < right && nums[right] == rightV){
                             right--;
                         }
@@ -56,6 +58,7 @@ public class Leetcode18 {
                         list.add(nums[left]);
                         list.add(nums[right]);
                         result.add(list);
+                        // 左右去重
                         while (left < right && nums[left] == leftV){
                             left++;
                         }
