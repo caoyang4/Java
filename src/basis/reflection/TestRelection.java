@@ -1,5 +1,7 @@
 package src.basis.reflection;
 
+import sun.misc.Unsafe;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -74,6 +76,11 @@ public class TestRelection {
         System.out.println(dogy);
         name.set(dogy, "gouzi");
         System.out.println(dogy);
+        System.out.println("函数调用");
+        Method method = clz.getDeclaredMethod("wang", String.class);
+        method.setAccessible(true);
+        method.invoke(dogy, "danshengou");
+
     }
 }
 
@@ -133,5 +140,9 @@ class Dog extends Animal implements I1, I2 {
                 "name='" + name + '\'' +
                 ", weight=" + weight +
                 '}';
+    }
+
+    private void wang(String name){
+        System.out.println(name + " wang wang wang");
     }
 }
