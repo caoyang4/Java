@@ -1,11 +1,12 @@
-package src.juc.executors.thread.threadLocalOOM;
+package src.juc.executors.thread.threadProblem;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * - ThreadLocal 被回收
+ * ThreadLocal内存泄漏问题
+ * - ThreadLocal被回收
  * - 线程被复用
  * - 线程复用后未调用 ThreadLocal 的 set/get/remove 方法
  */

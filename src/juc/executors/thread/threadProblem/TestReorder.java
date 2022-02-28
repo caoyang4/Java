@@ -1,4 +1,4 @@
-package src.juc.executors.thread;
+package src.juc.executors.thread.threadProblem;
 
 /**
  * 指令重排序验证

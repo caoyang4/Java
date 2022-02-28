@@ -1,5 +1,9 @@
-package src.juc.executors.thread;
+package src.juc.executors.thread.threadProblem;
 
+/**
+ * 可见性问题
+ * @author caoyang
+ */
 public class TestVisible {
     public static void main(String[] args){
         A a = new A();
