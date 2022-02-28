@@ -7,7 +7,7 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class TestLockSupport2 {
     public static void main(String[] args) throws InterruptedException {
-        ThreadA thread = new ThreadA(Thread.currentThread());
+        TestLockSupport2Thread thread = new TestLockSupport2Thread(Thread.currentThread());
         thread.start();
         System.out.println("start to park");
         LockSupport.park("TestLockSupport");
@@ -15,9 +15,9 @@ public class TestLockSupport2 {
     }
 }
 
-class ThreadA extends Thread{
+class TestLockSupport2Thread extends Thread{
     private Object object;
-    public ThreadA(Object obj){
+    public TestLockSupport2Thread(Object obj){
         this.object = obj;
     }
 
