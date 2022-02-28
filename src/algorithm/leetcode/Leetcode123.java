@@ -25,7 +25,7 @@ public class Leetcode123 {
      * @return
      */
     public static int maxProfit(int[] prices) {
-        if(prices == null && prices.length == 1){
+        if(prices == null || prices.length == 1){
             return 0;
         }
         int[][] f = new int[prices.length+1][5+1];
