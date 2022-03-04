@@ -12,8 +12,10 @@ import static java.lang.System.*;
  */
 public class TestCyclicBarrier {
     public static void main(String[] args) {
-        CyclicBarrier barrier = new CyclicBarrier(20,
-                () -> out.println("满人，发车！！！"));
+        CyclicBarrier barrier = new CyclicBarrier(
+                20,
+                () -> out.println("满人，发车！！！")
+        );
 
         for(int i=0; i<100; i++){
             new Thread(() -> {
