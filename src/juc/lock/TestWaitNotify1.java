@@ -1,9 +1,12 @@
 package src.juc.lock;
 
-public class TestWaitNotify {
+/**
+ * @author caoyang
+ */
+public class TestWaitNotify1 {
 
     public static void main(String[] args) throws InterruptedException {
-        TestWaitNotifyThread thread = new TestWaitNotifyThread();
+        TestWaitNotify1Thread thread = new TestWaitNotify1Thread();
         synchronized (thread){
             thread.start();
             Thread.sleep(000);
@@ -17,7 +20,7 @@ public class TestWaitNotify {
 
 }
 
-class TestWaitNotifyThread extends Thread{
+class TestWaitNotify1Thread extends Thread{
     @Override
     public void run() {
         synchronized (this){
