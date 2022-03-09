@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
  * - ThreadLocal被回收
  * - 线程被复用
  * - 线程复用后未调用 ThreadLocal 的 set/get/remove 方法
+ * @author caoyang
  */
 
 public class MyThreadLocalOOM {
