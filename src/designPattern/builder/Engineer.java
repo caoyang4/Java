@@ -44,6 +44,7 @@ public class Engineer implements PersonBuilder{
     }
 
     public static void main(String[] args) {
+        // 链式编程
         Engineer engineer = new Engineer().buildLocation().buildHeight().buildWeight().build();
         System.out.println(engineer);
     }

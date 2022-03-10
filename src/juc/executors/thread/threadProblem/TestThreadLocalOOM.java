@@ -23,7 +23,7 @@ public class TestThreadLocalOOM {
             executorService.execute(() -> {
                 threadLocal.set(new TestThreadLocalOOM().addBigList());
                 Thread t = Thread.currentThread();
-                System.out.println(Thread.currentThread().getName());
+                System.out.println(Thread.currentThread().getName() + ": " + threadLocal.get().size());
                 // 执行remove()，可以避免threadLocalOOM
                 // threadLocal.remove();
             });
@@ -50,7 +50,7 @@ public class TestThreadLocalOOM {
         return params;
     }
 
-    class User {
+    static class User {
         private String userName;
         private String password;
         private String sex;
@@ -61,6 +61,16 @@ public class TestThreadLocalOOM {
             this.password = password;
             this.sex = sex;
             this.age = age;
+        }
+
+        @Override
+        public String toString() {
+            return "User{" +
+                    "userName='" + userName + '\'' +
+                    ", password='" + password + '\'' +
+                    ", sex='" + sex + '\'' +
+                    ", age=" + age +
+                    '}';
         }
     }
 }
