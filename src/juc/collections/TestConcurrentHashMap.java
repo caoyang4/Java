@@ -10,12 +10,12 @@ import java.util.concurrent.*;
  * Hashtable，synchronizedHashMap，ConcurrentHashMap
  * @author caoyang
  */
-public class TestMapTimeCost {
+public class TestConcurrentHashMap {
     public static void main(String[] args) throws InterruptedException {
         Map<String, Object> hashtable = new Hashtable<>();
         Map<String, Object> synchronizedMap = Collections.synchronizedMap(new HashMap<>());
         Map<String, Object> concurrentHashMap = new ConcurrentHashMap<>();
-        TestMapTimeCost test = new TestMapTimeCost();
+        TestConcurrentHashMap test = new TestConcurrentHashMap();
         System.out.println("hashtable cost " + test.timeAvgCostForGetPut(hashtable));
         System.out.println("synchronizedMap cost " + test.timeAvgCostForGetPut(synchronizedMap));
         System.out.println("concurrentHashMap cost " + test.timeAvgCostForGetPut(concurrentHashMap));

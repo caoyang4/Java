@@ -1,4 +1,4 @@
-package src.juc.executors.threadPool;
+package src.juc.executors.threadPool.selfThreadPool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

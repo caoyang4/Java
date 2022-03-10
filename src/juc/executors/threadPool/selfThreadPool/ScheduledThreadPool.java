@@ -1,4 +1,4 @@
-package src.juc.executors.threadPool;
+package src.juc.executors.threadPool.selfThreadPool;
 
 import java.util.HashMap;
 import java.util.Map;
