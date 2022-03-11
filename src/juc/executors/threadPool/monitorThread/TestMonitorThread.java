@@ -13,9 +13,9 @@ public class TestMonitorThread {
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
                 2,
                 4,
-                10,
+                20,
                 TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(4),
+                new ArrayBlockingQueue<>(5),
                 threadFactory,
                 rejectedExecutionHandler
         );
@@ -25,7 +25,7 @@ public class TestMonitorThread {
         for (int i = 1; i <= workerSize; i++) {
             executor.execute(new WorkerThread("task"+i));
         }
-        Thread.sleep(3000);
+        Thread.sleep(5000);
         monitorThread.shutdown();
         Thread.sleep(5000);
         executor.shutdown();
