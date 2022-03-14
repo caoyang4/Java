@@ -29,34 +29,40 @@ public class Leetcode10 {
     public static boolean isMatch(String s, String p) {
         int m = s.length();
         int n = p.length();
-
-        boolean[][] f = new boolean[m + 1][n + 1];
-        f[0][0] = true;
-        for (int i = 0; i <= m; ++i) {
-            for (int j = 1; j <= n; ++j) {
-                if (p.charAt(j - 1) == '*') {
-                    f[i][j] = f[i][j - 2];
-                    if (matches(s, p, i, j - 1)) {
-                        f[i][j] = f[i][j] || f[i - 1][j];
+        char[] chars1 = s.toCharArray();
+        char[] chars2 = p.toCharArray();
+        // dp[i][j]表示 s[0:i] 与 p[0:j] 是否匹配
+        boolean[][] dp = new boolean[m+1][n+1];
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
+                if (i == 0 && j == 0){
+                    // 空串互相匹配
+                    dp[i][j] = true;
+                    continue;
+                }
+                if(j == 0){
+                    dp[i][j] = false;
+                    continue;
+                }
+                if(chars2[j-1] != '*'){
+                    // p[i-1]!='*'时，判断p[i-1]是否为'.'，或是否两两相等
+                    if(i > 0 && (chars1[i-1] == chars2[j-1] || chars2[j-1] == '.')){
+                        dp[i][j] |= dp[i-1][j-1];
                     }
                 } else {
-                    if (matches(s, p, i, j)) {
-                        f[i][j] = f[i - 1][j - 1];
+                    if (j > 1){
+                        // 直接忽略，形如 "a" 与 "ab*"
+                        dp[i][j] |= dp[i][j-2];
+                        // p[i-1]='*'时，判断前一个字符是否是'.'，或是否两两匹配
+                        if (i > 0 && (chars1[i-1] == chars2[j-2] || chars2[j-2] == '.')){
+                            dp[i][j] |= dp[i-1][j];
+                        }
                     }
+
                 }
             }
         }
-        return f[m][n];
-    }
-
-    public static boolean matches(String s, String p, int i, int j) {
-        if (i == 0) {
-            return false;
-        }
-        if (p.charAt(j - 1) == '.') {
-            return true;
-        }
-        return s.charAt(i - 1) == p.charAt(j - 1);
+        return dp[m][n];
     }
 
 

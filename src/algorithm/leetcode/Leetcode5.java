@@ -35,7 +35,6 @@ public class Leetcode5 {
                     k = i;
                     if(! left.isEmpty()) { j = left.get(0);}
                     left = new ArrayList<>();
-
                 }
                 j++;
             }
