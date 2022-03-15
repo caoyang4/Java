@@ -7,10 +7,10 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.System.*;
 
 /**
- * Phase
+ * Phaser
  * @author caoyang
  */
-public class TestPhase {
+public class TestPhaser {
     final static int BOUND = 1000;
     final static int GUEST_NUM = 5;
     static Random random = new Random();
