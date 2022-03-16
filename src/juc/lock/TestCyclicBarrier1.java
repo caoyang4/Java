@@ -10,7 +10,7 @@ import static java.lang.System.*;
  * 栅栏
  * @author caoyang
  */
-public class TestCyclicBarrier {
+public class TestCyclicBarrier1 {
     public static void main(String[] args) {
         CyclicBarrier barrier = new CyclicBarrier(
                 20,
