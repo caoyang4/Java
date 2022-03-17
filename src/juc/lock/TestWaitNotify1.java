@@ -25,6 +25,8 @@ class TestWaitNotify1Thread extends Thread{
     public void run() {
         synchronized (this){
             System.out.println("begin to notify");
+            //  notify()或者notifyAll()调用时并不会真正释放对象锁,
+            //  必须等到synchronized方法或者语法块执行完才真正释放锁.
             notify();
             System.out.println("end to notify");
         }
