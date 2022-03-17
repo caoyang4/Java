@@ -10,7 +10,7 @@ import static java.lang.System.*;
  * Phaser
  * @author caoyang
  */
-public class TestPhaser {
+public class TestPhaser1 {
     final static int BOUND = 1000;
     final static int GUEST_NUM = 5;
     static Random random = new Random();
