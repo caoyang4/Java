@@ -6,6 +6,7 @@ import java.util.concurrent.*;
 /**
  * 同步队列
  * 内部同时只能够容纳单个元素，相当于一个汇合点
+ * SynchronousQueue是交给一个数据，Exchanger是交换两个数据
  * @author caoyang
  */
 public class TestSynchronousQueue {
@@ -24,7 +25,8 @@ public class TestSynchronousQueue {
             }
         }, "Producer");
 
-        producer.start(); // starting publisher thread
+        // starting publisher thread
+        producer.start();
 
         Thread consumer = new Thread(() -> {
             try {
@@ -37,7 +39,8 @@ public class TestSynchronousQueue {
             }
         }, "Consumer");
 
-        consumer.start(); // starting consumer thread
+        // starting consumer thread
+        consumer.start();
 
 
     }
