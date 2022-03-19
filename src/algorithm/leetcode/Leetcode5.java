@@ -18,7 +18,7 @@ public class Leetcode5 {
         String res = "";
         for (int i = chars.length - 1; i > 0; i--) {
             int k = i;
-            int j=0;
+            int j = 0;
             String temp = chars[i] + "";
             List<Integer> left = new ArrayList<>();
             while(j < i){

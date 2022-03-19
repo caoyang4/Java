@@ -38,4 +38,8 @@ public class Leetcode24 {
         }
         return cursor;
     }
+
+    public static void main(String[] args) {
+
+    }
 }

@@ -44,4 +44,8 @@ public class Leetcode25 {
         tmp.next = tail;
         return result.next;
     }
+
+    public static void main(String[] args) {
+
+    }
 }

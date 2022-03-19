@@ -49,4 +49,8 @@ public class Leetcode23 {
         }
         return result.next;
     }
+
+    public static void main(String[] args) {
+
+    }
 }

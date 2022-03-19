@@ -40,4 +40,8 @@ public class Leetcode21 {
         }
         return result.next;
     }
+
+    public static void main(String[] args) {
+
+    }
 }

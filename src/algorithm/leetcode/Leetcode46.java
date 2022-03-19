@@ -59,4 +59,7 @@ public class Leetcode46 {
         }
     }
 
+    public static void main(String[] args) {
+
+    }
 }
