@@ -48,4 +48,8 @@ public class Leetcode31 {
         nums[j] = nums[i]^nums[j];
         nums[i] = nums[i]^nums[j];
     }
+
+    public static void main(String[] args) {
+
+    }
 }
