@@ -13,6 +13,12 @@ import java.util.Arrays;
  * @author caoyang
  */
 public class Leetcode41 {
+    /**
+     * 排序+遍历
+     * O(N) + O(1)
+     * @param nums
+     * @return
+     */
     public static int firstMissingPositive(int[] nums) {
         Arrays.sort(nums);
         if (nums[0] > 1 || nums[nums.length-1] <= 0){
