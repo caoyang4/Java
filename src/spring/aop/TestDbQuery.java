@@ -12,7 +12,7 @@ import java.sql.Statement;
 /**
  * @author caoyang
  */
-public class TestDbConnection {
+public class TestDbQuery {
     public static void main(String[] args) throws SQLException {
         ApplicationContext ctx = new FileSystemXmlApplicationContext("src/spring/jdbc.xml");
         DataSource dataSource = ctx.getBean("dataSource", DataSource.class);
