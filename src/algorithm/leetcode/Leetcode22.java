@@ -33,9 +33,11 @@ public class Leetcode22 {
             return new ArrayList<>();
         }
         List<List<String>> result = new ArrayList<>();
+        // n = 0
         List<String> list0 = new ArrayList<>();
         list0.add("");
         result.add(list0);
+        // n = 1
         List<String> list1 = new ArrayList<>();
         list1.add("()");
         result.add(list1);
