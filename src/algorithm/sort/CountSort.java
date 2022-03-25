@@ -6,14 +6,14 @@ import static java.lang.System.out;
 
 /**
  * 计数排序
- * 继续桶排序思想
+ * 非比较排序，基于桶排序思想
  * 适用范围：数据量大范围小
  *  员工年龄排序，高考分数排序
  * @author caoyang
  */
 public class CountSort {
     public static void main(String[] args) {
-        int[] arr = new int[]{9, 8, 7, 7, 6, 6, 5};
+        int[] arr = new int[]{9, 8, 7, 7, 6, 6, 5, 1};
         out.println("原始数组：");
         SortUtils.printArr(arr);
         sort(arr);
@@ -61,7 +61,11 @@ public class CountSort {
         // 创建结果数组
         int[] result = new int[arr.length];
         for (int i = 0; i < arr.length; i++) {
-            result[count[arr[i]-min]-- - 1] = arr[i];
+            result[--count[arr[i]-min]] = arr[i];
+        }
+        // 原始数组中的相同元素按照本来的顺序的排列，从后往前遍历
+        for (int i=arr.length-1; i >= 0; i--) {
+            result[--count[arr[i] - min]] = arr[i];
         }
         return result;
     }
