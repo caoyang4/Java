@@ -2,6 +2,8 @@ package src.algorithm.sort;
 
 import src.algorithm.utils.SortUtils;
 
+import java.util.Random;
+
 import static java.lang.System.out;
 
 /**
@@ -13,16 +15,25 @@ import static java.lang.System.out;
  */
 public class CountSort {
     public static void main(String[] args) {
-        int[] arr = new int[]{9, 8, 7, 7, 6, 6, 5, 1};
-        out.println("原始数组：");
-        SortUtils.printArr(arr);
-        sort(arr);
-        // arr = sort1(arr);
-        out.println("选择排序后：");
-        SortUtils.printArr(arr);
+        final int times = 10;
+        for (int i = 0; i < times; i++) {
+            out.println("第"+(i+1)+"次测试：");
+            final int len = 50;
+            int[] arr = new int[len];
+            for (int j = 0; j < len; j++) {
+                arr[j] = new Random().nextInt(100);
+            }
+            out.println("原始数组：");
+            SortUtils.printArr(arr);
+            // sort1(arr);
+            arr = sort(arr);
+            out.println("计数排序后：");
+            SortUtils.printArr(arr);
+            out.println();
+        }
     }
 
-    public static void sort(int[] arr){
+    public static void sort1(int[] arr){
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         for (int value : arr) {
@@ -42,7 +53,7 @@ public class CountSort {
             }
         }
     }
-    public static int[] sort1(int[] arr){
+    public static int[] sort(int[] arr){
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         for (int value : arr) {
@@ -60,9 +71,6 @@ public class CountSort {
         }
         // 创建结果数组
         int[] result = new int[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            result[--count[arr[i]-min]] = arr[i];
-        }
         // 原始数组中的相同元素按照本来的顺序的排列，从后往前遍历
         for (int i=arr.length-1; i >= 0; i--) {
             result[--count[arr[i] - min]] = arr[i];

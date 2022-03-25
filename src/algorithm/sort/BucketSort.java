@@ -5,6 +5,7 @@ import src.algorithm.utils.SortUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import static java.lang.System.out;
 
@@ -14,12 +15,21 @@ import static java.lang.System.out;
  */
 public class BucketSort {
     public static void main(String[] args) {
-        int[] arr = new int[]{9, 5, 4, 8, 3, 2 ,5, 1, 12, 15, 19};
-        out.println("原始数组：");
-        SortUtils.printArr(arr);
-        sort(arr);
-        out.println("选择排序后：");
-        SortUtils.printArr(arr);
+        final int times = 10;
+        for (int i = 0; i < times; i++) {
+            out.println("第"+(i+1)+"次测试：");
+            final int len = 50;
+            int[] arr = new int[len];
+            for (int j = 0; j < len; j++) {
+                arr[j] = new Random().nextInt(100);
+            }
+            out.println("原始数组：");
+            SortUtils.printArr(arr);
+            sort(arr);
+            out.println("桶排序后：");
+            SortUtils.printArr(arr);
+            out.println();
+        }
     }
     public static void sort(int[] arr){
         int max = Integer.MIN_VALUE;
