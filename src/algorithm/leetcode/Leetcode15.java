@@ -27,7 +27,7 @@ public class Leetcode15 {
         Arrays.sort(nums);
 
         for (int i = 0; i < nums.length; i++) {
-            // 若 nums[i]>0nums[i]>0，因为已经排序好，所以后面不可能有三个数加和等于 00，直接返回结果
+            // 若 nums[i]>0，因为已经排序好，所以后面不可能有三个数加和等于0，直接返回结果
             if(nums[i] > 0){
                 return res;
             }

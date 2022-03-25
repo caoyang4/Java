@@ -23,7 +23,7 @@ public class Leetcode46 {
      * @param nums
      * @return
      */
-    public List<List<Integer>> permute(int[] nums) {
+    public static List<List<Integer>> permute(int[] nums) {
         List<List<Integer>> result = new ArrayList<>();
         int len = nums.length;
         if (nums.length == 0){
@@ -36,7 +36,7 @@ public class Leetcode46 {
         return result;
     }
 
-    public void dfs(List<List<Integer>> result, Deque<Integer> path, int[] nums, boolean[] used, int depth){
+    public static void dfs(List<List<Integer>> result, Deque<Integer> path, int[] nums, boolean[] used, int depth){
         // 递归终止条件
         if(depth == nums.length){
             result.add(new ArrayList<>(path));
@@ -60,6 +60,10 @@ public class Leetcode46 {
     }
 
     public static void main(String[] args) {
-
+        int[] nums = {1,2,3};
+        List<List<Integer>> result = permute(nums);
+        for (List<Integer> integers : result) {
+            System.out.println(integers);
+        }
     }
 }
