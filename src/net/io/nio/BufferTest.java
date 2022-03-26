@@ -3,6 +3,7 @@ package src.net.io.nio;
 import java.nio.ByteBuffer;
 
 /**
+ * 缓冲区
  * @author caoyang
  */
 public class BufferTest {
@@ -48,5 +49,6 @@ public class BufferTest {
         System.out.println("============");
         byteBuffer.clear();
         System.out.println(byteBuffer);
+        System.out.println("after clear, remaining " + byteBuffer.remaining());
     }
 }

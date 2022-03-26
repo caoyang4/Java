@@ -13,6 +13,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <!-- 依赖库 -->
     <orderEntry type="library" exported="" name="openjdk.jol.core" level="project" />
     <orderEntry type="library" exported="" name="redis.clients.jedis" level="project" />
     <orderEntry type="library" exported="" name="mysql.connector.java" level="project" />
