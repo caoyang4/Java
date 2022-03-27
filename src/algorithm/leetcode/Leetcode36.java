@@ -10,7 +10,7 @@ package src.algorithm.leetcode;
  * @author caoyang
  */
 public class Leetcode36 {
-    public boolean isValidSudoku(char[][] board) {
+    public static boolean isValidSudoku(char[][] board) {
         for(int i=0; i<9; i++){
             for(int j=0; j<9; j++){
                 if(board[i][j] != '.'){
@@ -23,7 +23,7 @@ public class Leetcode36 {
         return true;
     }
 
-    public boolean isValid(char[][] board, int row, int col){
+    public static boolean isValid(char[][] board, int row, int col){
         for(int i=0; i<9; i++){
             if(board[i][col] == board[row][col] && row != i){
                 return false;
@@ -43,5 +43,9 @@ public class Leetcode36 {
             }
         }
         return true;
+    }
+
+    public static void main(String[] args) {
+
     }
 }
