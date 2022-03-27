@@ -51,18 +51,18 @@ public class Leetcode37 {
     public boolean isUsed(char[][] board, int row, int col, char digit){
         int x = row / 3;
         int y = col / 3;
-        // 判断数字在行是否有效
+
         for (int i = 0; i < board.length; i++) {
+            // 判断数字在行是否有效
             if(board[row][i] == digit){
                 return true;
             }
-        }
-        // 判断数字在列是否有效
-        for (int i = 0; i < board.length; i++) {
+            // 判断数字在列是否有效
             if(board[i][col] == digit){
                 return true;
             }
         }
+
         // 判断数字在3X3小方块是否有效
         for (int i = x*3; i < (x+1)*3; i++) {
             for (int j = y*3; j < (y+1)*3; j++) {
