@@ -29,8 +29,7 @@ public class Leetcode51 {
         }
         for (int j = 0; j < n; j++) {
             if(pieces.get(start).charAt(j) == 'Q'){
-                // 棋盘 [i,j] 上已有皇后，跳出该列，找下一行
-                break;
+                continue;
             }
             if(isValid(pieces, n, start, j)){
                 String piece = fillQueens(pieces.get(start), j, "Q");
@@ -52,11 +51,6 @@ public class Leetcode51 {
      * 不能同行
      * 不能同列
      * 不能同斜线
-     * @param pieces
-     * @param n
-     * @param row
-     * @param col
-     * @return
      */
     public static boolean isValid(List<String> pieces, int n, int row, int col){
         for (int i = 0; i < n; i++) {
