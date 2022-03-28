@@ -4,7 +4,7 @@ package src.juc.executors.thread.threadProblem;
  * 可见性问题
  * @author caoyang
  */
-public class TestVisible {
+public class TestVisible1 {
     public static void main(String[] args){
         A a = new A();
 
@@ -16,8 +16,8 @@ public class TestVisible {
 
         new Thread(() -> {
             while (true){
-                System.out.println(a.getI());
-                if(a.getI() == 0){
+                System.out.println(a.i);
+                if(a.i == 0){
                     System.out.println("it happens visible problem ...");
                     System.exit(0);
                 }
@@ -27,7 +27,7 @@ public class TestVisible {
 }
 
 class A{
-    private int i;
+    public int i;
 
     public void setI() {
         i = 0;
@@ -35,7 +35,4 @@ class A{
         i = j;
     }
 
-    public int getI() {
-        return i;
-    }
 }
