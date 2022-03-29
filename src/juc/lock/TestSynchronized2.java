@@ -1,8 +1,11 @@
 package src.juc.lock;
 
 
-public class TestSynchronized implements Runnable {
-    static TestSynchronized instence = new TestSynchronized();
+/**
+ * @author caoyang
+ */
+public class TestSynchronized2 implements Runnable {
+    static TestSynchronized2 instence = new TestSynchronized2();
     // 创建2把锁
     Object block1 = new Object();
     Object block2 = new Object();
@@ -13,7 +16,7 @@ public class TestSynchronized implements Runnable {
         synchronized (block1) {
             System.out.println("block1锁,我是线程" + Thread.currentThread().getName());
             try {
-                Thread.sleep(3000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -23,7 +26,7 @@ public class TestSynchronized implements Runnable {
         synchronized (block2) {
             System.out.println("block2锁,我是线程" + Thread.currentThread().getName());
             try {
-                Thread.sleep(3000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
