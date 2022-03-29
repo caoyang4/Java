@@ -19,9 +19,11 @@ public class Leetcode64 {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 if (i == 0 && j > 0){
+                    // 第 0 行，只能向右
                     dp[i][j] = dp[i][j-1] + grid[i][j];
                 }
                 else if (i > 0 && j == 0){
+                    // 第 0 列，只能向下
                     dp[i][j] = dp[i-1][j] + grid[i][j];
                 }
                 else if (i > 0 && j > 0){
