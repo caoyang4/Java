@@ -3,6 +3,11 @@ package src.algorithm.leetcode;
 import java.util.Deque;
 import java.util.LinkedList;
 
+/**
+ * 71. 简化路径
+ * 给你一个字符串 path ，表示指向某一文件或目录的 Unix 风格 绝对路径 （以 '/' 开头），请你将其转化为更加简洁的规范路径
+ * @author caoyang
+ */
 public class Leetcode71 {
     /**
      * 栈解法
