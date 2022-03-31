@@ -34,7 +34,7 @@ public class Leetcode42 {
         }
         for (int i = 1; i < len-1; i++) {
             int min = Math.min(leftMaxHeight[i], rightMaxHeight[i]);
-            // 较矮柱子低于当前柱子，才能盛水
+            // 较矮柱子高于当前柱子，才能盛水
             if(min > height[i]){
                 sum += (min - height[i]);
             }
