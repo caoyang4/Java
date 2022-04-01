@@ -5,6 +5,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * park 函数调用了两次 setBlocker()
+ * interrupt打断标记为 true 时，park 失效
  * @author caoyang
  */
 public class TestLockSupport1 {
