@@ -13,6 +13,11 @@ public class TestObject {
         System.out.println(ClassLayout.parseInstance(obj).toPrintable());
         System.out.println();
 
+        // obj的对象头占8字节，class指针占4字节, 数组长度占4字节，1个对象占1*4=4字节，补齐4字节，总共 8+4+4+4+[4]=24 字节
+        Object[] objs = new Object[1];
+        System.out.println(ClassLayout.parseInstance(objs).toPrintable());
+        System.out.println();
+
         // subObj的对象头占8字节，class指针占4字节，String成员变量占4字节，long成员变量占8字节,无需补齐，总共 8+4+4+8=24 字节
         ChildTestObject childObj = new ChildTestObject();
         System.out.println(ClassLayout.parseInstance(childObj).toPrintable());
