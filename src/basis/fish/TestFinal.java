@@ -24,5 +24,15 @@ public class TestFinal {
         System.out.println("k="+t1.k1+" k2="+t1.k2);
         TestFinal t2 = new TestFinal();
         System.out.println("k="+t2.k1+" k2="+t2.k2);
+        // 引用不可变，引用指向的对象可能会变
+        final A a = new A();
+        System.out.println(a.i);
+        a.i = 2;
+        System.out.println(a.i);
+    }
+    static class A {
+        public int i;
     }
 }
+
+

@@ -3,6 +3,10 @@ package src.basis.fish;
 import org.openjdk.jol.info.ClassLayout;
 
 /**
+ * 调用 hashcode 之后，可撤销偏向锁状态
+ * 轻量级锁，hash 存在栈帧锁记录
+ * 重量级锁，hash 存在monitor对象中
+ *
  * Object obj = new Object() 占了多少字节
  * @author caoyang
  */
