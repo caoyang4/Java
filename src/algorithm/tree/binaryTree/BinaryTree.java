@@ -51,6 +51,7 @@ public class BinaryTree<K extends Comparable<K>, V> {
 
     /**
      * 中序遍历
+     * 左根右
      */
     public void middleTraversal(Node root){
         if(root != null){
@@ -62,6 +63,7 @@ public class BinaryTree<K extends Comparable<K>, V> {
 
     /**
      * 前序遍历
+     * 根左右
      * @param root
      */
     public void preTraversal(Node root){
@@ -74,6 +76,7 @@ public class BinaryTree<K extends Comparable<K>, V> {
 
     /**
      * 后序遍历
+     * 左右根
      * @param root
      */
     public void postTraversal(Node root){
