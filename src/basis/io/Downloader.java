@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 public class Downloader {
     public static List<String> download() throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL("http://www.baidu.com").openConnection();
+        HttpURLConnection conn = (HttpURLConnection) new URL("https://www.tianyancha.com").openConnection();
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))){
             String line;
