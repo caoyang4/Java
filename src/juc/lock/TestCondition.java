@@ -32,6 +32,7 @@ public class TestCondition {
         lock.lock();
         try {
             System.out.println("begin to await");
+            // The lock associated with this condition is atomically released
             condition.await();
             System.out.println("end to await");
         } catch (InterruptedException e) {
@@ -44,7 +45,7 @@ public class TestCondition {
     public static void main(String[] args) {
         TestCondition test = new TestCondition();
         ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.execute(() -> test.doAwait());
-        executorService.execute(() -> test.doSendSingal());
+        executorService.execute(test::doAwait);
+        executorService.execute(test::doSendSingal);
     }
 }
