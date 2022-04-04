@@ -3,8 +3,13 @@ package src.juc.pratice;
 import lombok.extern.slf4j.Slf4j;
 import src.juc.JucUtils;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * 死锁——哲学家就餐问题
+ * 顺序加锁可解决死锁，但可能引发饥饿问题
+ * 锁超时 lock.tryLock()
+ * 打断线程 lock.lockInterruptibly();
  * @author caoyang
  */
 public class PhilosopherDinner {
@@ -18,12 +23,10 @@ public class PhilosopherDinner {
         new Philosopher("老子", stick2, stick3).start();
         new Philosopher("墨子", stick3, stick4).start();
         new Philosopher("苏格拉底", stick4, stick5).start();
-        // 顺序加锁可解决死锁，但可能引发饥饿问题
-        /*new Philosopher("亚里士多德", stick1, stick5).start();*/
         new Philosopher("亚里士多德", stick5, stick1).start();
     }
 }
-final class Chopstick{
+final class Chopstick extends ReentrantLock {
     private String name;
 
     public Chopstick(String name) {
@@ -49,15 +52,23 @@ class Philosopher extends Thread{
 
     private void eat(){
         log.info("{}获得筷子【{}】和【{}】，可以吃饭", name, left.getName(), right.getName());
+        JucUtils.sleepMillSeconds(500);
     }
 
     @Override
     public void run() {
         while (true) {
-            synchronized (left){
-                synchronized (right){
-                    JucUtils.sleepMillSeconds(200);
-                    eat();
+            if(left.tryLock()){
+                try {
+                    if (right.tryLock()){
+                        try {
+                            eat();
+                        } finally {
+                            right.unlock();
+                        }
+                    }
+                } finally {
+                    left.unlock();
                 }
             }
         }

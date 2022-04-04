@@ -17,15 +17,16 @@ public class TestSemaphore1 {
         new Thread(() -> {
             try {
                 System.out.println("T1 start running...");
-                // 阻塞，信号量 -1
+                // 若T1 获取 2 个信号量，T2此时阻塞
                 semaphore.acquire(2);
                 System.out.println("T1 end running!!!");
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                System.out.println("availablePermits: "+semaphore.availablePermits());
+                System.out.println("before T1 release, availablePermits: "+semaphore.availablePermits());
                 semaphore.release();
+                System.out.println("after T1 release, availablePermits: "+semaphore.availablePermits());
             }
         }).start();
 
