@@ -7,8 +7,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class TestTwoPhaseInterrupt {
     public Thread monitor;
+    private volatile boolean start = false;
 
     public void start(){
+        if(start){
+            return;
+        }
+        synchronized (this) {
+            if (start) {
+                return;
+            }
+            start = true;
+        }
         monitor = new Thread(() -> {
             while (true) {
                 if(monitor.isInterrupted()){
@@ -26,7 +36,7 @@ public class TestTwoPhaseInterrupt {
             }
         });
         monitor.start();
-
+        System.out.println("创建监控线程...");
     }
 
     public void stop(){
@@ -43,6 +53,7 @@ public class TestTwoPhaseInterrupt {
 
     public static void main(String[] args) throws InterruptedException {
         TestTwoPhaseInterrupt test = new TestTwoPhaseInterrupt();
+        test.start();
         test.start();
         TimeUnit.SECONDS.sleep(5);
         test.stop();

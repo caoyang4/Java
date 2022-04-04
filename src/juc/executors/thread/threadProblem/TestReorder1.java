@@ -4,7 +4,7 @@ package src.juc.executors.thread.threadProblem;
  * 指令重排序验证
  * @author caoyang
  */
-public class TestReorder {
+public class TestReorder1 {
     private static int x =0, y =0;
     private static int a =0, b =0;
 
