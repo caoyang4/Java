@@ -18,7 +18,7 @@ public class PhilosopherDinner {
         new Philosopher("老子", stick2, stick3).start();
         new Philosopher("墨子", stick3, stick4).start();
         new Philosopher("苏格拉底", stick4, stick5).start();
-        // 顺序加锁可解决死锁
+        // 顺序加锁可解决死锁，但可能引发饥饿问题
         /*new Philosopher("亚里士多德", stick1, stick5).start();*/
         new Philosopher("亚里士多德", stick5, stick1).start();
     }
