@@ -1,5 +1,7 @@
 package src.juc.atomic;
 
+import src.juc.JucUtils;
+
 import java.util.concurrent.atomic.AtomicStampedReference;
 
 /**
@@ -11,12 +13,10 @@ public class TestAtomicStampedReference {
     public static void main(String[] args) {
         Thread main = new Thread(() -> {
             System.out.println(Thread.currentThread().getName() +",初始值 a = " + atomicStampedRef.getReference());
-            int stamp = atomicStampedRef.getStamp(); //获取当前标识别
-            try {
-                Thread.sleep(1000); //等待1秒 ，以便让干扰线程执行
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            //获取当前标识别
+            int stamp = atomicStampedRef.getStamp();
+            //等待1秒 ，以便让干扰线程执行
+            JucUtils.sleepSeconds(1);
             boolean isCASSuccess = atomicStampedRef.compareAndSet(1,2,stamp,stamp +1);  //此时expectedReference未发生改变，但是stamp已经被修改了,所以CAS失败
             System.out.println(Thread.currentThread().getName() +", CAS操作结果: " + isCASSuccess);
         },"主操作线程");

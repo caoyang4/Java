@@ -3,54 +3,70 @@ package src.juc.pratice;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 生产者消费者队列
+ * 维护consumer producer两个等待队列
  * @author caoyang
  */
-public class TestConsumerProducer<T> {
+public class TestConsumerProducer1<T> {
     private static int size = 0;
-    final static int MAX = 10;
+    final static int MAX = 1000;
     final static int CONSUMER_NUM = 10;
     final static int PRODUCER_NUM = 2;
     List<T> lists = new ArrayList<>();
-    public synchronized void put(T t){
-        while (lists.size() == MAX){
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    ReentrantLock lock = new ReentrantLock();
+    Condition consumer = lock.newCondition();
+    Condition producer = lock.newCondition();
+
+    public void put(T t){
+        lock.lock();
+        try {
+            while (size == MAX) {
+                producer.await();
             }
+            lists.add(t);
+            size++;
+            consumer.signalAll();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
-        lists.add(t);
-        size++;
-        // 唤醒所有线程，无法精确到消费者线程
-        this.notifyAll();
     }
 
-    public synchronized T get(){
+    public T get(){
         T t = null;
-        while (lists.size() == 0){
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        lock.lock();
+        try {
+            while (size == 0) {
+                consumer.await();
             }
+            t = lists.remove(0);
+            size--;
+            producer.signalAll();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
-        t = lists.remove(0);
-        size--;
-        // 唤醒所有线程，无法精确到生产者线程
-        this.notifyAll();
         return t;
     }
 
-    public synchronized int getCount(){
-        return size;
+    public int getCount(){
+        int count = 0;
+        lock.lock();
+        try{
+            count = size;
+        } finally {
+            lock.unlock();
+        }
+        return count;
     }
 
     public static void main(String[] args) {
-        TestConsumerProducer<String> test = new TestConsumerProducer();
-
+        TestConsumerProducer1<String> test = new TestConsumerProducer1();
         //启动生产者线程
         for (int i = 0; i < PRODUCER_NUM; i++) {
             new Thread(() -> {
@@ -66,7 +82,6 @@ public class TestConsumerProducer<T> {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         // 启动消费者线程
         for (int i = 0; i < CONSUMER_NUM; i++) {
             new Thread(() -> {
@@ -77,5 +92,4 @@ public class TestConsumerProducer<T> {
             }, "Consumer"+i).start();
         }
     }
-
 }
