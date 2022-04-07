@@ -20,7 +20,7 @@ public class Leetcode115 {
         }
         char[] chars1 = s.toCharArray();
         char[] chars2 = t.toCharArray();
-        // dp[i][j]表示 t[0:j] 在 s[0:j] 中出现的次数
+        // dp[i][j]表示 t[0:j] 在 s[0:i] 中出现的次数
         int[][] dp = new int[m+1][n+1];
         for (int i = 0; i <= m; i++) {
             for (int j = 0; j <= n; j++) {

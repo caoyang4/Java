@@ -1,8 +1,9 @@
 package src.algorithm.leetcode;
 
 /**
- * 120. 三角形最小路径和
+ * 118. 杨辉三角
+ *
  * @author caoyang
  */
-public class Leetcode120 {
+public class Leetcode118 {
 }

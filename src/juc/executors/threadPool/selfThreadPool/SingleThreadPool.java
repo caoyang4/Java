@@ -12,7 +12,7 @@ public class SingleThreadPool extends AbstractThreadPool{
     private final ExecutorService executorService;
 
     /**
-     * 单线程池通过 ThreadPoolExecutor 创建
+     * 单线程池通过 ThreadPoolExecutor 创建，内部利用装饰器模式
      * new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>())
      * 核心线程数和最大线程数都为 1
      * 默认线程工厂defaultThreadFactory
