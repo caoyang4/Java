@@ -20,8 +20,8 @@ public class Leetcode116 {
         }
         left.next = right;
         right.next = root.next == null ? null : root.next.left;
-        traverse(root.left, root.left.left, root.left.right);
-        traverse(root.right, root.right.left, root.right.right);
+        traverse(left, left.left, left.right);
+        traverse(right, right.left, right.right);
     }
 
     public static void main(String[] args) {

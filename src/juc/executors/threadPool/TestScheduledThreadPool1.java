@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author caoyang
  */
-public class TestScheduledThreadPool {
+public class TestScheduledThreadPool1 {
     public static void main(String[] args) throws InterruptedException {
         ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(2);
         System.out.println("current time: "+ new Date());
