@@ -1,7 +1,5 @@
 package src.algorithm.leetcode;
 
-import java.util.Locale;
-
 /**
  * 125. 验证回文串
  * @author caoyang

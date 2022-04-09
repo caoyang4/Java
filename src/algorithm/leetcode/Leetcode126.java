@@ -1,9 +1,11 @@
 package src.algorithm.leetcode;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * 126. 单词接龙 II
+ * BFS + DFS
+ * 广度优先搜索
  * 按字典wordList完成从单词 beginWord 到单词 endWord 转化，一个表示此过程的 转换序列是形式上像 beginWord -> s1 -> s2 -> ... -> sk 这样的单词序列，并满足：
  * 每对相邻的单词之间仅有单个字母不同。
  * 转换过程中的每个单词 si（1 <= i <= k）必须是字典wordList中的单词。注意，beginWord不必是字典wordList中的单词。
@@ -17,11 +19,25 @@ import java.util.List;
  * @author caoyang
  */
 public class Leetcode126 {
-    public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
+    /**
+     * 转换为无向图结构，找最短距离
+     *               dot -- dog
+     *             /  |      |   \
+     *   hit -- hot   |      |    \--- cog
+     *            \   |      |   /
+     *              lot -- log  /
+     */
+    public static List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
         return null;
     }
 
     public static void main(String[] args) {
-
+        String beginWord = "hit";
+        String endWord = "cog";
+        List<String> wordList = Arrays.asList("hot","dot","dog","lot","log","cog");
+        List<List<String>> result = findLadders(beginWord, endWord, wordList);
+        for (List<String> stringList : result) {
+            System.out.println(stringList);
+        }
     }
 }
