@@ -14,6 +14,7 @@ public class TestCyclicBarrier1 {
     public static void main(String[] args) {
         CyclicBarrier barrier = new CyclicBarrier(
                 20,
+                // 相当于钩子方法
                 () -> out.println("满人，发车！！！")
         );
 

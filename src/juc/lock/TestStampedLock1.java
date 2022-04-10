@@ -3,6 +3,8 @@ package src.juc.lock;
 import java.util.concurrent.locks.StampedLock;
 
 /**
+ * StampedLock的读写锁都不支持Condition，不支持可重入
+ *
  * 乐观锁
  * @author caoyang
  */

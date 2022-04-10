@@ -9,6 +9,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * 可重入读写锁
+ * 读锁不支持Condition
+ * 写锁支持Condition
  * @author caoyang
  */
 public class TestReentrantReadWriteLock1 {
