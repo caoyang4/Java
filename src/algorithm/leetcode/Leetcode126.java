@@ -28,7 +28,80 @@ public class Leetcode126 {
      *              lot -- log  /
      */
     public static List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
-        return null;
+        Set<String> wordSet = new HashSet<>(wordList);
+        if (wordList.isEmpty() || !wordList.contains(endWord)) { return null; }
+        List<List<String>> result = new ArrayList<>();
+        wordSet.remove(beginWord);
+        // 记录搜索的单词和层数映射关系
+        Map<String, Integer> levels = new HashMap<>();
+        // beginword为第 0 层
+        levels.put(beginWord, 0);
+        // 记录单词由其他单词转换得到的映射关系，一对多
+        Map<String, Set<String>> map = new HashMap<>();
+
+        boolean found = bfs(beginWord, endWord, wordSet, levels, map);
+        // 从 endWord 向 beginWord 倒着搜索
+        if (found) {
+            Deque<String> path = new LinkedList<>();
+            path.add(endWord);
+            dfs(beginWord, endWord, path, result, map);
+        }
+        return result;
+    }
+
+    /**
+     * BFS构建图
+     */
+    public static boolean bfs(String beginWord, String endWord, Set<String> wordSet, Map<String, Integer> levels, Map<String, Set<String>> map){
+        Queue<String> queue = new LinkedList<>();
+        queue.add(beginWord);
+        int level = 0;
+        boolean found = false;
+        while (!queue.isEmpty()){
+            level++;
+            int size = queue.size();
+            for (int i = 0; i < size; i++) {
+                String word = queue.poll();
+                char[] chars = word.toCharArray();
+                for (int j = 0; j < chars.length; j++) {
+                    char c = chars[j];
+                    for (char k = 'a'; k <= 'z'; k++) {
+                        if (c == k) { continue; }
+                        chars[j] = k;
+                        String nextWord = String.valueOf(chars);
+                        if (levels.getOrDefault(nextWord, -1) == level){ map.get(nextWord).add(word); }
+                        if (!wordSet.contains(nextWord)){ continue; }
+                        wordSet.remove(nextWord);
+                        queue.add(nextWord);
+                        map.putIfAbsent(nextWord, new HashSet<>());
+                        map.get(nextWord).add(word);
+                        levels.put(nextWord, level);
+                        if (nextWord.equals(endWord)) {
+                            // 由于有多条路径到达 endWord 找到以后不能立即退出，只需要设置 found = true 即可
+                            found = true;
+                        }
+                    }
+                    chars[j] = c;
+                }
+            }
+            if (found) { break; }
+        }
+        return found;
+    }
+
+    /**
+     * DFS根据图，即记录单词可访问到其他单词的映射关系，搜索路径
+     */
+    public static void dfs(String beginWord, String endWord, Deque<String> path, List<List<String>> result, Map<String, Set<String>> map){
+        if (endWord.equals(beginWord)) {
+            result.add(new ArrayList<>(path));
+            return;
+        }
+        for (String word : map.get(endWord)) {
+            path.addFirst(word);
+            dfs(beginWord, word, path, result, map);
+            path.removeFirst();
+        }
     }
 
     public static void main(String[] args) {
