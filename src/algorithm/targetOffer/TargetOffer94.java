@@ -1,5 +1,7 @@
 package src.algorithm.targetOffer;
 
+import java.util.Arrays;
+
 /**
  * 最少回文分割
  * 给定一个字符串 s，请将 s 分割成一些子串，使每个子串都是回文串。
@@ -21,11 +23,11 @@ public class TargetOffer94 {
         int i, j;
         for (int t = 0; t < size; t++) {
             i = j = t;
-            // i-j 是否构成奇数回文串
+            // i->j 是否构成奇数回文串
             while (i >= 0 && j < size && chars[i] == chars[j]){
                 isPalindrome[i--][j++] = true;
             }
-            // i-j 是否构成偶数回文串
+            // i->j 是否构成偶数回文串
             i = t;
             j = t+1;
             while (i >= 0 && j < size && chars[i] == chars[j]){
@@ -45,7 +47,7 @@ public class TargetOffer94 {
     }
 
     public static void main(String[] args) {
-        String s = "aaba";
+        String s = "coder";
         int res = minCut(s);
         System.out.println(res);
 
