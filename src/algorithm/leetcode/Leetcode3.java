@@ -1,7 +1,6 @@
 package src.algorithm.leetcode;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 3. 无重复字符的最长子串
@@ -10,13 +9,27 @@ import java.util.List;
  * @author caoyang
  */
 public class Leetcode3 {
-
     public static int lengthOfLongestSubstring(String s) {
+        char[] chars = s.toCharArray();
+        Map<Character, Integer> map = new HashMap<>();
+        int max = 0;
+        int start = 0;
+        for (int i = 0; i < chars.length; i++) {
+            if (map.containsKey(chars[i])){
+                start = Math.max(start, map.get(chars[i])+1);
+            }
+            map.put(chars[i], i);
+            max = Math.max(max, i-start+1);
+        }
+        return max;
+    }
+
+    public static int lengthOfLongestSubstring1(String s) {
         char[] chars = s.toCharArray();
         List<Character> list = new ArrayList<>();
         int max = 0;
         for (int i = 0; i < chars.length; i++) {
-            if(! list.contains(chars[i])){
+            if (!list.contains(chars[i])){
                 list.add(chars[i]);
             } else {
                 max = Math.max(max, list.size());
@@ -28,13 +41,12 @@ public class Leetcode3 {
         return Math.max(max, list.size());
     }
 
+
+
     public static void main(String[] args) {
-        System.out.println(lengthOfLongestSubstring("abcabcbb"));
-        System.out.println(lengthOfLongestSubstring("bbbbb"));
-        System.out.println(lengthOfLongestSubstring("pwwkew"));
-        System.out.println(lengthOfLongestSubstring(""));
-        System.out.println(lengthOfLongestSubstring("   b"));
-        System.out.println(lengthOfLongestSubstring("dvdf"));
-        System.out.println(lengthOfLongestSubstring("aabaab!bb"));
+        List<String> testStr = Arrays.asList("abba", "abcabcbb", "pwwkew","bbbbb");
+        for (String s : testStr) {
+            System.out.println(lengthOfLongestSubstring(s));
+        }
     }
 }

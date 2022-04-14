@@ -10,8 +10,30 @@ import java.util.List;
  * @author caoyang
  */
 public class Leetcode5 {
-
     public static String longestPalindrome(String s) {
+        String result = "";
+        if(s == null){ return result; }
+        char[] chars = s.toCharArray();
+        int n = chars.length;
+        for (int i = 0; i < n; i++) {
+            int start = i;
+            int end = i;
+            // 奇数回文串
+            while (start >= 0 && end < n && chars[start] == chars[end]){
+                String tmp = s.substring(start--, ++end);
+                result = tmp.length() > result.length() ? tmp : result;
+            }
+            start = i;
+            end = i+1;
+            // 偶数回文串
+            while (start >= 0 && end < n && chars[start] == chars[end]){
+                String tmp = s.substring(start--, ++end);
+                result = tmp.length() > result.length() ? tmp : result;
+            }
+        }
+        return result;
+    }
+    public static String longestPalindrome1(String s) {
         if(s == null){ return ""; }
         char[] chars = s.toCharArray();
         if(chars.length <= 1){ return s; }
