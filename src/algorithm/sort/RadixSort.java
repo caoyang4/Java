@@ -10,6 +10,7 @@ import static java.lang.System.out;
 /**
  * 基数排序
  * 非比较排序，基于桶排序思想，多关键字排序
+ * O(n)
  * @author caoyang
  */
 public class RadixSort {
