@@ -81,6 +81,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     static final int hash(Object key) {
         int h;
+        // HashMap中key值可以为null, 且null值一定存储在数组的第一个位置.
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
 
@@ -163,11 +164,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
 
+    // 利用已经存在的map创建HashMap
     public HashMap(Map<? extends K, ? extends V> m) {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
         putMapEntries(m, false);
     }
-
+    // evict参数用来区分当前是否是构造模式,
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
@@ -192,7 +194,6 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     public int size() {
         return size;
     }
-
 
     public boolean isEmpty() {
         return size == 0;
@@ -284,7 +285,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if (++size > threshold)
             // 扩容
             resize();
-        // 子类实现，用于扩展回调
+        // 子类实现，只在LinkedHashMap中用到, 这里是空函数
         afterNodeInsertion(evict);
         return null;
     }
