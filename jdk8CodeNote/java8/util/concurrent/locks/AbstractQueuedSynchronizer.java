@@ -7,6 +7,7 @@ import java.util.Date;
 import sun.misc.Unsafe;
 
 /**
+ * AQS中，排在阻塞队列第一位的使用自旋等待，而排在后面的线程则挂起。
  * AQS是抽象的队列式同步器框架，是除了java自带的synchronized关键字之外的锁机制。
  * 其底层采用乐观锁，大量使用了CAS操作，同时采用自旋方式重试，以实现轻量级和高效地获取锁。
  */
@@ -245,6 +246,12 @@ public abstract class AbstractQueuedSynchronizer
         }
     }
 
+    /**
+     * cancelAcquire方法不仅是取消了当前节点的排队，还会同时将当前节点之前的那些已经CANCEL掉的节点移出队列
+     * 如果要cancel的节点已经是尾节点了，则在我们后面并没有节点需要唤醒，我们只需要从当前节点(即尾节点)开始向前遍历，找到所有已经cancel的节点，将他们移出队列即可
+     * 如果要cancel的节点后面还有别的节点，并且我们找到的pred节点处于正常等待状态，我们还是直接将从当前节点开始，到pred节点直接的所有节点，全部移出队列，这里并不需要唤醒当前节点的后继节点，因为它已经接在了pred的后面，pred的waitStatus已经被置为SIGNAL，它会负责唤醒后继节点
+     * 如果上面的条件不满足，按说明当前节点往前已经没有在等待中的线程了，我们就直接将后继节点唤醒。
+     */
     private void cancelAcquire(Node node) {
         // 处理当前取消节点的状态；
         // 将当前取消节点的前置非取消节点和后置非取消节点"链接"起来；
@@ -255,13 +262,14 @@ public abstract class AbstractQueuedSynchronizer
         node.thread = null;
 
         // 将当前取消节点的前置非取消节点和后置非取消节点"链接"起来；
+        // pred表示从当前节点向前遍历所找到的第一个没有被cancel的节点
         Node pred = node.prev;
         while (pred.waitStatus > 0)
             node.prev = pred = pred.prev;
         Node predNext = pred.next;
 
         node.waitStatus = Node.CANCELLED;
-
+        // 并发场景下，可能失败，可能会有新节点加入
         if (node == tail && compareAndSetTail(node, pred)) {
             compareAndSetNext(pred, predNext, null);
         } else {
@@ -352,6 +360,7 @@ public abstract class AbstractQueuedSynchronizer
                     // 线程被挂起  LockSupport.park
                     // 如果没有中断，被唤醒的线程进行新一轮的抢锁
                     parkAndCheckInterrupt())
+                    // 只设置中断标志，抢锁过程中，不响应中断
                     interrupted = true;
             }
         } finally {
@@ -376,10 +385,13 @@ public abstract class AbstractQueuedSynchronizer
                 }
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
+                    // 与acquireQueued方法的不同之处
+                    // 响应中断
                     throw new InterruptedException();
             }
         } finally {
             if (failed)
+                // 抛出中断异常后，执行该方法
                 cancelAcquire(node);
         }
     }
@@ -578,7 +590,8 @@ public abstract class AbstractQueuedSynchronizer
 
     public final void acquireInterruptibly(int arg)
             throws InterruptedException {
-        if (Thread.interrupted())
+        if (Thread.interrupted()) // interrupted设置中断标志
+            // 抛出中断异常
             throw new InterruptedException();
         if (!tryAcquire(arg))
             doAcquireInterruptibly(arg);
@@ -783,10 +796,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     final boolean transferForSignal(Node node) {
-
+        // 如果该节点在调用signal方法前已经被取消了，则直接跳过这个节点
         if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
             return false;
-
+        // 如果该节点在条件队列中正常等待，则利用enq方法将该节点添加至sync queue队列的尾部
         Node p = enq(node);
         int ws = p.waitStatus;
         if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
@@ -843,19 +856,40 @@ public abstract class AbstractQueuedSynchronizer
         return condition.getWaitingThreads();
     }
 
+    /**
+     * 在条件队列中，Node节点真正用到的属性只有三个：
+     * thread：代表当前正在等待某个条件的线程
+     * waitStatus：条件的等待状态
+     * nextWaiter：指向条件队列中的下一个节点
+     *
+     * 只要waitStatus不是CONDITION，我们就认为线程不再等待了，此时就要从条件队列中出队
+     *
+     * 一般情况下，等待锁的sync queue和条件队列condition queue是相互独立的，彼此之间并没有任何关系。
+     * 但是，当我们调用某个条件队列的signal方法时，会将某个或所有等待在这个条件队列中的线程唤醒，被唤醒的线程和普通线程一样需要去争锁，
+     * 如果没有抢到，则同样要被加到等待锁的sync queue中去，此时节点就从condition queue中被转移到sync queue中
+     *
+     * condition队列是等待在特定条件下的队列，因为调用await方法时，必然是已经获得了lock锁，所以在进入condtion队列前线程必然是已经获取了锁；
+     * 在被包装成Node扔进条件队列中后，线程将释放锁，然后挂起；
+     * 当处于该队列中的线程被signal方法唤醒后，由于队列中的节点在之前挂起的时候已经释放了锁，所以必须先去再次的竞争锁，
+     * 因此，该节点会被添加到sync queue中。因此，条件队列在出队时，线程并不持有锁。
+     *
+     * condition queue：入队时已经持有了锁 -> 在队列中释放锁 -> 离开队列时没有锁 -> 转移到sync queue
+     * sync queue：入队时没有锁 -> 在队列中争锁 -> 离开队列时获得了锁
+     */
     public class ConditionObject implements Condition, java.io.Serializable {
         private static final long serialVersionUID = 1173984872572414699L;
-        /** First node of condition queue. */
+        // 条件队列队头
         private transient Node firstWaiter;
-        /** Last node of condition queue. */
+        // 条件队列队尾
         private transient Node lastWaiter;
 
         public ConditionObject() { }
 
         private Node addConditionWaiter() {
+            // 线程在此处已经获得锁，不需要CAS
             Node t = lastWaiter;
-            // If lastWaiter is cancelled, clean out.
             if (t != null && t.waitStatus != Node.CONDITION) {
+                // 如果尾节点被cancel了，则先遍历整个链表，清除所有被cancel的节点
                 unlinkCancelledWaiters();
                 t = lastWaiter;
             }
@@ -868,17 +902,20 @@ public abstract class AbstractQueuedSynchronizer
             return node;
         }
 
-
+        // 唤醒线程
         private void doSignal(Node first) {
             do {
                 if ( (firstWaiter = first.nextWaiter) == null)
                     lastWaiter = null;
+                // 断开原来的链接（nextWaiter）
                 first.nextWaiter = null;
             } while (!transferForSignal(first) &&
                      (first = firstWaiter) != null);
         }
 
-
+        // 首先通过lastWaiter = firstWaiter = null;
+        // 将整个条件队列清空，然后通过一个do-while循环，将原先的条件队列里面的节点一个一个拿出来(令nextWaiter = null)，
+        // 再通过transferForSignal方法一个一个添加到sync queue的末尾
         private void doSignalAll(Node first) {
             lastWaiter = firstWaiter = null;
             do {
@@ -914,6 +951,7 @@ public abstract class AbstractQueuedSynchronizer
                 throw new IllegalMonitorStateException();
             Node first = firstWaiter;
             if (first != null)
+                // 对于AQS的实现来说，就是唤醒条件队列中第一个没有被Cancel的节点
                 doSignal(first);
         }
 
@@ -956,17 +994,37 @@ public abstract class AbstractQueuedSynchronizer
                 selfInterrupt();
         }
 
+        /**
+         * 1、进入await()时必须是已经持有了锁
+         * 2、离开await()时同样必须是已经持有了锁
+         * 3、调用await()会使得当前线程被封装成Node扔进条件队列，然后释放所持有的锁
+         * 4、释放锁后，当前线程将在condition queue中被挂起，等待signal或者中断
+         * 5、线程被唤醒后会将会离开condition queue进入sync queue中进行抢锁
+         * 6、若在线程抢到锁之前发生过中断，则根据中断发生在signal之前还是之后记录中断模式
+         * 7、线程在抢到锁后进行善后工作（离开condition queue, 处理中断异常）
+         * 8、线程已经持有了锁，从await()方法返回
+         */
         public final void await() throws InterruptedException {
-            if (Thread.interrupted())
-                throw new InterruptedException();
+            // 如果当前线程在调动await()方法前已经被中断了，则直接抛出InterruptedException
+            if (Thread.interrupted()) throw new InterruptedException();
+            // 将当前线程封装成Node添加到条件队列   Node node = new Node(Thread.currentThread(), Node.CONDITION);
             Node node = addConditionWaiter();
+            // 释放当前线程所占用的锁，保存当前的锁状态
             int savedState = fullyRelease(node);
+            // 0 ： 代表整个过程中一直没有中断发生。
+            // THROW_IE ： 表示退出await()方法时需要抛出InterruptedException，这种模式对应于中断发生在signal之前
+            // REINTERRUPT ： 表示退出await()方法时只需要再自我中断以下，这种模式对应于中断发生在signal之后，即中断来的太晚了
             int interruptMode = 0;
+            // 如果当前队列不在同步队列中，说明刚刚被await, 还没有人调用signal方法，则直接将当前线程挂起
             while (!isOnSyncQueue(node)) {
                 LockSupport.park(this);
+                // 能执行到这里说明要么是signal方法被调用了，要么是线程被中断了
+                // 所以检查下线程被唤醒的原因，如果是因为中断被唤醒，则跳出while循环
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
                     break;
             }
+            // 线程将在sync queue中利用进行acquireQueued方法进行“阻塞式”争锁，抢到锁就返回，抢不到锁就继续被挂起
+            // 当await()方法返回时，必然是保证了当前线程已经持有了lock锁
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
             if (node.nextWaiter != null) // clean up if cancelled

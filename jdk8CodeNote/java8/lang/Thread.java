@@ -1,5 +1,6 @@
-
-
+/**
+ * 线程调用notify方法后不会立即释放监视器锁，只有退出同步代码块后，才会释放锁（与之相对，调用wait方法会立即释放监视器锁）
+ */
 package java.lang;
 
 import java.lang.ref.Reference;
@@ -293,13 +294,39 @@ public class Thread implements Runnable {
     }
 
 
+    /**
+     * Object的方法
+     *
+     * wait()
+     * wait(long)
+     * wait(long, int)
+     * Thread的方法
+     *
+     * join()
+     * join(long)
+     * join(long, int)
+     * sleep(long)
+     * sleep(long, int)
+     * 上面这些方法在抛出InterruptedException异常后，会同时清除中断标识位
+     */
     public void interrupt() {
+        // 中断机制的核心在于中断状态和InterruptedException异常
+        //中断状态:
+        //设置一个中断状态: Thread#isterrupt
+        //清除一个中断状态: Thread.interrupted
         if (this != Thread.currentThread())
+            // 非自身线程中断，检查权限
             checkAccess();
 
         synchronized (blockerLock) {
             Interruptible b = blocker;
             if (b != null) {
+                /**
+                 * 所谓“中断一个线程”，其实并不是让一个线程停止运行，仅仅是将线程的中断标志设为true,
+                 * 或者在某些特定情况下抛出一个InterruptedException，它并不会直接将一个线程停掉，
+                 * 在被中断的线程的角度看来，仅仅是自己的中断标志位被设为true了，
+                 * 或者自己所执行的代码中抛出了一个InterruptedException异常，仅此而已
+                 */
                 interrupt0();           // Just to set the interrupt flag
                 b.interrupt(this);
                 return;
@@ -309,11 +336,12 @@ public class Thread implements Runnable {
     }
 
 
+    // 设置中断标志位
     public static boolean interrupted() {
         return currentThread().isInterrupted(true);
     }
 
-
+    // 清除中断标志位
     public boolean isInterrupted() {
         return isInterrupted(false);
     }
