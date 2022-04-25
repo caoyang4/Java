@@ -6,8 +6,8 @@ package src.juc.executors.thread.threadProblem;
  * 其他线程访问还没有构造好的对象，可能会造成意料不到的问题
  * @author caoyang
  */
-public class TestThisEscape {
-    public TestThisEscape() {
+public class TestThisEscape1 {
+    public TestThisEscape1() {
         System.out.println("construct ThisEscape");
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -31,7 +31,7 @@ public class TestThisEscape {
     }
 }
 
-class TestThisEscapeChild extends TestThisEscape {
+class TestThisEscapeChild extends TestThisEscape1 {
     private final String name;
 
     public TestThisEscapeChild() {
