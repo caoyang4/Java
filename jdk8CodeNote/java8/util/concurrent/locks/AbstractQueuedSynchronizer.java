@@ -38,7 +38,7 @@ public abstract class AbstractQueuedSynchronizer
         // 独占模式
         static final Node EXCLUSIVE = null;
 
-        // 当前节点已取消，也是唯一大于0的状态。
+        // 当前节点已取消获取锁，也是唯一大于0的状态。
         static final int CANCELLED =  1;
         // 表示当前节点的后继节点在等待唤醒，在后继节点找到安全点时，会更新其前驱的状态为此
         static final int SIGNAL    = -1;
