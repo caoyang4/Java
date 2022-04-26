@@ -1,37 +1,4 @@
-/*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
 
-/*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
 
 package java.util.concurrent.locks;
 
@@ -42,248 +9,32 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * A capability-based lock with three modes for controlling read/write
- * access.  The state of a StampedLock consists of a version and mode.
- * Lock acquisition methods return a stamp that represents and
- * controls access with respect to a lock state; "try" versions of
- * these methods may instead return the special value zero to
- * represent failure to acquire access. Lock release and conversion
- * methods require stamps as arguments, and fail if they do not match
- * the state of the lock. The three modes are:
- *
- * <ul>
- *
- *  <li><b>Writing.</b> Method {@link #writeLock} possibly blocks
- *   waiting for exclusive access, returning a stamp that can be used
- *   in method {@link #unlockWrite} to release the lock. Untimed and
- *   timed versions of {@code tryWriteLock} are also provided. When
- *   the lock is held in write mode, no read locks may be obtained,
- *   and all optimistic read validations will fail.  </li>
- *
- *  <li><b>Reading.</b> Method {@link #readLock} possibly blocks
- *   waiting for non-exclusive access, returning a stamp that can be
- *   used in method {@link #unlockRead} to release the lock. Untimed
- *   and timed versions of {@code tryReadLock} are also provided. </li>
- *
- *  <li><b>Optimistic Reading.</b> Method {@link #tryOptimisticRead}
- *   returns a non-zero stamp only if the lock is not currently held
- *   in write mode. Method {@link #validate} returns true if the lock
- *   has not been acquired in write mode since obtaining a given
- *   stamp.  This mode can be thought of as an extremely weak version
- *   of a read-lock, that can be broken by a writer at any time.  The
- *   use of optimistic mode for short read-only code segments often
- *   reduces contention and improves throughput.  However, its use is
- *   inherently fragile.  Optimistic read sections should only read
- *   fields and hold them in local variables for later use after
- *   validation. Fields read while in optimistic mode may be wildly
- *   inconsistent, so usage applies only when you are familiar enough
- *   with data representations to check consistency and/or repeatedly
- *   invoke method {@code validate()}.  For example, such steps are
- *   typically required when first reading an object or array
- *   reference, and then accessing one of its fields, elements or
- *   methods. </li>
- *
- * </ul>
- *
- * <p>This class also supports methods that conditionally provide
- * conversions across the three modes. For example, method {@link
- * #tryConvertToWriteLock} attempts to "upgrade" a mode, returning
- * a valid write stamp if (1) already in writing mode (2) in reading
- * mode and there are no other readers or (3) in optimistic mode and
- * the lock is available. The forms of these methods are designed to
- * help reduce some of the code bloat that otherwise occurs in
- * retry-based designs.
- *
- * <p>StampedLocks are designed for use as internal utilities in the
- * development of thread-safe components. Their use relies on
- * knowledge of the internal properties of the data, objects, and
- * methods they are protecting.  They are not reentrant, so locked
- * bodies should not call other unknown methods that may try to
- * re-acquire locks (although you may pass a stamp to other methods
- * that can use or convert it).  The use of read lock modes relies on
- * the associated code sections being side-effect-free.  Unvalidated
- * optimistic read sections cannot call methods that are not known to
- * tolerate potential inconsistencies.  Stamps use finite
- * representations, and are not cryptographically secure (i.e., a
- * valid stamp may be guessable). Stamp values may recycle after (no
- * sooner than) one year of continuous operation. A stamp held without
- * use or validation for longer than this period may fail to validate
- * correctly.  StampedLocks are serializable, but always deserialize
- * into initial unlocked state, so they are not useful for remote
- * locking.
- *
- * <p>The scheduling policy of StampedLock does not consistently
- * prefer readers over writers or vice versa.  All "try" methods are
- * best-effort and do not necessarily conform to any scheduling or
- * fairness policy. A zero return from any "try" method for acquiring
- * or converting locks does not carry any information about the state
- * of the lock; a subsequent invocation may succeed.
- *
- * <p>Because it supports coordinated usage across multiple lock
- * modes, this class does not directly implement the {@link Lock} or
- * {@link ReadWriteLock} interfaces. However, a StampedLock may be
- * viewed {@link #asReadLock()}, {@link #asWriteLock()}, or {@link
- * #asReadWriteLock()} in applications requiring only the associated
- * set of functionality.
- *
- * <p><b>Sample Usage.</b> The following illustrates some usage idioms
- * in a class that maintains simple two-dimensional points. The sample
- * code illustrates some try/catch conventions even though they are
- * not strictly needed here because no exceptions can occur in their
- * bodies.<br>
- *
- *  <pre>{@code
- * class Point {
- *   private double x, y;
- *   private final StampedLock sl = new StampedLock();
- *
- *   void move(double deltaX, double deltaY) { // an exclusively locked method
- *     long stamp = sl.writeLock();
- *     try {
- *       x += deltaX;
- *       y += deltaY;
- *     } finally {
- *       sl.unlockWrite(stamp);
- *     }
- *   }
- *
- *   double distanceFromOrigin() { // A read-only method
- *     long stamp = sl.tryOptimisticRead();
- *     double currentX = x, currentY = y;
- *     if (!sl.validate(stamp)) {
- *        stamp = sl.readLock();
- *        try {
- *          currentX = x;
- *          currentY = y;
- *        } finally {
- *           sl.unlockRead(stamp);
- *        }
- *     }
- *     return Math.sqrt(currentX * currentX + currentY * currentY);
- *   }
- *
- *   void moveIfAtOrigin(double newX, double newY) { // upgrade
- *     // Could instead start with optimistic, not read mode
- *     long stamp = sl.readLock();
- *     try {
- *       while (x == 0.0 && y == 0.0) {
- *         long ws = sl.tryConvertToWriteLock(stamp);
- *         if (ws != 0L) {
- *           stamp = ws;
- *           x = newX;
- *           y = newY;
- *           break;
- *         }
- *         else {
- *           sl.unlockRead(stamp);
- *           stamp = sl.writeLock();
- *         }
- *       }
- *     } finally {
- *       sl.unlock(stamp);
- *     }
- *   }
- * }}</pre>
- *
- * @since 1.8
- * @author Doug Lea
+ * 所有获取锁的方法，都返回一个邮戳（Stamp），Stamp为0表示获取失败，其余都表示成功；
+ * 所有释放锁的方法，都需要一个邮戳（Stamp），这个Stamp必须是和成功获取锁时得到的Stamp一致；
+ * StampedLock是不可重入的；（如果一个线程已经持有了写锁，再去获取写锁的话就会造成死锁）
+ * StampedLock有三种访问模式：
+ * ① Reading（读模式）：功能和ReentrantReadWriteLock的读锁类似
+ * ② Writing（写模式）：功能和ReentrantReadWriteLock的写锁类似
+ * ③ Optimistic reading（乐观读模式）：这是一种优化的读模式。
+ * StampedLock支持读锁和写锁的相互转换
+ * 我们知道RRW中，当线程获取到写锁后，可以降级为读锁，但是读锁是不能直接升级为写锁的。
+ * StampedLock提供了读锁和写锁相互转换的功能，使得该类支持更多的应用场景。
+ * 无论写锁还是读锁，都不支持Conditon等待
  */
 public class StampedLock implements java.io.Serializable {
-    /*
-     * Algorithmic notes:
-     *
-     * The design employs elements of Sequence locks
-     * (as used in linux kernels; see Lameter's
-     * http://www.lameter.com/gelato2005.pdf
-     * and elsewhere; see
-     * Boehm's http://www.hpl.hp.com/techreports/2012/HPL-2012-68.html)
-     * and Ordered RW locks (see Shirako et al
-     * http://dl.acm.org/citation.cfm?id=2312015)
-     *
-     * Conceptually, the primary state of the lock includes a sequence
-     * number that is odd when write-locked and even otherwise.
-     * However, this is offset by a reader count that is non-zero when
-     * read-locked.  The read count is ignored when validating
-     * "optimistic" seqlock-reader-style stamps.  Because we must use
-     * a small finite number of bits (currently 7) for readers, a
-     * supplementary reader overflow word is used when the number of
-     * readers exceeds the count field. We do this by treating the max
-     * reader count value (RBITS) as a spinlock protecting overflow
-     * updates.
-     *
-     * Waiters use a modified form of CLH lock used in
-     * AbstractQueuedSynchronizer (see its internal documentation for
-     * a fuller account), where each node is tagged (field mode) as
-     * either a reader or writer. Sets of waiting readers are grouped
-     * (linked) under a common node (field cowait) so act as a single
-     * node with respect to most CLH mechanics.  By virtue of the
-     * queue structure, wait nodes need not actually carry sequence
-     * numbers; we know each is greater than its predecessor.  This
-     * simplifies the scheduling policy to a mainly-FIFO scheme that
-     * incorporates elements of Phase-Fair locks (see Brandenburg &
-     * Anderson, especially http://www.cs.unc.edu/~bbb/diss/).  In
-     * particular, we use the phase-fair anti-barging rule: If an
-     * incoming reader arrives while read lock is held but there is a
-     * queued writer, this incoming reader is queued.  (This rule is
-     * responsible for some of the complexity of method acquireRead,
-     * but without it, the lock becomes highly unfair.) Method release
-     * does not (and sometimes cannot) itself wake up cowaiters. This
-     * is done by the primary thread, but helped by any other threads
-     * with nothing better to do in methods acquireRead and
-     * acquireWrite.
-     *
-     * These rules apply to threads actually queued. All tryLock forms
-     * opportunistically try to acquire locks regardless of preference
-     * rules, and so may "barge" their way in.  Randomized spinning is
-     * used in the acquire methods to reduce (increasingly expensive)
-     * context switching while also avoiding sustained memory
-     * thrashing among many threads.  We limit spins to the head of
-     * queue. A thread spin-waits up to SPINS times (where each
-     * iteration decreases spin count with 50% probability) before
-     * blocking. If, upon wakening it fails to obtain lock, and is
-     * still (or becomes) the first waiting thread (which indicates
-     * that some other thread barged and obtained lock), it escalates
-     * spins (up to MAX_HEAD_SPINS) to reduce the likelihood of
-     * continually losing to barging threads.
-     *
-     * Nearly all of these mechanics are carried out in methods
-     * acquireWrite and acquireRead, that, as typical of such code,
-     * sprawl out because actions and retries rely on consistent sets
-     * of locally cached reads.
-     *
-     * As noted in Boehm's paper (above), sequence validation (mainly
-     * method validate()) requires stricter ordering rules than apply
-     * to normal volatile reads (of "state").  To force orderings of
-     * reads before a validation and the validation itself in those
-     * cases where this is not already forced, we use
-     * Unsafe.loadFence.
-     *
-     * The memory layout keeps lock state and queue pointers together
-     * (normally on the same cache line). This usually works well for
-     * read-mostly loads. In most other cases, the natural tendency of
-     * adaptive-spin CLH locks to reduce memory contention lessens
-     * motivation to further spread out contended locations, but might
-     * be subject to future improvements.
-     */
 
     private static final long serialVersionUID = -6001602636862214147L;
 
-    /** Number of processors, for spin control */
     private static final int NCPU = Runtime.getRuntime().availableProcessors();
 
-    /** Maximum number of retries before enqueuing on acquisition */
     private static final int SPINS = (NCPU > 1) ? 1 << 6 : 0;
 
-    /** Maximum number of retries before blocking at head on acquisition */
     private static final int HEAD_SPINS = (NCPU > 1) ? 1 << 10 : 0;
 
-    /** Maximum number of retries before re-blocking */
     private static final int MAX_HEAD_SPINS = (NCPU > 1) ? 1 << 16 : 0;
 
-    /** The period for yielding when waiting for overflow spinlock */
     private static final int OVERFLOW_YIELD_RATE = 7; // must be power 2 - 1
 
-    /** The number of bits to use for reader count before overflowing */
     private static final int LG_READERS = 7;
 
     // Values for lock state and stamp operations
@@ -341,12 +92,6 @@ public class StampedLock implements java.io.Serializable {
         state = ORIGIN;
     }
 
-    /**
-     * Exclusively acquires the lock, blocking if necessary
-     * until available.
-     *
-     * @return a stamp that can be used to unlock or convert mode
-     */
     public long writeLock() {
         long s, next;  // bypass acquireWrite in fully unlocked case only
         return ((((s = state) & ABITS) == 0L &&
@@ -354,12 +99,6 @@ public class StampedLock implements java.io.Serializable {
                 next : acquireWrite(false, 0L));
     }
 
-    /**
-     * Exclusively acquires the lock if it is immediately available.
-     *
-     * @return a stamp that can be used to unlock or convert mode,
-     * or zero if the lock is not available
-     */
     public long tryWriteLock() {
         long s, next;
         return ((((s = state) & ABITS) == 0L &&
@@ -367,19 +106,6 @@ public class StampedLock implements java.io.Serializable {
                 next : 0L);
     }
 
-    /**
-     * Exclusively acquires the lock if it is available within the
-     * given time and the current thread has not been interrupted.
-     * Behavior under timeout and interruption matches that specified
-     * for method {@link Lock#tryLock(long,TimeUnit)}.
-     *
-     * @param time the maximum time to wait for the lock
-     * @param unit the time unit of the {@code time} argument
-     * @return a stamp that can be used to unlock or convert mode,
-     * or zero if the lock is not available
-     * @throws InterruptedException if the current thread is interrupted
-     * before acquiring the lock
-     */
     public long tryWriteLock(long time, TimeUnit unit)
         throws InterruptedException {
         long nanos = unit.toNanos(time);
@@ -397,16 +123,6 @@ public class StampedLock implements java.io.Serializable {
         throw new InterruptedException();
     }
 
-    /**
-     * Exclusively acquires the lock, blocking if necessary
-     * until available or the current thread is interrupted.
-     * Behavior under interruption matches that specified
-     * for method {@link Lock#lockInterruptibly()}.
-     *
-     * @return a stamp that can be used to unlock or convert mode
-     * @throws InterruptedException if the current thread is interrupted
-     * before acquiring the lock
-     */
     public long writeLockInterruptibly() throws InterruptedException {
         long next;
         if (!Thread.interrupted() &&
@@ -415,12 +131,6 @@ public class StampedLock implements java.io.Serializable {
         throw new InterruptedException();
     }
 
-    /**
-     * Non-exclusively acquires the lock, blocking if necessary
-     * until available.
-     *
-     * @return a stamp that can be used to unlock or convert mode
-     */
     public long readLock() {
         long s = state, next;  // bypass acquireRead on common uncontended case
         return ((whead == wtail && (s & ABITS) < RFULL &&
@@ -428,12 +138,6 @@ public class StampedLock implements java.io.Serializable {
                 next : acquireRead(false, 0L));
     }
 
-    /**
-     * Non-exclusively acquires the lock if it is immediately available.
-     *
-     * @return a stamp that can be used to unlock or convert mode,
-     * or zero if the lock is not available
-     */
     public long tryReadLock() {
         for (;;) {
             long s, m, next;
@@ -448,19 +152,6 @@ public class StampedLock implements java.io.Serializable {
         }
     }
 
-    /**
-     * Non-exclusively acquires the lock if it is available within the
-     * given time and the current thread has not been interrupted.
-     * Behavior under timeout and interruption matches that specified
-     * for method {@link Lock#tryLock(long,TimeUnit)}.
-     *
-     * @param time the maximum time to wait for the lock
-     * @param unit the time unit of the {@code time} argument
-     * @return a stamp that can be used to unlock or convert mode,
-     * or zero if the lock is not available
-     * @throws InterruptedException if the current thread is interrupted
-     * before acquiring the lock
-     */
     public long tryReadLock(long time, TimeUnit unit)
         throws InterruptedException {
         long s, m, next, deadline;
@@ -484,16 +175,6 @@ public class StampedLock implements java.io.Serializable {
         throw new InterruptedException();
     }
 
-    /**
-     * Non-exclusively acquires the lock, blocking if necessary
-     * until available or the current thread is interrupted.
-     * Behavior under interruption matches that specified
-     * for method {@link Lock#lockInterruptibly()}.
-     *
-     * @return a stamp that can be used to unlock or convert mode
-     * @throws InterruptedException if the current thread is interrupted
-     * before acquiring the lock
-     */
     public long readLockInterruptibly() throws InterruptedException {
         long next;
         if (!Thread.interrupted() &&
@@ -502,42 +183,16 @@ public class StampedLock implements java.io.Serializable {
         throw new InterruptedException();
     }
 
-    /**
-     * Returns a stamp that can later be validated, or zero
-     * if exclusively locked.
-     *
-     * @return a stamp, or zero if exclusively locked
-     */
     public long tryOptimisticRead() {
         long s;
         return (((s = state) & WBIT) == 0L) ? (s & SBITS) : 0L;
     }
 
-    /**
-     * Returns true if the lock has not been exclusively acquired
-     * since issuance of the given stamp. Always returns false if the
-     * stamp is zero. Always returns true if the stamp represents a
-     * currently held lock. Invoking this method with a value not
-     * obtained from {@link #tryOptimisticRead} or a locking method
-     * for this lock has no defined effect or result.
-     *
-     * @param stamp a stamp
-     * @return {@code true} if the lock has not been exclusively acquired
-     * since issuance of the given stamp; else false
-     */
     public boolean validate(long stamp) {
         U.loadFence();
         return (stamp & SBITS) == (state & SBITS);
     }
 
-    /**
-     * If the lock state matches the given stamp, releases the
-     * exclusive lock.
-     *
-     * @param stamp a stamp returned by a write-lock operation
-     * @throws IllegalMonitorStateException if the stamp does
-     * not match the current state of this lock
-     */
     public void unlockWrite(long stamp) {
         WNode h;
         if (state != stamp || (stamp & WBIT) == 0L)
@@ -547,14 +202,6 @@ public class StampedLock implements java.io.Serializable {
             release(h);
     }
 
-    /**
-     * If the lock state matches the given stamp, releases the
-     * non-exclusive lock.
-     *
-     * @param stamp a stamp returned by a read-lock operation
-     * @throws IllegalMonitorStateException if the stamp does
-     * not match the current state of this lock
-     */
     public void unlockRead(long stamp) {
         long s, m; WNode h;
         for (;;) {
@@ -573,14 +220,6 @@ public class StampedLock implements java.io.Serializable {
         }
     }
 
-    /**
-     * If the lock state matches the given stamp, releases the
-     * corresponding mode of the lock.
-     *
-     * @param stamp a stamp returned by a lock operation
-     * @throws IllegalMonitorStateException if the stamp does
-     * not match the current state of this lock
-     */
     public void unlock(long stamp) {
         long a = stamp & ABITS, m, s; WNode h;
         while (((s = state) & SBITS) == (stamp & SBITS)) {
@@ -609,18 +248,6 @@ public class StampedLock implements java.io.Serializable {
         throw new IllegalMonitorStateException();
     }
 
-    /**
-     * If the lock state matches the given stamp, performs one of
-     * the following actions. If the stamp represents holding a write
-     * lock, returns it.  Or, if a read lock, if the write lock is
-     * available, releases the read lock and returns a write stamp.
-     * Or, if an optimistic read, returns a write stamp only if
-     * immediately available. This method returns zero in all other
-     * cases.
-     *
-     * @param stamp a stamp
-     * @return a valid write stamp, or zero on failure
-     */
     public long tryConvertToWriteLock(long stamp) {
         long a = stamp & ABITS, m, s, next;
         while (((s = state) & SBITS) == (stamp & SBITS)) {
@@ -646,17 +273,6 @@ public class StampedLock implements java.io.Serializable {
         return 0L;
     }
 
-    /**
-     * If the lock state matches the given stamp, performs one of
-     * the following actions. If the stamp represents holding a write
-     * lock, releases it and obtains a read lock.  Or, if a read lock,
-     * returns it. Or, if an optimistic read, acquires a read lock and
-     * returns a read stamp only if immediately available. This method
-     * returns zero in all other cases.
-     *
-     * @param stamp a stamp
-     * @return a valid read stamp, or zero on failure
-     */
     public long tryConvertToReadLock(long stamp) {
         long a = stamp & ABITS, m, s, next; WNode h;
         while (((s = state) & SBITS) == (stamp & SBITS)) {
@@ -686,16 +302,6 @@ public class StampedLock implements java.io.Serializable {
         return 0L;
     }
 
-    /**
-     * If the lock state matches the given stamp then, if the stamp
-     * represents holding a lock, releases it and returns an
-     * observation stamp.  Or, if an optimistic read, returns it if
-     * validated. This method returns zero in all other cases, and so
-     * may be useful as a form of "tryUnlock".
-     *
-     * @param stamp a stamp
-     * @return a valid optimistic read stamp, or zero on failure
-     */
     public long tryConvertToOptimisticRead(long stamp) {
         long a = stamp & ABITS, m, s, next; WNode h;
         U.loadFence();
@@ -730,13 +336,6 @@ public class StampedLock implements java.io.Serializable {
         return 0L;
     }
 
-    /**
-     * Releases the write lock if it is held, without requiring a
-     * stamp value. This method may be useful for recovery after
-     * errors.
-     *
-     * @return {@code true} if the lock was held, else false
-     */
     public boolean tryUnlockWrite() {
         long s; WNode h;
         if (((s = state) & WBIT) != 0L) {
@@ -748,13 +347,6 @@ public class StampedLock implements java.io.Serializable {
         return false;
     }
 
-    /**
-     * Releases one hold of the read lock if it is held, without
-     * requiring a stamp value. This method may be useful for recovery
-     * after errors.
-     *
-     * @return {@code true} if the read lock was held, else false
-     */
     public boolean tryUnlockRead() {
         long s, m; WNode h;
         while ((m = (s = state) & ABITS) != 0L && m < WBIT) {
@@ -773,10 +365,6 @@ public class StampedLock implements java.io.Serializable {
 
     // status monitoring methods
 
-    /**
-     * Returns combined state-held and overflow read count for given
-     * state s.
-     */
     private int getReadLockCount(long s) {
         long readers;
         if ((readers = s & RBITS) >= RFULL)
@@ -784,43 +372,18 @@ public class StampedLock implements java.io.Serializable {
         return (int) readers;
     }
 
-    /**
-     * Returns {@code true} if the lock is currently held exclusively.
-     *
-     * @return {@code true} if the lock is currently held exclusively
-     */
     public boolean isWriteLocked() {
         return (state & WBIT) != 0L;
     }
 
-    /**
-     * Returns {@code true} if the lock is currently held non-exclusively.
-     *
-     * @return {@code true} if the lock is currently held non-exclusively
-     */
     public boolean isReadLocked() {
         return (state & RBITS) != 0L;
     }
 
-    /**
-     * Queries the number of read locks held for this lock. This
-     * method is designed for use in monitoring system state, not for
-     * synchronization control.
-     * @return the number of read locks held
-     */
     public int getReadLockCount() {
         return getReadLockCount(state);
     }
 
-    /**
-     * Returns a string identifying this lock, as well as its lock
-     * state.  The state, in brackets, includes the String {@code
-     * "Unlocked"} or the String {@code "Write-locked"} or the String
-     * {@code "Read-locks:"} followed by the current number of
-     * read-locks held.
-     *
-     * @return a string identifying this lock, as well as its lock state
-     */
     public String toString() {
         long s = state;
         return super.toString() +
@@ -831,46 +394,18 @@ public class StampedLock implements java.io.Serializable {
 
     // views
 
-    /**
-     * Returns a plain {@link Lock} view of this StampedLock in which
-     * the {@link Lock#lock} method is mapped to {@link #readLock},
-     * and similarly for other methods. The returned Lock does not
-     * support a {@link Condition}; method {@link
-     * Lock#newCondition()} throws {@code
-     * UnsupportedOperationException}.
-     *
-     * @return the lock
-     */
     public Lock asReadLock() {
         ReadLockView v;
         return ((v = readLockView) != null ? v :
                 (readLockView = new ReadLockView()));
     }
 
-    /**
-     * Returns a plain {@link Lock} view of this StampedLock in which
-     * the {@link Lock#lock} method is mapped to {@link #writeLock},
-     * and similarly for other methods. The returned Lock does not
-     * support a {@link Condition}; method {@link
-     * Lock#newCondition()} throws {@code
-     * UnsupportedOperationException}.
-     *
-     * @return the lock
-     */
     public Lock asWriteLock() {
         WriteLockView v;
         return ((v = writeLockView) != null ? v :
                 (writeLockView = new WriteLockView()));
     }
 
-    /**
-     * Returns a {@link ReadWriteLock} view of this StampedLock in
-     * which the {@link ReadWriteLock#readLock()} method is mapped to
-     * {@link #asReadLock()}, and {@link ReadWriteLock#writeLock()} to
-     * {@link #asWriteLock()}.
-     *
-     * @return the lock
-     */
     public ReadWriteLock asReadWriteLock() {
         ReadWriteLockView v;
         return ((v = readWriteLockView) != null ? v :
@@ -953,14 +488,6 @@ public class StampedLock implements java.io.Serializable {
 
     // internals
 
-    /**
-     * Tries to increment readerOverflow by first setting state
-     * access bits value to RBITS, indicating hold of spinlock,
-     * then updating, then releasing.
-     *
-     * @param s a reader overflow stamp: (s & ABITS) >= RFULL
-     * @return new stamp on success, else zero
-     */
     private long tryIncReaderOverflow(long s) {
         // assert (s & ABITS) >= RFULL;
         if ((s & ABITS) == RFULL) {
@@ -976,12 +503,6 @@ public class StampedLock implements java.io.Serializable {
         return 0L;
     }
 
-    /**
-     * Tries to decrement readerOverflow.
-     *
-     * @param s a reader overflow stamp: (s & ABITS) >= RFULL
-     * @return new stamp on success, else zero
-     */
     private long tryDecReaderOverflow(long s) {
         // assert (s & ABITS) >= RFULL;
         if ((s & ABITS) == RFULL) {
@@ -1003,13 +524,6 @@ public class StampedLock implements java.io.Serializable {
         return 0L;
     }
 
-    /**
-     * Wakes up the successor of h (normally whead). This is normally
-     * just h.next, but may require traversal from wtail if next
-     * pointers are lagging. This may fail to wake up an acquiring
-     * thread when one or more have been cancelled, but the cancel
-     * methods themselves provide extra safeguards to ensure liveness.
-     */
     private void release(WNode h) {
         if (h != null) {
             WNode q; Thread w;
@@ -1024,15 +538,6 @@ public class StampedLock implements java.io.Serializable {
         }
     }
 
-    /**
-     * See above for explanation.
-     *
-     * @param interruptible true if should check interrupts and if so
-     * return INTERRUPTED
-     * @param deadline if nonzero, the System.nanoTime value to timeout
-     * at (and return zero)
-     * @return next state, or INTERRUPTED
-     */
     private long acquireWrite(boolean interruptible, long deadline) {
         WNode node = null, p;
         for (int spins = -1;;) { // spin while enqueuing
@@ -1126,15 +631,6 @@ public class StampedLock implements java.io.Serializable {
         }
     }
 
-    /**
-     * See above for explanation.
-     *
-     * @param interruptible true if should check interrupts and if so
-     * return INTERRUPTED
-     * @param deadline if nonzero, the System.nanoTime value to timeout
-     * at (and return zero)
-     * @return next state, or INTERRUPTED
-     */
     private long acquireRead(boolean interruptible, long deadline) {
         WNode node = null, p;
         for (int spins = -1;;) {
@@ -1293,22 +789,6 @@ public class StampedLock implements java.io.Serializable {
         }
     }
 
-    /**
-     * If node non-null, forces cancel status and unsplices it from
-     * queue if possible and wakes up any cowaiters (of the node, or
-     * group, as applicable), and in any case helps release current
-     * first waiter if lock is free. (Calling with null arguments
-     * serves as a conditional form of release, which is not currently
-     * needed but may be needed under possible future cancellation
-     * policies). This is a variant of cancellation methods in
-     * AbstractQueuedSynchronizer (see its detailed explanation in AQS
-     * internal documentation).
-     *
-     * @param node if nonnull, the waiter
-     * @param group either node or the group node is cowaiting with
-     * @param interrupted if already interrupted
-     * @return INTERRUPTED if interrupted or Thread.interrupted, else zero
-     */
     private long cancelWaiter(WNode node, WNode group, boolean interrupted) {
         if (node != null && group != null) {
             Thread w;

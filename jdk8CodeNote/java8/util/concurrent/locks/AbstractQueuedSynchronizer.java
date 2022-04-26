@@ -11,12 +11,9 @@ import sun.misc.Unsafe;
  * AQS是抽象的队列式同步器框架，是除了java自带的synchronized关键字之外的锁机制。
  * 其底层采用乐观锁，大量使用了CAS操作，同时采用自旋方式重试，以实现轻量级和高效地获取锁。
  */
-public abstract class AbstractQueuedSynchronizer
-    extends AbstractOwnableSynchronizer
-    implements java.io.Serializable {
+public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchronizer implements java.io.Serializable {
 
     private static final long serialVersionUID = 7373984972572414691L;
-
 
     protected AbstractQueuedSynchronizer() { }
 
@@ -681,8 +678,6 @@ public abstract class AbstractQueuedSynchronizer
             ((h = head) != null && (s = h.next) != null &&
              s.prev == head && (st = s.thread) != null))
             return st;
-
-
 
         Node t = tail;
         Thread firstThread = null;
