@@ -10,7 +10,7 @@ package src.basis.classLoad;
  * 6、含有 default 方法接口的实现类初始化时，先初始化该接口
  * @author caoyang
  */
-public class TestClassLoad {
+public class TestClassLoader1 {
     public static void main(String[] args) {
         // 通过子类引用父类的静态变量，不会导致子类初始化
         // 对于静态变量，只有直接定义该字段的类才会被初始化
