@@ -39,7 +39,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
         static final int CANCELLED =  1;
         // 表示当前节点的后继节点在等待唤醒，在后继节点找到安全点时，会更新其前驱的状态为此
         static final int SIGNAL    = -1;
-        // 节点调用了Condition的await()，正在等待
+        // 节点调用了Condition的await()，进入条件队列，正在等待
         static final int CONDITION = -2;
         // 共享模式下，可以唤醒多个后继节点
         static final int PROPAGATE = -3;
