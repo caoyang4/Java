@@ -108,7 +108,6 @@ public class ThreadLocal<T> {
     static class ThreadLocalMap {
 
         static class Entry extends WeakReference<ThreadLocal<?>> {
-            /** The value associated with this ThreadLocal. */
             Object value;
 
             Entry(ThreadLocal<?> k, Object v) {
@@ -125,23 +124,14 @@ public class ThreadLocal<T> {
 
         private int threshold; // Default to 0
 
-        /**
-         * Set the resize threshold to maintain at worst a 2/3 load factor.
-         */
         private void setThreshold(int len) {
             threshold = len * 2 / 3;
         }
 
-        /**
-         * Increment i modulo len.
-         */
         private static int nextIndex(int i, int len) {
             return ((i + 1 < len) ? i + 1 : 0);
         }
 
-        /**
-         * Decrement i modulo len.
-         */
         private static int prevIndex(int i, int len) {
             return ((i - 1 >= 0) ? i - 1 : len - 1);
         }
@@ -205,12 +195,6 @@ public class ThreadLocal<T> {
             return null;
         }
 
-        /**
-         * Set the value associated with key.
-         *
-         * @param key the thread local object
-         * @param value the value to be set
-         */
         private void set(ThreadLocal<?> key, Object value) {
 
             Entry[] tab = table;
@@ -239,9 +223,6 @@ public class ThreadLocal<T> {
                 rehash();
         }
 
-        /**
-         * Remove the entry for key.
-         */
         private void remove(ThreadLocal<?> key) {
             Entry[] tab = table;
             int len = tab.length;

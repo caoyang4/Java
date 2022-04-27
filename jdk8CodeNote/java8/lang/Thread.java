@@ -510,11 +510,9 @@ public class Thread implements Runnable {
     public String toString() {
         ThreadGroup group = getThreadGroup();
         if (group != null) {
-            return "Thread[" + getName() + "," + getPriority() + "," +
-                           group.getName() + "]";
+            return "Thread[" + getName() + "," + getPriority() + "," + group.getName() + "]";
         } else {
-            return "Thread[" + getName() + "," + getPriority() + "," +
-                            "" + "]";
+            return "Thread[" + getName() + "," + getPriority() + "," + "" + "]";
         }
     }
 
