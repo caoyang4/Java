@@ -136,9 +136,7 @@ import sun.misc.SharedSecrets;
  * @since   1.4
  */
 
-public class IdentityHashMap<K,V>
-    extends AbstractMap<K,V>
-    implements Map<K,V>, java.io.Serializable, Cloneable
+public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, java.io.Serializable, Cloneable
 {
     /**
      * The initial capacity used by the no-args constructor.
