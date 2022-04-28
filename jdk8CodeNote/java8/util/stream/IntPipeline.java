@@ -50,9 +50,7 @@ import java.util.function.Supplier;
  * @param <E_IN> type of elements in the upstream source
  * @since 1.8
  */
-abstract class IntPipeline<E_IN>
-        extends AbstractPipeline<E_IN, Integer, IntStream>
-        implements IntStream {
+abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStream> implements IntStream {
 
     /**
      * Constructor for the head of a stream pipeline.
