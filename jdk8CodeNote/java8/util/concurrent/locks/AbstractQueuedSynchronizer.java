@@ -7,6 +7,12 @@ import java.util.Date;
 import sun.misc.Unsafe;
 
 /**
+ * AQS源码分析三板斧：状态，队列，CAS
+ * AQS由三部分组成:
+ *   state同步状态
+ *   Node组成的CLH队列
+ *   ConditionObject条件变量（包含Node组成的条件单向队列）
+ *
  * AQS中，排在阻塞队列第一位的使用自旋等待，而排在后面的线程则挂起。
  * AQS是抽象的队列式同步器框架，是除了java自带的synchronized关键字之外的锁机制。
  * 其底层采用乐观锁，大量使用了CAS操作，同时采用自旋方式重试，以实现轻量级和高效地获取锁。
@@ -56,6 +62,8 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
         // 节点包装的线程
         volatile Thread thread;
 
+        // Node在CLH队列时，nextWaiter表示共享式或独占式标记；
+        // Node在条件队列时，nextWaiter表示下个Node节点指针；
         Node nextWaiter;
 
         final boolean isShared() {
