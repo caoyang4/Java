@@ -70,6 +70,7 @@ public class Thread implements Runnable {
         return ++threadSeqNumber;
     }
 
+    // parkBlocker 是用于记录线程是被谁阻塞的，可以通过LockSupport.getBlocker()获取到阻塞的对象，用于监控和分析线程用的
     volatile Object parkBlocker;
 
     private volatile Interruptible blocker;

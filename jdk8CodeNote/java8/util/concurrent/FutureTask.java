@@ -68,9 +68,6 @@ public class FutureTask<V> implements RunnableFuture<V> {
         return true;
     }
 
-    /**
-     * @throws CancellationException {@inheritDoc}
-     */
     public V get() throws InterruptedException, ExecutionException {
         int s = state;
         if (s <= COMPLETING)
@@ -288,12 +285,9 @@ public class FutureTask<V> implements RunnableFuture<V> {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> k = FutureTask.class;
-            stateOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("state"));
-            runnerOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("runner"));
-            waitersOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("waiters"));
+            stateOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("state"));
+            runnerOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("runner"));
+            waitersOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("waiters"));
         } catch (Exception e) {
             throw new Error(e);
         }
