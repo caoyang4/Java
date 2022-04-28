@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2012, 2017, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
 package java.util.stream;
 
 import java.util.IntSummaryStatistics;
@@ -43,56 +19,22 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 
-/**
- * Abstract base class for an intermediate pipeline stage or pipeline source
- * stage implementing whose elements are of type {@code int}.
- *
- * @param <E_IN> type of elements in the upstream source
- * @since 1.8
- */
 abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStream> implements IntStream {
 
-    /**
-     * Constructor for the head of a stream pipeline.
-     *
-     * @param source {@code Supplier<Spliterator>} describing the stream source
-     * @param sourceFlags The source flags for the stream source, described in
-     *        {@link StreamOpFlag}
-     * @param parallel {@code true} if the pipeline is parallel
-     */
     IntPipeline(Supplier<? extends Spliterator<Integer>> source,
                 int sourceFlags, boolean parallel) {
         super(source, sourceFlags, parallel);
     }
 
-    /**
-     * Constructor for the head of a stream pipeline.
-     *
-     * @param source {@code Spliterator} describing the stream source
-     * @param sourceFlags The source flags for the stream source, described in
-     *        {@link StreamOpFlag}
-     * @param parallel {@code true} if the pipeline is parallel
-     */
     IntPipeline(Spliterator<Integer> source,
                 int sourceFlags, boolean parallel) {
         super(source, sourceFlags, parallel);
     }
 
-    /**
-     * Constructor for appending an intermediate operation onto an existing
-     * pipeline.
-     *
-     * @param upstream the upstream element source
-     * @param opFlags the operation flags for the new operation
-     */
     IntPipeline(AbstractPipeline<?, E_IN, ?> upstream, int opFlags) {
         super(upstream, opFlags);
     }
 
-    /**
-     * Adapt a {@code Sink<Integer> to an {@code IntConsumer}, ideally simply
-     * by casting.
-     */
     private static IntConsumer adapt(Sink<Integer> sink) {
         if (sink instanceof IntConsumer) {
             return (IntConsumer) sink;
@@ -105,13 +47,6 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         }
     }
 
-    /**
-     * Adapt a {@code Spliterator<Integer>} to a {@code Spliterator.OfInt}.
-     *
-     * @implNote
-     * The implementation attempts to cast to a Spliterator.OfInt, and throws an
-     * exception if this cast is not possible.
-     */
     private static Spliterator.OfInt adapt(Spliterator<Integer> s) {
         if (s instanceof Spliterator.OfInt) {
             return (Spliterator.OfInt) s;
@@ -527,35 +462,12 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
 
     //
 
-    /**
-     * Source stage of an IntStream.
-     *
-     * @param <E_IN> type of elements in the upstream source
-     * @since 1.8
-     */
     static class Head<E_IN> extends IntPipeline<E_IN> {
-        /**
-         * Constructor for the source stage of an IntStream.
-         *
-         * @param source {@code Supplier<Spliterator>} describing the stream
-         *               source
-         * @param sourceFlags the source flags for the stream source, described
-         *                    in {@link StreamOpFlag}
-         * @param parallel {@code true} if the pipeline is parallel
-         */
         Head(Supplier<? extends Spliterator<Integer>> source,
              int sourceFlags, boolean parallel) {
             super(source, sourceFlags, parallel);
         }
 
-        /**
-         * Constructor for the source stage of an IntStream.
-         *
-         * @param source {@code Spliterator} describing the stream source
-         * @param sourceFlags the source flags for the stream source, described
-         *                    in {@link StreamOpFlag}
-         * @param parallel {@code true} if the pipeline is parallel
-         */
         Head(Spliterator<Integer> source,
              int sourceFlags, boolean parallel) {
             super(source, sourceFlags, parallel);
@@ -594,20 +506,7 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         }
     }
 
-    /**
-     * Base class for a stateless intermediate stage of an IntStream
-     *
-     * @param <E_IN> type of elements in the upstream source
-     * @since 1.8
-     */
     abstract static class StatelessOp<E_IN> extends IntPipeline<E_IN> {
-        /**
-         * Construct a new IntStream by appending a stateless intermediate
-         * operation to an existing stream.
-         * @param upstream The upstream pipeline stage
-         * @param inputShape The stream shape for the upstream pipeline stage
-         * @param opFlags Operation flags for the new stage
-         */
         StatelessOp(AbstractPipeline<?, E_IN, ?> upstream,
                     StreamShape inputShape,
                     int opFlags) {
@@ -621,20 +520,7 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         }
     }
 
-    /**
-     * Base class for a stateful intermediate stage of an IntStream.
-     *
-     * @param <E_IN> type of elements in the upstream source
-     * @since 1.8
-     */
     abstract static class StatefulOp<E_IN> extends IntPipeline<E_IN> {
-        /**
-         * Construct a new IntStream by appending a stateful intermediate
-         * operation to an existing stream.
-         * @param upstream The upstream pipeline stage
-         * @param inputShape The stream shape for the upstream pipeline stage
-         * @param opFlags Operation flags for the new stage
-         */
         StatefulOp(AbstractPipeline<?, E_IN, ?> upstream,
                    StreamShape inputShape,
                    int opFlags) {
