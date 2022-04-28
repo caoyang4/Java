@@ -145,8 +145,12 @@ public class Executors {
 
     // Non-public classes supporting the public methods
 
+    /**
+     * 适配器模式：将一个Runnable类型对象适配成Callable类型
+     */
     static final class RunnableAdapter<T> implements Callable<T> {
         final Runnable task;
+        //  result参数的存在只是为了将一个Runnable类型适配成Callable类型
         final T result;
         RunnableAdapter(Runnable task, T result) {
             this.task = task;
