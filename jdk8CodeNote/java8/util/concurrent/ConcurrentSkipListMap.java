@@ -25,8 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
-    implements ConcurrentNavigableMap<K,V>, Cloneable, Serializable {
+public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements ConcurrentNavigableMap<K,V>, Cloneable, Serializable {
     /*
      *
      * Head nodes          Index nodes

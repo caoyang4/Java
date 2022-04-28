@@ -1,111 +1,16 @@
-/*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
-/*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
-
 package java.util.concurrent;
 import java.util.*;
 
-/**
- * Provides default implementations of {@link ExecutorService}
- * execution methods. This class implements the {@code submit},
- * {@code invokeAny} and {@code invokeAll} methods using a
- * {@link RunnableFuture} returned by {@code newTaskFor}, which defaults
- * to the {@link FutureTask} class provided in this package.  For example,
- * the implementation of {@code submit(Runnable)} creates an
- * associated {@code RunnableFuture} that is executed and
- * returned. Subclasses may override the {@code newTaskFor} methods
- * to return {@code RunnableFuture} implementations other than
- * {@code FutureTask}.
- *
- * <p><b>Extension example</b>. Here is a sketch of a class
- * that customizes {@link ThreadPoolExecutor} to use
- * a {@code CustomTask} class instead of the default {@code FutureTask}:
- *  <pre> {@code
- * public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
- *
- *   static class CustomTask<V> implements RunnableFuture<V> {...}
- *
- *   protected <V> RunnableFuture<V> newTaskFor(Callable<V> c) {
- *       return new CustomTask<V>(c);
- *   }
- *   protected <V> RunnableFuture<V> newTaskFor(Runnable r, V v) {
- *       return new CustomTask<V>(r, v);
- *   }
- *   // ... add constructors, etc.
- * }}</pre>
- *
- * @since 1.5
- * @author Doug Lea
- */
 public abstract class AbstractExecutorService implements ExecutorService {
 
-    /**
-     * Returns a {@code RunnableFuture} for the given runnable and default
-     * value.
-     *
-     * @param runnable the runnable task being wrapped
-     * @param value the default value for the returned future
-     * @param <T> the type of the given value
-     * @return a {@code RunnableFuture} which, when run, will run the
-     * underlying runnable and which, as a {@code Future}, will yield
-     * the given value as its result and provide for cancellation of
-     * the underlying task
-     * @since 1.6
-     */
     protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
         return new FutureTask<T>(runnable, value);
     }
 
-    /**
-     * Returns a {@code RunnableFuture} for the given callable task.
-     *
-     * @param callable the callable task being wrapped
-     * @param <T> the type of the callable's result
-     * @return a {@code RunnableFuture} which, when run, will call the
-     * underlying callable and which, as a {@code Future}, will yield
-     * the callable's result as its result and provide for
-     * cancellation of the underlying task
-     * @since 1.6
-     */
     protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
         return new FutureTask<T>(callable);
     }
 
-    /**
-     * @throws RejectedExecutionException {@inheritDoc}
-     * @throws NullPointerException       {@inheritDoc}
-     */
     public Future<?> submit(Runnable task) {
         if (task == null) throw new NullPointerException();
         RunnableFuture<Void> ftask = newTaskFor(task, null);
@@ -113,10 +18,6 @@ public abstract class AbstractExecutorService implements ExecutorService {
         return ftask;
     }
 
-    /**
-     * @throws RejectedExecutionException {@inheritDoc}
-     * @throws NullPointerException       {@inheritDoc}
-     */
     public <T> Future<T> submit(Runnable task, T result) {
         if (task == null) throw new NullPointerException();
         RunnableFuture<T> ftask = newTaskFor(task, result);
@@ -124,10 +25,6 @@ public abstract class AbstractExecutorService implements ExecutorService {
         return ftask;
     }
 
-    /**
-     * @throws RejectedExecutionException {@inheritDoc}
-     * @throws NullPointerException       {@inheritDoc}
-     */
     public <T> Future<T> submit(Callable<T> task) {
         if (task == null) throw new NullPointerException();
         RunnableFuture<T> ftask = newTaskFor(task);
@@ -135,9 +32,6 @@ public abstract class AbstractExecutorService implements ExecutorService {
         return ftask;
     }
 
-    /**
-     * the main mechanics of invokeAny.
-     */
     private <T> T doInvokeAny(Collection<? extends Callable<T>> tasks,
                               boolean timed, long nanos)
         throws InterruptedException, ExecutionException, TimeoutException {

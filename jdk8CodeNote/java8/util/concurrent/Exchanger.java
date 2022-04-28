@@ -3,69 +3,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
-/**
- * A synchronization point at which threads can pair and swap elements
- * within pairs.  Each thread presents some object on entry to the
- * {@link #exchange exchange} method, matches with a partner thread,
- * and receives its partner's object on return.  An Exchanger may be
- * viewed as a bidirectional form of a {@link SynchronousQueue}.
- * Exchangers may be useful in applications such as genetic algorithms
- * and pipeline designs.
- *
- * <p><b>Sample Usage:</b>
- * Here are the highlights of a class that uses an {@code Exchanger}
- * to swap buffers between threads so that the thread filling the
- * buffer gets a freshly emptied one when it needs it, handing off the
- * filled one to the thread emptying the buffer.
- *  <pre> {@code
- * class FillAndEmpty {
- *   Exchanger<DataBuffer> exchanger = new Exchanger<DataBuffer>();
- *   DataBuffer initialEmptyBuffer = ... a made-up type
- *   DataBuffer initialFullBuffer = ...
- *
- *   class FillingLoop implements Runnable {
- *     public void run() {
- *       DataBuffer currentBuffer = initialEmptyBuffer;
- *       try {
- *         while (currentBuffer != null) {
- *           addToBuffer(currentBuffer);
- *           if (currentBuffer.isFull())
- *             currentBuffer = exchanger.exchange(currentBuffer);
- *         }
- *       } catch (InterruptedException ex) { ... handle ... }
- *     }
- *   }
- *
- *   class EmptyingLoop implements Runnable {
- *     public void run() {
- *       DataBuffer currentBuffer = initialFullBuffer;
- *       try {
- *         while (currentBuffer != null) {
- *           takeFromBuffer(currentBuffer);
- *           if (currentBuffer.isEmpty())
- *             currentBuffer = exchanger.exchange(currentBuffer);
- *         }
- *       } catch (InterruptedException ex) { ... handle ...}
- *     }
- *   }
- *
- *   void start() {
- *     new Thread(new FillingLoop()).start();
- *     new Thread(new EmptyingLoop()).start();
- *   }
- * }}</pre>
- *
- * <p>Memory consistency effects: For each pair of threads that
- * successfully exchange objects via an {@code Exchanger}, actions
- * prior to the {@code exchange()} in each thread
- * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * those subsequent to a return from the corresponding {@code exchange()}
- * in the other thread.
- *
- * @since 1.5
- * @author Doug Lea and Bill Scherer and Michael Scott
- * @param <V> The type of objects that may be exchanged
- */
 public class Exchanger<V> {
 
     /*
