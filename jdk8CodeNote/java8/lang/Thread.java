@@ -309,6 +309,12 @@ public class Thread implements Runnable {
      * sleep(long)
      * sleep(long, int)
      * 上面这些方法在抛出InterruptedException异常后，会同时清除中断标识位
+     *
+     * Java的中断是一种协作机制。
+     * Java的线程调度不提供抢占式中断，而采用协作式的中断。其实，协作式的中断，原理很简单，就是轮询某个表示中断的标记
+     * 也就是说调用线程对象的interrupt方法并不一定就中断了正在运行的线程，它只是要求线程自己在合适的时机中断自己。
+     * 每个线程都有一个boolean的中断状态（不一定就是对象的属性，事实上，该状态也确实不是Thread的字段），
+     * interrupt方法仅仅只是将该状态置为true
      */
     public void interrupt() {
         // 中断机制的核心在于中断状态和InterruptedException异常
