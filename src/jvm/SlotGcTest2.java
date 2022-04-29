@@ -1,4 +1,4 @@
-package src.gc;
+package src.jvm;
 
 /**
  * @author caoyang

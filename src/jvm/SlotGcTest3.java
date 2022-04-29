@@ -1,6 +1,7 @@
-package src.gc;
+package src.jvm;
 
 /**
+ * -XX:+PrintGCDetails 打印 gc 信息
  * @author caoyang
  */
 public class SlotGcTest3 {

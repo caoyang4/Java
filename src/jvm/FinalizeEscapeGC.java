@@ -1,4 +1,4 @@
-package src.gc;
+package src.jvm;
 
 /**
  * 对象是否被回收

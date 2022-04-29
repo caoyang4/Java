@@ -1,4 +1,4 @@
-package src.gc;
+package src.jvm;
 
 /**
  * 局部变量表垃圾回收
