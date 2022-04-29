@@ -10,12 +10,12 @@ import java.util.Arrays;
  */
 public class Leetcode260 {
     public static int[] singleNumber(int[] nums) {
-        int x = 0;
+        int bit = 0;
         for (int i = 0; i < nums.length; i++) {
-            x ^= nums[i];
+            bit ^= nums[i];
         }
         // 取异或值最后一个二进制位为 1 的数字作为 mask, 如果是 1 则表示两个数字在这一位上不同
-        int bit = x & (-x);
+        bit &= (-bit);
         int[] ans = new int[2];
         for (int num : nums) {
             if((num & bit) == 0){
