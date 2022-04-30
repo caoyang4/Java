@@ -1,5 +1,7 @@
 package src.algorithm.leetcode;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -18,12 +20,12 @@ import java.util.List;
  *
  * 注意：
  * 本题中的空白字符只包括空格字符 ' ' 。
- * 除前导空格或数字后的其余字符串外，请勿忽略 任何其他字符。
+ * 除前导空格或数字后的其余字符串外，请勿忽略任何其他字符。
  *
  * @author caoyang
  */
 public class Leetcode8 {
-    public static int myAtoi(String s) {
+    public static int myAtoi1(String s) {
         char[] chars = s.toCharArray();
         int i = 0;
         int res = 0;
@@ -55,10 +57,47 @@ public class Leetcode8 {
         }
         return res;
     }
+    public static int myAtoi(String s) {
+        char[] chars = s.trim().toCharArray();
+        Deque<Integer> deque = new LinkedList<>();
+        boolean isPositive = true;
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (i == 0){
+                if (c == '-'){
+                    isPositive = false;
+                } else if (Character.isDigit(c)){
+                    deque.add(c-'0');
+                }  else if (c != '+'){
+                    return 0;
+                }
+            } else {
+                if(!Character.isDigit(c)){ break; }
+                deque.add(c-'0');
+            }
+        }
+
+        while (!deque.isEmpty()){
+            if(deque.peek() == 0){
+                deque.pop();
+            } else {
+                break;
+            }
+        }
+        if (deque.isEmpty()){return 0;}
+        long res = 0;
+        int n = deque.size();
+        while (!deque.isEmpty()){
+            res += deque.pop() * (long)Math.pow(10, --n);
+            if(res > Integer.MAX_VALUE || res < 0){
+                return isPositive ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
+        }
+        return (int)(isPositive ? res : -res);
+    }
 
     public static void main(String[] args) {
-        String s = "00000-42a1234";
+        String s = "-42";
         System.out.println(myAtoi(s));
-
     }
 }
