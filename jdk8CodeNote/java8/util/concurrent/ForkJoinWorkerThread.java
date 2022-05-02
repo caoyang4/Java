@@ -55,6 +55,7 @@ public class ForkJoinWorkerThread extends Thread {
             Throwable exception = null;
             try {
                 onStart();
+                //Work开始工作，处理workQueue中的任务
                 pool.runWorker(workQueue);
             } catch (Throwable ex) {
                 exception = ex;

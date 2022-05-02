@@ -18,6 +18,11 @@ package java.util.concurrent;
  * }}
  *
  */
+
+/**
+ * ForkJoinTask 是一个抽象类，在分治模型中，它还有两个抽象子类 RecursiveAction 和 RecursiveTask
+ * RecursiveTask有返回值
+ */
 public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
     private static final long serialVersionUID = 5232453952276485270L;
 

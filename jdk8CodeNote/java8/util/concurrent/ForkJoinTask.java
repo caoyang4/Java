@@ -17,6 +17,16 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.lang.reflect.Constructor;
 
+/**
+ * 较 ThreadPoolExecutor 的单个 TaskQueue 的形式，ForkJoinPool 是多个 TaskQueue的形式
+ *
+ * 提交的任务主要有两种：
+ *   有外部直接提交的（submission task）
+ *   也有任务自己 fork 出来的（worker task）
+ *   为了进一步区分这两种 task，Doug Lea 就设计一个简单的路由规则：
+ *     将 submission task 放到 WorkQueue 数组的「偶数」下标中
+ *     将 worker task 放在 WorkQueue 的「奇数」下标中，并且只有奇数下标才有线程( worker )与之相对
+ */
 public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
 
     /*
@@ -27,8 +37,6 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * This is sometimes hard to see because this file orders exported
      * methods in a way that flows well in javadocs.
      */
-
-
 
     volatile int status; // accessed directly by pool and workers
     static final int DONE_MASK   = 0xf0000000;  // mask out non-completion bits
@@ -54,6 +62,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         int s; boolean completed;
         if ((s = status) >= 0) {
             try {
+                // ForkJoinTask中的抽象方法，RecursiveTask 和 RecursiveAction 都重写了它
                 completed = exec();
             } catch (Throwable rex) {
                 return setExceptionalCompletion(rex);
@@ -131,12 +140,18 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
 
     private int doJoin() {
         int s; Thread t; ForkJoinWorkerThread wt; ForkJoinPool.WorkQueue w;
+
         return (s = status) < 0 ? s :
+            // 如果是 ForkJoinWorkerThread Worker
             ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread) ?
-            (w = (wt = (ForkJoinWorkerThread)t).workQueue).
-            tryUnpush(this) && (s = doExec()) < 0 ? s :
+            // 取出了任务，就去执行它，并返回结果
+            (w = (wt = (ForkJoinWorkerThread)t).workQueue).ryUnpush(this) && (s = doExec()) < 0 ? s :
+            // 也有可能别的线程把这个任务偷走了，那就执行内部等待方法
             wt.pool.awaitJoin(w, this, 0L) :
+            // 如果不是 ForkJoinWorkerThread，执行外部等待方法
             externalAwaitDone();
+
+        //awaitJoin 和 externalAwaitDone 都用到了 Helper（帮助） 和 Compensating（补偿） 两种策略
     }
 
     private int doInvoke() {
@@ -344,6 +359,11 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
 
     // public methods
 
+    /**
+     * 如果当前线程是 ForkJoinWorkerThread 类型，也就是说已经通过上文注册的 Worker，
+     * 那么直接调用 push 方法将 task 放到当前线程拥有的 WorkQueue 中，
+     * 否则就再调用 externalPush
+     */
     public final ForkJoinTask<V> fork() {
         Thread t;
         if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
@@ -353,6 +373,9 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         return this;
     }
 
+    /**
+     * join 的核心调用在 doJoin
+     */
     public final V join() {
         int s;
         if ((s = doJoin() & DONE_MASK) != NORMAL)
