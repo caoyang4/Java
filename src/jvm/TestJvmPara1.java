@@ -1,0 +1,14 @@
+package src.jvm;
+
+/**
+ * -XX:+PrintFlagsInitial 查看所有参数的默认值
+ * -XX:PrintFlagsFinal 查看所有参数的最终值
+ * jps 查看运行的进程
+ * jinfo -flag SurvivorRatio PID 查看SurvivorRatio的参数值
+ */
+public class TestJvmPara1 {
+    public static void main(String[] args) {
+
+    }
+
+}

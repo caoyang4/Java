@@ -14,7 +14,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-
+/**
+ * 为什么 char 数组比 String 更适合存储密码？
+ * 1、由于字符串在 Java 中是不可变的，如果你将密码存储为纯文本，它将在内存中可用，直到垃圾收集器清除它，
+ *    并且为了可重用性，会存在 String 在字符串池中, 它很可能会保留在内存中持续很长时间，从而构成安全威胁，
+ *    由于字符串是不可变的，所以不能更改字符串的内容，因为任何更改都会产生新的字符串，而如果你使用char[]，你就可以将所有元素设置为空白或零
+ *    因此，在字符数组中存储密码可以明显降低窃取密码的安全风险
+ * 2、使用 String 时，总是存在在日志文件或控制台中打印纯文本的风险，但如果使用char数组，则不会打印数组的内容而是打印其内存地址
+ */
 public final class String
     implements java.io.Serializable, Comparable<String>, CharSequence {
     private final char value[];
