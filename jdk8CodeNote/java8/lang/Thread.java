@@ -139,14 +139,11 @@ public class Thread implements Runnable {
     // Runnable target （Runnable 对象）
     // String name （线程的名字）
     // long stackSize
-    private void init(ThreadGroup g, Runnable target, String name,
-                      long stackSize) {
+    private void init(ThreadGroup g, Runnable target, String name, long stackSize) {
         init(g, target, name, stackSize, null, true);
     }
 
-    private void init(ThreadGroup g, Runnable target, String name,
-                      long stackSize, AccessControlContext acc,
-                      boolean inheritThreadLocals) {
+    private void init(ThreadGroup g, Runnable target, String name, long stackSize, AccessControlContext acc, boolean inheritThreadLocals) {
         if (name == null) {
             throw new NullPointerException("name cannot be null");
         }
