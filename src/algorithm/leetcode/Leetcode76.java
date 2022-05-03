@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class Leetcode76 {
     /**
-     * ap<Character, Integer> window = new HashMap<>();
+     * Map<Character, Integer> window = new HashMap<>();
      * Map<Character, Integer> need = new HashMap<>();
      * //需要的字符传入need
      * for (char c : t.toCharArray()) {

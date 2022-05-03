@@ -14,23 +14,50 @@ import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 import sun.misc.VM;
 
+/**
+ * 随机数生成步骤
+ *   1、创建一个默认种子随机数生成器
+ *   2、根据老的种子生成新的种子
+ *   3、根据新的种子计算随机数
+ * 在单线程情况下每次调用nextInt()都是根据老的种子计算出新的种子，这是可以保证随机数产生的随机性。
+ * 但在多线程下多个线程可能拿同一个老的种子去执行步骤2以计算新的种子，这会导致多个线程的新种子是一样的，
+ * 并且由于步骤3的算法是固定的，所以会导致多个线程产生相同的随机值
+ *
+ * 所以步骤2要保证原子性，也就是说当多个线程根据同一个老种子计算新种子时，
+ * 第一个线程的新种子被计算出来后，第二个线程要丢弃自己老的种子，
+ * 而使用第一个线程的新种子来计算自己的新种子，依此类推。
+ *
+ * Random 的缺点是多个线程会使用同一个原子性种子变量，从而导致对原子变量更新的竞争
+ * 而在 ThreadLocalRandom 中，每个线程都维护一个种子变量，在每个线程生成随机数的时候都根据当前线程中旧的种子去计算新的种子，
+ * 并使用新的种子更新老的种子，再根据新的种子去计算随机数，这样就不会存在竞争问题了
+ *
+ * ThreadLocalRandom 使用 ThreadLocal 的原理，让每个线程都持有一个本地的种子变量，
+ * 该种子变量只有在使用随机数时才会被初始化。
+ * 在多线程下计算新种子时是根据自己线程内维护的种子变量进行更新，从而避免了竞争。
+ */
 public class ThreadLocalRandom extends Random {
 
     private static final AtomicInteger probeGenerator = new AtomicInteger();
 
     private static final AtomicLong seeder = new AtomicLong(initialSeed());
 
+    /**
+     * 使用安全性高的种子是无法被预测的，而 Random、ThreadLocalRandom 产生的被称为“伪随机数”，因为是可被预测的
+     * @return
+     */
     private static long initialSeed() {
         String sec = VM.getSavedProperty("java.util.secureRandomSeed");
+        // 首先判断java.util.secureRandomSeed的系统属性值是否为 true 来判断是否使用安全性高的种子
         if (Boolean.parseBoolean(sec)) {
+            // 如果为 true 则使用java.security.SecureRandom.getSeed(8)获取高安全性种子
             byte[] seedBytes = java.security.SecureRandom.getSeed(8);
             long s = (long)(seedBytes[0]) & 0xffL;
             for (int i = 1; i < 8; ++i)
                 s = (s << 8) | ((long)(seedBytes[i]) & 0xffL);
             return s;
         }
-        return (mix64(System.currentTimeMillis()) ^
-                mix64(System.nanoTime()));
+        // 如果为 false 则根据当前时间戳来获取初始化种子
+        return (mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
     }
 
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
@@ -62,8 +89,13 @@ public class ThreadLocalRandom extends Random {
         initialized = true; // false during super() call
     }
 
+    // 饿汉式单例
     static final ThreadLocalRandom instance = new ThreadLocalRandom();
 
+    /**
+     * 首先根据 probeGenerator 计算当前线程中的 threadLocalRandomProbe 初始化值，
+     * 然后根据 seeder 计算当前线程的初始化种子，然后把这两个变量设置到当前线程中
+     */
     static final void localInit() {
         int p = probeGenerator.addAndGet(PROBE_INCREMENT);
         int probe = (p == 0) ? 1 : p; // skip 0
@@ -73,8 +105,12 @@ public class ThreadLocalRandom extends Random {
         UNSAFE.putInt(t, PROBE, probe);
     }
 
+    /**
+     * 获取当前线程的随机数实例对象
+     */
     public static ThreadLocalRandom current() {
         if (UNSAFE.getInt(Thread.currentThread(), PROBE) == 0)
+            // 延迟初始化
             localInit();
         return instance;
     }
@@ -85,10 +121,14 @@ public class ThreadLocalRandom extends Random {
             throw new UnsupportedOperationException();
     }
 
+    /**
+     * 获取并更新各自的种子变量并生成随机数
+     * @return
+     */
     final long nextSeed() {
         Thread t; long r; // read and update per-thread seed
-        UNSAFE.putLong(t = Thread.currentThread(), SEED,
-                       r = UNSAFE.getLong(t, SEED) + GAMMA);
+        // 在旧种子的基础上累加GAMMA值作为新的种子
+        UNSAFE.putLong(t = Thread.currentThread(), SEED, r = UNSAFE.getLong(t, SEED) + GAMMA);
         return r;
     }
 
@@ -161,7 +201,9 @@ public class ThreadLocalRandom extends Random {
     public int nextInt(int bound) {
         if (bound <= 0)
             throw new IllegalArgumentException(BadBound);
+        //根据当前线程中的种子计算新种子
         int r = mix32(nextSeed());
+        //根据新种子计算随机数
         int m = bound - 1;
         if ((bound & m) == 0) // power of two
             r &= m;
@@ -570,6 +612,7 @@ public class ThreadLocalRandom extends Random {
 
     // Unsafe mechanics
     private static final sun.misc.Unsafe UNSAFE;
+    // SEED、PROBE、SECONDARYcurren变量是线程级别的，根本不需要使用原子类型变量
     private static final long SEED;
     private static final long PROBE;
     private static final long SECONDARY;
@@ -577,12 +620,9 @@ public class ThreadLocalRandom extends Random {
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> tk = Thread.class;
-            SEED = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSeed"));
-            PROBE = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomProbe"));
-            SECONDARY = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
+            SEED = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSeed"));
+            PROBE = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomProbe"));
+            SECONDARY = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSecondarySeed"));
         } catch (Exception e) {
             throw new Error(e);
         }

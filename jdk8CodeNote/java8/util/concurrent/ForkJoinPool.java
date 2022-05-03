@@ -210,6 +210,9 @@ public class ForkJoinPool extends AbstractExecutorService {
             }
         }
 
+        /**
+         * WorkQueue类中用于初始化或者增长array函数
+         */
         final ForkJoinTask<?>[] growArray() {
             ForkJoinTask<?>[] oldA = array;
             int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
@@ -217,6 +220,7 @@ public class ForkJoinPool extends AbstractExecutorService {
                 throw new RejectedExecutionException("Queue capacity exceeded");
             int oldMask, t, b;
             ForkJoinTask<?>[] a = array = new ForkJoinTask<?>[size];
+            // 面试题：为什么手动复制，而不用更快速的复制？System.arraycopy？面的是什么？？如何保证数组中的元素的可见性？getObjectVolatile（数组的首地址，偏移量）
             if (oldA != null && (oldMask = oldA.length - 1) >= 0 &&
                 (t = top) - (b = base) > 0) {
                 int mask = size - 1;
@@ -1292,88 +1296,131 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     //  Termination
 
+    /**
+     * 实际关闭方法。enable指明如果线程池状态处于活跃状态时，能不能修改状态
+     */
     private boolean tryTerminate(boolean now, boolean enable) {
         int rs;
+        // common公用线程池不允许被关闭
         if (this == common)                       // cannot shut down
             return false;
+        // 线程池处于活跃状态
         if ((rs = runState) >= 0) {
+            // 如果enable为false，直接退出
             if (!enable)
                 return false;
+            // 进入 SHUTDOWN 阶段
             rs = lockRunState();                  // enter SHUTDOWN phase
+            // 去除RSLOCK位，并加上SHUTDOWN标志位
             unlockRunState(rs, (rs & ~RSLOCK) | SHUTDOWN);
         }
-
-        if ((rs & STOP) == 0) {
+        // 此时标志位SHUTDOWN已经设置，那么通过之前的描述得知，此时线程池不会再接收新的任务
+        if ((rs & STOP) == 0) {  // 此时，线程池状态处于SHUTDOWN状态，没有设置STOP标志位
+            // 如果没有设置立即无条件结束线程池，那么需要检测一下静默状态，看看是否所有线程都是空闲的
             if (!now) {                           // check quiescence
+                // 重复检测，直到线程池状态稳定
                 for (long oldSum = 0L;;) {        // repeat until stable
                     WorkQueue[] ws; WorkQueue w; int m, b; long c;
+                    // 校验和变量默认等于最新的ctl值
                     long checkSum = ctl;
+                    // 计算ac值，ac大于0，说明仍然有活跃线程，直接返回即可
                     if ((int)(checkSum >> AC_SHIFT) + (config & SMASK) > 0)
                         return false;             // still active workers
                     if ((ws = workQueues) == null || (m = ws.length - 1) <= 0)
                         break;                    // check queues
+                    // 遍历所有队列，包括：外部提交队列、内部工作队列（窃取队列）
                     for (int i = 0; i <= m; ++i) {
+                        // 队列存在
                         if ((w = ws[i]) != null) {
-                            if ((b = w.base) != w.top || w.scanState >= 0 ||
+                            // 队列中有任务
+                            if ((b = w.base) != w.top ||
+                                // 处于工作状态
+                                w.scanState >= 0 ||
+                                // 正在执行任务
                                 w.currentSteal != null) {
+                                // 唤醒INACTIVE线程，尽快完成工作
                                 tryRelease(c = ctl, ws[m & (int)c], AC_UNIT);
                                 return false;     // arrange for recheck
                             }
                             checkSum += b;
+                            // 取wqs偶数位，设置qlock=-1，即终止状态。禁用外部队列
                             if ((i & 1) == 0)
                                 w.qlock = -1;     // try to disable external
                         }
                     }
+                    // 检测是否处于稳定状态，也即没有任务出入，遍历两次。
                     if (oldSum == (oldSum = checkSum))
                         break;
                 }
             }
+            // 当前线程，发现队列处于稳定状态，且已经没有任何任务可执行。直接将状态变为STOP
             if ((runState & STOP) == 0) {
                 rs = lockRunState();              // enter STOP phase
                 unlockRunState(rs, (rs & ~RSLOCK) | STOP);
             }
         }
-
+        // 此时进入STOP阶段，那么开始帮忙转变状态为terminate
+        // 通过三个步骤来逐步帮助terminate线程池
         int pass = 0;                             // 3 passes to help terminate
+        // 循环直到完成或者稳定
         for (long oldSum = 0L;;) {                // or until done or stable
             WorkQueue[] ws; WorkQueue w; ForkJoinWorkerThread wt; int m;
             long checkSum = ctl;
+            // 总线程数为0，即没有活动和非活动线程，也即所有的线程都没了
             if ((short)(checkSum >>> TC_SHIFT) + (config & SMASK) <= 0 ||
                 (ws = workQueues) == null || (m = ws.length - 1) <= 0) {
                 if ((runState & TERMINATED) == 0) {
+                    // 当前线程直接转变状态即可
                     rs = lockRunState();          // done
+                    // 将状态改为最终状态：TERMINATED
                     unlockRunState(rs, (rs & ~RSLOCK) | TERMINATED);
+                    // 从这里得知：awaitTermination，等待线程池终结是通过this对象进行阻塞
                     synchronized (this) { notifyAll(); } // for awaitTermination
                 }
                 break;
             }
+            // 有线程且队列存在。那么，遍历每一个wq。
+            // 只处理wq存在的队列。
+            // STOP状态含义：工作线程停止工作不管队列中是否还有任务。
             for (int i = 0; i <= m; ++i) {
                 if ((w = ws[i]) != null) {
+                    // 计算校验和，判定队列处于稳定状态，不能放也不能取
                     checkSum += w.base;
+                    // 直接禁用掉所有的队列wq。此时，不管队列里面是否有任务，都不在执行，详情请看scan方法
                     w.qlock = -1;                 // try to disable
+                    // pass为0时，为第一次进入，所以不会执行下面的语句
                     if (pass > 0) {
+                        // 将队列中剩余的任务都清空
                         w.cancelAll();            // clear queue
                         if (pass > 1 && (wt = w.owner) != null) {
+                            // 如果队列中线程还处于运行状态，那么将其中断
                             if (!wt.isInterrupted()) {
                                 try {             // unblock join
                                     wt.interrupt();
                                 } catch (Throwable ignore) {
                                 }
                             }
+                            // 如果线程处于INACTIVE状态，那么将其唤醒
                             if (w.scanState < 0)
                                 U.unpark(wt);     // wake up
                         }
                     }
                 }
             }
+            // checksum由上面的w.base来决定，
+            // 如果仍有队列不为空，这时checksum会改变，导致处于不稳定状态，那么重置pass继续循环
             if (checkSum != oldSum) {             // unstable
                 oldSum = checkSum;
                 pass = 0;
             }
+            // 到达这里的判断，也即所有的队列都处于稳定状态
+            // 如果当前线程已经经过三次循环，还没有满足第一个判断句，也即总线程数为0，
+            // 那么看看循环次数是否大于wqs的长度，如果是，那么直接退出，否则继续
             else if (pass > 3 && pass > m)        // can't further help
                 break;
             else if (++pass > 1) {                // try to dequeue
                 long c; int j = 0, sp;            // bound attempts
+                // 尝试将所有在等待栈中的线程全部唤醒
                 while (j++ <= m && (sp = (int)(c = ctl)) != 0)
                     tryRelease(c, ws[sp & m], AC_UNIT);
             }
@@ -1901,11 +1948,15 @@ public class ForkJoinPool extends AbstractExecutorService {
         return (runState & SHUTDOWN) != 0;
     }
 
-    public boolean awaitTermination(long timeout, TimeUnit unit)
-        throws InterruptedException {
+    /**
+     * 等待线程状态变为TERMINATED
+     */
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        // 响应中断
         if (Thread.interrupted())
             throw new InterruptedException();
         if (this == common) {
+            // common线程池是不能够被关闭的，所以直接调用awaitQuiescence，然后返回false
             awaitQuiescence(timeout, unit);
             return false;
         }
@@ -1915,6 +1966,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         if (nanos <= 0L)
             return false;
         long deadline = System.nanoTime() + nanos;
+        // 阻塞在this线程池对象的监视器锁中，直到状态变为TERMINATED然后被唤醒
         synchronized (this) {
             for (;;) {
                 if (isTerminated())
