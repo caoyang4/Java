@@ -844,6 +844,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         if (wc < corePoolSize)
             addWorker(null, true);
         else if (wc == 0)
+            // 即使corePoolSize为0,也会创建一个线程.该线程会去等待获取队列中的任务
             addWorker(null, false);
     }
 
