@@ -1,4 +1,8 @@
-
+/**
+ * spring 连接池就是采用ThreadLocal方法，当每个请求线程使用Connection的时候，
+ * 都会从ThreadLocal获取一次，如果为null，说明没有进行过数据库连接，连接后存入ThreadLocal中，
+ * 那么每一个请求线程都保存有一份自己的Connection。便解决了线程安全问题
+ */
 
 package java.lang;
 import java.lang.ref.*;

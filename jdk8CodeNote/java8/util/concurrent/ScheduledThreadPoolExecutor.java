@@ -456,7 +456,7 @@ public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements S
     }
 
     /**
-     * 该队列是定制的优先级队列，只能用来存储ScheduledFutureTask任务。
+     * 该队列是定制的优先级队列，是无界队列，只能用来存储ScheduledFutureTask任务。
      * 堆是实现优先级队列的最佳选择，而该队列正好是基于堆数据结构的实现
      * 基于ReentrantLock和Condition
      *

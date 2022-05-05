@@ -1,3 +1,22 @@
+/**
+ * 当一个Future可能需要显示地完成时，使用CompletionStage接口去支持完成时触发的函数和操作。
+ * 当2个以上线程同时尝试完成、异常完成、取消一个CompletableFuture时，只有一个能成功。
+ *
+ * CompletableFuture实现了CompletionStage接口的如下策略：
+ * 1.为了完成当前的CompletableFuture接口或者其他完成方法的回调函数的线程，提供了非异步的完成操作。
+ * 2.没有显式入参Executor的所有async方法都使用ForkJoinPool.commonPool()为了简化监视、调试和跟踪，
+ *     所有生成的异步任务都是标记接口AsynchronousCompletionTask的实例。
+ * 3.所有的CompletionStage方法都是独立于其他共有方法实现的，因此一个方法的行为不会受到子类中其他
+ *     方法的覆盖。
+ *
+ * CompletableFuture实现了Futurre接口的如下策略：
+ * 1.CompletableFuture无法直接控制完成，所以cancel操作被视为是另一种异常完成形式。
+ *     方法isCompletedExceptionally可以用来确定一个CompletableFuture是否以任何异常的方式完成。
+ * 2.以一个CompletionException为例，方法get()和get(long,TimeUnit)抛出一个ExecutionException，
+ *     对应CompletionException。为了在大多数上下文中简化用法，这个类还定义了方法join()和getNow，
+ *     而不是直接在这些情况中直接抛出CompletionException。
+ *     
+ */
 package java.util.concurrent;
 import java.util.function.Supplier;
 import java.util.function.Consumer;

@@ -7,7 +7,6 @@ import java.util.concurrent.locks.LockSupport;
  * 其中Runnable接口对应了FutureTask名字中的Task，代表FutureTask本质上也是表征了一个任务。
  * 而Future接口就对应了FutureTask名字中的Future，表示了我们对于这个任务可以执行某些操作，
  * 例如，判断任务是否执行完毕，获取任务的执行结果，取消任务的执行等
- * @param <V>
  */
 public class FutureTask<V> implements RunnableFuture<V> {
 

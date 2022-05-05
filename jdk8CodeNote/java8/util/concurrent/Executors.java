@@ -9,6 +9,15 @@ import java.security.PrivilegedActionException;
 import java.security.AccessControlException;
 import sun.security.util.SecurityConstants;
 
+/**
+ * 为什么不建议使用Executors创建线程池？
+ *
+ * Executors工具类只是把一些特定参数进行了封装，并提供一些方法供我们调用而已，并不能灵活地填写参数，策略过于简单，不够友好。
+ * CachedThreadPool和ScheduledThreadPool最大线程数为Integer.MAX_VALUE，如果线程无限地创建，会造成OOM异常。
+ * LinkedBlockingQueue基于链表的FIFO队列，是无界的，默认最大是Integer.MAX_VALUE，
+ * DelayedWorkQueue是专属ScheduledThreadPool的延迟无界队列，默认最大是Integer.MAX_VALUE，
+ * 因此FixedThreadPool和SingleThreadPool的阻塞队列长度为Integer.MAX_VALUE，如果此时队列被无限地堆积任务，会造成OOM异常。
+ */
 public class Executors {
 
     public static ExecutorService newFixedThreadPool(int nThreads) {
