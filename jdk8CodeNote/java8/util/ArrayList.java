@@ -6,9 +6,7 @@ import java.util.function.UnaryOperator;
 import sun.misc.SharedSecrets;
 
 
-public class ArrayList<E> extends AbstractList<E>
-        implements List<E>, RandomAccess, Cloneable, java.io.Serializable
-{
+public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8683452581122892189L;
 
     private static final int DEFAULT_CAPACITY = 10;

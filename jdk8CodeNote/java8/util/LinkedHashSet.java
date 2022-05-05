@@ -1,9 +1,7 @@
 package java.util;
 
 
-public class LinkedHashSet<E>
-    extends HashSet<E>
-    implements Set<E>, Cloneable, java.io.Serializable {
+public class LinkedHashSet<E> extends HashSet<E> implements Set<E>, Cloneable, java.io.Serializable {
 
     private static final long serialVersionUID = -2851667679971038690L;
 

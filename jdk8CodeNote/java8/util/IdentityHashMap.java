@@ -7,8 +7,7 @@ import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
 
-public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, java.io.Serializable, Cloneable
-{
+public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, java.io.Serializable, Cloneable {
     private static final int DEFAULT_CAPACITY = 32;
 
     private static final int MINIMUM_CAPACITY = 4;

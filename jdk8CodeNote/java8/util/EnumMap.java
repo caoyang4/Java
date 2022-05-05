@@ -3,9 +3,7 @@ package java.util;
 import java.util.Map.Entry;
 import sun.misc.SharedSecrets;
 
-public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
-    implements java.io.Serializable, Cloneable
-{
+public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements java.io.Serializable, Cloneable {
     private final Class<K> keyType;
 
     private transient K[] keyUniverse;

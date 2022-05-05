@@ -7,9 +7,7 @@ import java.util.function.Function;
 import java.util.function.BiFunction;
 import sun.misc.SharedSecrets;
 
-public class Hashtable<K,V>
-    extends Dictionary<K,V>
-    implements Map<K,V>, Cloneable, java.io.Serializable {
+public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneable, java.io.Serializable {
 
     private transient Entry<?,?>[] table;
 

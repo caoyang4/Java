@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
-public class ArrayDeque<E> extends AbstractCollection<E> implements Deque<E>, Cloneable, Serializable
-{
+public class ArrayDeque<E> extends AbstractCollection<E> implements Deque<E>, Cloneable, Serializable {
     transient Object[] elements; // non-private to simplify nested class access
 
     transient int head;
