@@ -20,6 +20,7 @@ public class TestThreadLocal1 {
                 e.printStackTrace();
             }
             System.out.println(local.get());
+            // ThreadLocal存在内存泄漏问题，所以在最后最好都进行一次remove操作
             local.remove();
         }).start();
         new Thread(() -> {
