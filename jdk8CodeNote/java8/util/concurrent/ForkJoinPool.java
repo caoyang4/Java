@@ -30,16 +30,39 @@ import java.security.Permissions;
  * 执行子任务的线程不允许单独创建，要用线程池管理。秉承相同设计理念，再结合分治算法，
  * ForkJoin 框架中就出现了 ForkJoinPool 和 ForkJoinTask
  *
+ * 任务队列，每个worker对应一个queue,这是和 ThreadPoolExecutor 最大不同的地方之一
+ *
  * 3种队列模式
  * LIFO_QUEUE
  * FIFO_QUEUE
  * SHARED_QUEUE
  *
  * 提交的任务主要有两种：
- *   有外部直接提交的（submission task）
- *   也有任务自己 fork 出来的（worker task）
+ *   外部直接提交的（submission task），通过execute()、submit()、invoke()等方法提交的任务
+ *   工作线程 ork 出来的（worker task）
+ *   两种任务都会存放在WorkQueue数组中，Submission task存放在WorkQueue数组的偶数索引位置，Worker task存放在奇数索引位置。
+ *   工作线程只会分配在奇数索引的工作队列
  * 每个任务执行时间都是不一样的（当然是在 CPU 眼里），执行快的线程的工作队列的任务就可能是空的，
  * 为了最大化利用 CPU 资源，就允许空闲线程拿取其它任务队列中的内容，这个过程就叫做 work-stealing (工作窃取)
+ * 工作窃取机制
+ *   工作窃取是指当某个线程的任务队列中没有可执行任务的时候，从其他线程的任务队列中窃取任务来执行，
+ *   以充分利用工作线程的计算能力，减少线程由于获取不到任务而造成的空闲浪费。
+ *   在 ForkJoinPool 中，工作任务的队列都采用双端队列容器，
+ *   工作线程在工作队列上 LIFO，而窃取其他线程的任务的时候，从队列头部取获取
+ *
+ */
+
+/**
+ * 为什么说 cpu 密集型的任务使用 ForkJoinPool 性能更好？
+ *  1、ForkJoinPool 的工作线程都有属于自己的一个队列，类似于 ConcrurentHashMap，
+ *     在 Java8 中，ConcrurentHashMap 对每个桶的锁隔离，每个桶的写入更新只影响该桶的锁，对其他桶没有影响。
+ *     同理，ForkJoinPool 也是采取这种思想。ThreadPoolExecutor 所有线程共享一个队列，
+ *     而 ForkJoinPool 每个 worker 都有与之绑定的 queue，大部分情况下没有竞争问题。
+ *     尽管是窃取机制，但此时是重队列的另一端 pop。在一定程度上获取任务的速度远远比一般线程池要快。
+ *  2、在并发计算中，一个任务分成的子任务。普通线程池没法保证子任务优先执行，导致子任务的父级任务一直阻塞。
+ *     而 ForkJoinPool 可以保证，被 fork 出来的子任务会优先执行，充分利用 cpu 资源。
+ *  3、ThreadPoolExecutor 提交任务时，如果 workerCount >= corePoolSize，且线程池内的阻塞队列未满，
+ *     则将任务添加到该阻塞队列中，没有及时消费，没有充分你利用cpu资源
  */
 @sun.misc.Contended
 public class ForkJoinPool extends AbstractExecutorService {
@@ -600,6 +623,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     // 高 16 位表示模式，低 15 位表示并行度
     final int config;                    // parallelism, mode
     int indexSeed;                       // to generate worker index
+    // Submission task存放在WorkQueue数组的偶数索引位置，Worker task存放在奇数索引位置
     volatile WorkQueue[] workQueues;     // main registry
     final ForkJoinWorkerThreadFactory factory;
     final UncaughtExceptionHandler ueh;  // per-worker UEH

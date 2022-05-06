@@ -1,6 +1,6 @@
 /**
- * 当一个Future可能需要显示地完成时，使用CompletionStage接口去支持完成时触发的函数和操作。
- * 当2个以上线程同时尝试完成、异常完成、取消一个CompletableFuture时，只有一个能成功。
+ * 异步任务编排框架，支持链式执行
+ *   任务的串行、并行，聚合(and聚合，or聚合)
  *
  * CompletableFuture实现了CompletionStage接口的如下策略：
  * 1.为了完成当前的CompletableFuture接口或者其他完成方法的回调函数的线程，提供了非异步的完成操作。
@@ -15,7 +15,11 @@
  * 2.以一个CompletionException为例，方法get()和get(long,TimeUnit)抛出一个ExecutionException，
  *     对应CompletionException。为了在大多数上下文中简化用法，这个类还定义了方法join()和getNow，
  *     而不是直接在这些情况中直接抛出CompletionException。
- *     
+ *
+ * 使用CompletableFuture场景
+ * 1、执行比较耗时的操作时，尤其是那些依赖一个或多个远程服务的操作，使用异步任务可以改善程序的性能，加快程序的响应速度
+ * 2、使用CompletableFuture类，它提供了异常管理的机制，让你有机会抛出、管理异步任务执行种发生的异常
+ * 3、如果这些异步任务之间相互独立，或者他们之间的的某一些的结果是另一些的输入，你可以讲这些异步任务构造或合并成一个
  */
 package java.util.concurrent;
 import java.util.function.Supplier;
@@ -36,11 +40,89 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Function<T, R> 接受一个参数，并且有返回值
+ * Consumer<T> 接受一个参数，没有返回值
+ * Supplier<T> 没有参数，有一个返回值
+ * BiConsumer<T, U> 接受两个参数，没有返回值
+ */
+
+/**
+ * 方法分类：
+ * 串行关系
+ *  CompletableFuture<Void> thenRun(Runnable action)
+ *  CompletableFuture<Void> thenRunAsync(Runnable action)
+ *  CompletableFuture<Void> thenRunAsync(Runnable action, Executor executor)
+ *  <U> CompletableFuture<U> thenApply(Function fn)
+ *  <U> CompletableFuture<U> thenApplyAsync(Functio fn)
+ *  <U> CompletableFuture<U> thenApplyAsync(Function fn, Executor executor)
+ *  CompletableFuture<Void> thenAccept(Consumer action)
+ *  CompletableFuture<Void> thenAcceptAsync(Consumer action)
+ *  CompletableFuture<Void> thenAcceptAsync(Consumer action, Executor executor)
+ *  <U> CompletableFuture<U> thenCompose(Function fn)
+ *  <U> CompletableFuture<U> thenComposeAsync(Function fn)
+ *  <U> CompletableFuture<U> thenComposeAsync(Function fn, Executor executor)
+ *
+ * 聚合 And 关系
+ *  <U,V> CompletableFuture<V> thenCombine(CompletionStage other, BiFunction fn)
+ *  <U,V> CompletableFuture<V> thenCombineAsync(CompletionStage other, BiFunction fn)
+ *  <U,V> CompletableFuture<V> thenCombineAsync(CompletionStage other, BiFunction fn, Executor executor)
+ *  <U> CompletableFuture<Void> thenAcceptBoth(CompletionStage other, BiConsumer action)
+ *  <U> CompletableFuture<Void> thenAcceptBothAsync(CompletionStage other, BiConsumer action)
+ *  <U> CompletableFuture<Void> thenAcceptBothAsync( CompletionStage other, BiConsumer action, Executor executor)
+ *  CompletableFuture<Void> runAfterBoth(CompletionStage other, Runnable action)
+ *  CompletableFuture<Void> runAfterBothAsync(CompletionStage other, Runnable action)
+ *  CompletableFuture<Void> runAfterBothAsync(CompletionStage other, Runnable action, Executor executor)
+ *
+ * 聚合 Or 关系
+ *  <U> CompletableFuture<U> applyToEither(CompletionStage other, Function fn)
+ *  <U> CompletableFuture<U> applyToEitherAsync(、CompletionStage other, Function fn)
+ *  <U> CompletableFuture<U> applyToEitherAsync(CompletionStage other, Function fn, Executor executor)
+ *  CompletableFuture<Void> acceptEither(CompletionStage other, Consumer action)
+ *  CompletableFuture<Void> acceptEitherAsync(CompletionStage other, Consumer action)
+ *  CompletableFuture<Void> acceptEitherAsync(CompletionStage other, Consumer action, Executor executor)
+ *  CompletableFuture<Void> runAfterEither(CompletionStage other, Runnable action)
+ *  CompletableFuture<Void> runAfterEitherAsync(CompletionStage other, Runnable action)
+ *  CompletableFuture<Void> runAfterEitherAsync(CompletionStage other, Runnable action, Executor executor)
+ *
+ * 异常处理
+ *  exceptionally相当于 try-catch 处理
+ *  CompletableFuture<T> exceptionally(Function fn)
+ *  CompletableFuture<T> exceptionallyAsync(Function fn)
+ *  CompletableFuture<T> exceptionallyAsync(Function fn, Executor executor)
+ *  whenComplete和handle相当于 try-finnaly 处理
+ *  CompletableFuture<T> whenComplete(BiConsumer action)
+ *  CompletableFuture<T> whenCompleteAsync(BiConsumer action)
+ *  CompletableFuture<T> whenCompleteAsync(BiConsumer action, Executor executor)
+ *  <U> CompletableFuture<U> handle(BiFunction fn)
+ *  <U> CompletableFuture<U> handleAsync(BiFunction fn)
+ *  <U> CompletableFuture<U> handleAsync(BiFunction fn, Executor executor)
+ */
+
+/**
+ * 按功能分类
+ *   xxx()：表示该方法将继续在已有的线程中执行；
+ *   xxxAsync()：表示将异步在线程池中执行。
+ *   异步执行方法默认一个参数的话任务是在 ForkJoinPool.commonPool() 线程池中执行的，带executor参数的使用executor线程池异步执行
+ * 按逻辑和组织方式分类
+ *   then逻辑，即前一个计算完成的时候调度后一个计算
+ *   both逻辑，即等待两个计算都完成之后执行下一个计算，只要能组合一个和另一个，
+ *     我们就可以无限复用这个 +1 的逻辑组合任意多的计算。(如果任务多，可以考虑可用allOf)
+ *   either逻辑，即等待两个计算的其中一个完成之后执行下一个计算。注意这样的计算可以说是非确定性的。
+ *      因为被组合的两个计算中先触发下一个计算执行的那个会被作为前一个计算，而这两个前置的计算到底哪一个先完成是不可预知的（anyOf）
+ * 从依赖关系和出入参数类型分类
+ *   apply 字样的方式意味着组合方式是 Function，即接受前一个计算的结果，应用函数之后返回一个新的结果
+ *   accept 字样的方式意味着组合方式是 Consumer，即接受前一个计算的结果，执行消费后不返回有意义的值
+ *   run 字样的方式意味着组合方式是 Runnable，即忽略前一个计算的结果，仅等待它完成后执行动作
+ */
 public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
-
-    volatile Object result;       // Either the result or boxed AltResult
-    volatile Completion stack;    // Top of Treiber stack of dependent actions
+    // 计算结果 或者已经包装的 AltResult
+    // 存放执行结果，正常结果或者抛出的异常都要存放，所以是Object。任务执行完毕后，result会变成非null
+    volatile Object result;
+    // 依赖操作的堆栈顶部
+    // stack 是一个链栈，存放与this对象直接关联的Completion对象
+    volatile Completion stack;
 
     final boolean internalComplete(Object r) { // CAS from null to r
         return UNSAFE.compareAndSwapObject(this, RESULT, null, r);
@@ -67,6 +149,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         AltResult(Throwable x) { this.ex = x; }
     }
 
+    // 任务执行完毕后，result会变成非 null。但如果执行结果就是 null 该怎么办。所以用这个对象来包装一下null
     static final AltResult NIL = new AltResult(null);
 
     final boolean completeNull() {
@@ -189,9 +272,14 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /* ------------- Base Completion classes and operations -------------- */
 
+    /**
+     * Completion 对象是用户接触不到的，它用来驱动 CompletableFuture 对象
+     *
+     * 它继承了ForkJoinTask<Void>，但也仅仅是为了套上 ForkJoinTask 的壳子，
+     * 因为 CompletableFuture 默认的线程池是上面说到的ForkJoinPool.commonPool()
+     */
     @SuppressWarnings("serial")
-    abstract static class Completion extends ForkJoinTask<Void>
-        implements Runnable, AsynchronousCompletionTask {
+    abstract static class Completion extends ForkJoinTask<Void> implements Runnable, AsynchronousCompletionTask {
         volatile Completion next;      // Treiber stack link
 
         abstract CompletableFuture<?> tryFire(int mode);
@@ -481,9 +569,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    final boolean uniWhenComplete(CompletableFuture<T> a,
-                                  BiConsumer<? super T,? super Throwable> f,
-                                  UniWhenComplete<T> c) {
+    final boolean uniWhenComplete(CompletableFuture<T> a, BiConsumer<? super T,? super Throwable> f, UniWhenComplete<T> c) {
         Object r; T t; Throwable x = null;
         if (a == null || (r = a.result) == null || f == null)
             return false;
@@ -705,8 +791,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return true;
     }
 
-    private <V> CompletableFuture<V> uniComposeStage(
-        Executor e, Function<? super T, ? extends CompletionStage<V>> f) {
+    private <V> CompletableFuture<V> uniComposeStage(Executor e, Function<? super T, ? extends CompletionStage<V>> f) {
         if (f == null) throw new NullPointerException();
         Object r; Throwable x;
         if (e == null && (r = result) != null) {
@@ -955,8 +1040,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    final boolean biRun(CompletableFuture<?> a, CompletableFuture<?> b,
-                        Runnable f, BiRun<?,?> c) {
+    final boolean biRun(CompletableFuture<?> a, CompletableFuture<?> b, Runnable f, BiRun<?,?> c) {
         Object r, s; Throwable x;
         if (a == null || (r = a.result) == null ||
             b == null || (s = b.result) == null || f == null)
@@ -1027,8 +1111,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return true;
     }
 
-    static CompletableFuture<Void> andTree(CompletableFuture<?>[] cfs,
-                                           int lo, int hi) {
+    static CompletableFuture<Void> andTree(CompletableFuture<?>[] cfs, int lo, int hi) {
         CompletableFuture<Void> d = new CompletableFuture<Void>();
         if (lo > hi) // empty
             d.result = NIL;
@@ -1217,8 +1300,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    final boolean orRun(CompletableFuture<?> a, CompletableFuture<?> b,
-                        Runnable f, OrRun<?,?> c) {
+    final boolean orRun(CompletableFuture<?> a, CompletableFuture<?> b, Runnable f, OrRun<?,?> c) {
         Object r; Throwable x;
         if (a == null || b == null ||
             ((r = a.result) == null && (r = b.result) == null) || f == null)
@@ -1377,6 +1459,9 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /* ------------- Signallers -------------- */
 
+    /**
+     * 配合 get 或者 join 使用的，实现对 想获取执行结果的线程 的阻塞和唤醒的功能
+     */
     @SuppressWarnings("serial")
     static final class Signaller extends Completion
         implements ForkJoinPool.ManagedBlocker {
