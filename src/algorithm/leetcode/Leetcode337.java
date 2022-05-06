@@ -11,14 +11,8 @@ public class Leetcode337 {
      * 不能用层序+dp，左右子树在相邻层也是无关联的
     */
     public int rob(TreeNode root) {
-        if(root == null){
-            return 0;
-        }
-        int[] leftVal = traverse(root.left);
-        int[] rightVal = traverse(root.right);
-        int tmp1 = leftVal[1] + rightVal[1] + root.val;
-        int tmp2 = Math.max(leftVal[0], leftVal[1]) + Math.max(rightVal[0], rightVal[1]);
-        return Math.max(tmp1, tmp2);
+        int[] res = traverse(root);
+        return Math.max(res[0], res[1]);
     }
     public int[] traverse(TreeNode root){
         if(root == null){
