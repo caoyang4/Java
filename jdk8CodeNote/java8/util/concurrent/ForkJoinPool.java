@@ -53,6 +53,10 @@ import java.security.Permissions;
  */
 
 /**
+ * Stream 流计算和 CompletableFuture 内部也运用了ForkJoinPool
+ */
+
+/**
  * 为什么说 cpu 密集型的任务使用 ForkJoinPool 性能更好？
  *  1、ForkJoinPool 的工作线程都有属于自己的一个队列，类似于 ConcrurentHashMap，
  *     在 Java8 中，ConcrurentHashMap 对每个桶的锁隔离，每个桶的写入更新只影响该桶的锁，对其他桶没有影响。

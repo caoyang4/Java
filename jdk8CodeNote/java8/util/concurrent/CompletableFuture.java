@@ -119,6 +119,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     // 计算结果 或者已经包装的 AltResult
     // 存放执行结果，正常结果或者抛出的异常都要存放，所以是Object。任务执行完毕后，result会变成非null
+    // stage 完成的标志，就是它的result成员非 null
     volatile Object result;
     // 依赖操作的堆栈顶部
     // stack 是一个链栈，存放与this对象直接关联的Completion对象
@@ -161,19 +162,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return (t == null) ? NIL : t;
     }
 
+    // 把结果放入 RESULT 中
     final boolean completeValue(T t) {
-        return UNSAFE.compareAndSwapObject(this, RESULT, null,
-                                           (t == null) ? NIL : t);
+        return UNSAFE.compareAndSwapObject(this, RESULT, null, (t == null) ? NIL : t);
     }
 
     static AltResult encodeThrowable(Throwable x) {
-        return new AltResult((x instanceof CompletionException) ? x :
-                             new CompletionException(x));
+        return new AltResult((x instanceof CompletionException) ? x : new CompletionException(x));
     }
 
     final boolean completeThrowable(Throwable x) {
-        return UNSAFE.compareAndSwapObject(this, RESULT, null,
-                                           encodeThrowable(x));
+        return UNSAFE.compareAndSwapObject(this, RESULT, null, encodeThrowable(x));
     }
 
     static Object encodeThrowable(Throwable x, Object r) {
@@ -248,9 +247,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     private static final boolean useCommonPool =
         (ForkJoinPool.getCommonPoolParallelism() > 1);
 
+    // 默认使用 FJP 的commonPool
     private static final Executor asyncPool = useCommonPool ?
         ForkJoinPool.commonPool() : new ThreadPerTaskExecutor();
 
+    // 不使用线程池，则创建新线程
     static final class ThreadPerTaskExecutor implements Executor {
         public void execute(Runnable r) { new Thread(r).start(); }
     }
@@ -263,8 +264,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     }
 
     // Modes for Completion.tryFire. Signedness matters.
+    // 同步
     static final int SYNC   =  0;
+    // 异步
     static final int ASYNC  =  1;
+    // 嵌套
     static final int NESTED = -1;
 
     private static final int SPINS = (Runtime.getRuntime().availableProcessors() > 1 ?
@@ -296,24 +300,30 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         UNSAFE.putOrderedObject(c, NEXT, next);
     }
 
+    // 任务执行完后调用
     final void postComplete() {
         /*
          * On each step, variable f holds current dependents to pop
          * and run.  It is extended along only one path at a time,
          * pushing others to avoid unbounded recursion.
          */
+
         CompletableFuture<?> f = this; Completion h;
         while ((h = f.stack) != null ||
-               (f != this && (h = (f = this).stack) != null)) {
+              // 当f的stack为空时，则f指向当前对象CompletableFuture的stack
+              (f != this && (h = (f = this).stack) != null)) {
             CompletableFuture<?> d; Completion t;
+            //cas把h中的next属性指向对象f的stack属性
             if (f.casStack(h, t = h.next)) {
                 if (t != null) {
                     if (f != this) {
+                        //将h加入当前实例this的栈顶
                         pushStack(h);
                         continue;
                     }
                     h.next = null;    // detach
                 }
+                //从头节点开始向下执行任务，执行完指向下一个回调的CompletableFuture
                 f = (d = h.tryFire(NESTED)) == null ? this : d;
             }
         }
@@ -355,14 +365,23 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             this.executor = executor; this.dep = dep; this.src = src;
         }
 
+        /**
+         * 竞争关系全部在claim()函数中处理掉。
+         * 经过CAS的保护，这个函数式接口能够保证只被执行一次（可能是同步执行、或者提交给 Executor 异步执行）
+         *
+         */
         final boolean claim() {
             Executor e = executor;
+            //  CAS保证函数式接口只被提交一次给Executor
             if (compareAndSetForkJoinTaskTag((short)0, (short)1)) {
+                // 如果该Completion没有Executor，那么此函数第一次返回true，之后每次返回false。
                 if (e == null)
                     return true;
+                // 存在竞争的时候，置为 null，保证只被执行一次
                 executor = null; // disable
                 e.execute(this);
             }
+            // 如果该Completion包含有Executor，那么此函数每次都会返回false
             return false;
         }
 
@@ -376,17 +395,28 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
+    /**
+     * @param a 前一个stage
+     */
     final CompletableFuture<T> postFire(CompletableFuture<?> a, int mode) {
+        // 前一个stage的后续任务还没做完
         if (a != null && a.stack != null) {
+            // 两种情况：
+            //  mode为NESTED。说明就是postComplete调用过来的，那么只清理一下栈中无效节点即可。
+            //  mode为SYNC或ASYNC，但前一个stage还没执行完
             if (mode < 0 || a.result == null)
                 a.cleanStack();
+            // mode为SYNC或ASYNC，但前一个stage已经执行完了。特殊时序可能发生的，那么帮忙完成前一个stage的的后续任务
             else
                 a.postComplete();
         }
+        // 当前stage的后续任务还没做完
         if (result != null && stack != null) {
+            // mode为NESTED。说明就是postComplete调用过来的.
             if (mode < 0)
                 return this;
             else
+                // mode为SYNC或ASYNC，触发当前实例this的回调
                 postComplete();
         }
         return null;
@@ -395,14 +425,23 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
     @SuppressWarnings("serial")
     static final class UniApply<T,V> extends UniCompletion<T,V> {
         Function<? super T,? extends V> fn;
-        UniApply(Executor executor, CompletableFuture<V> dep,
-                 CompletableFuture<T> src,
-                 Function<? super T,? extends V> fn) {
+        // //src代表前一个stage, dep代表当前stage
+        UniApply(Executor executor, CompletableFuture<V> dep, CompletableFuture<T> src, Function<? super T,? extends V> fn) {
             super(executor, dep, src); this.fn = fn;
         }
+
+        /**
+         * tryFire两处调用：
+         *   uniApplyStage 中的同步调用，c.tryFire(SYNC)。
+         *   执行前一个stage的线程，在 run 的d.postComplete()中，会调用tryFire(NESTED)
+         */
         final CompletableFuture<V> tryFire(int mode) {
             CompletableFuture<V> d; CompletableFuture<T> a;
+            // 1. 如果dep为null，说明当前stage已经被执行过了
             if ((d = dep) == null ||
+                // 2. 如果uniApply返回false，说明当前线程无法执行当前stage。返回false有可能是因为
+                //   1. 前一个stage没执行完
+                //   2. 前一个stage执行完了，但当前stage已经被别的线程执行了。如果提供了线程池，那么肯定属于被别的线程执行了
                 !d.uniApply(a = src, fn, mode > 0 ? null : this))
                 return null;
             dep = null; src = null; fn = null;
@@ -410,22 +449,43 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    final <S> boolean uniApply(CompletableFuture<S> a,
-                               Function<? super S,? extends T> f,
-                               UniApply<S,T> c) {
+    /**
+     * @param a 前一个stage
+     *
+     * uniApply的返回值含义：
+     *  返回 false，代表前一个 stage 还没完成。也可代表，当前 stage 的函数式接口已经被别的线程执行了。
+     *  返回 true，代表前一个 stage 已经完成，并且当前 stage 的函数式接口被当前线程执行了。
+     * 函数返回后，回到tryFire，将执行d.postFire(a, mode)，因为执行完毕了当前 stage 的函数式接口，
+     * 当前线程就得处理当前 stage 的后续任务。
+     */
+    final <S> boolean uniApply(CompletableFuture<S> a, Function<? super S,? extends T> f, UniApply<S,T> c) {
         Object r; Throwable x;
+        // 前后两个条件只是优雅的避免空指针异常，实际不可能发生。
+        // 如果前一个stage的result为null，说明前一个stage还没执行完毕
         if (a == null || (r = a.result) == null || f == null)
             return false;
+        //执行到这里，说明前一个stage执行完毕
+
+        //如果this即当前stage的result不为null，说当前stage还没执行。
         tryComplete: if (result == null) {
+            // 如果前一个stage的执行结果为null或者抛出异常
             if (r instanceof AltResult) {
                 if ((x = ((AltResult)r).ex) != null) {
+                    // 如果前一个stage抛出异常，那么直接让当前stage的执行结果也为这个异常，都不用执行Function了
                     completeThrowable(x, r);
                     break tryComplete;
                 }
+                // 如果前一个stage的执行结果为null
                 r = null;
             }
             try {
+                // 1. c为null，这说明c还没有入栈，没有线程竞争。直接执行当前stage即f.apply(s)
+                // 2. c不为null，这说明c已经入栈了，有线程竞争执行当前stage。
+
+                // if (c != null && !c.claim())是用来保护函数式接口只被执行一次的。
+                // claim 函数返回 true 代表函数式接口接下来可以被当前线程同步执行
                 if (c != null && !c.claim())
+                    // claim()返回了false，说明当前线程不允许执行当前stage，直接返回
                     return false;
                 @SuppressWarnings("unchecked") S s = (S) r;
                 completeValue(f.apply(s));
@@ -433,16 +493,26 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
                 completeThrowable(ex);
             }
         }
+        // 如果this即当前stage的result不为null，说当前stage已经执行完毕，那么直接返回true
         return true;
     }
 
-    private <V> CompletableFuture<V> uniApplyStage(
-        Executor e, Function<? super T,? extends V> f) {
+    private <V> CompletableFuture<V> uniApplyStage(Executor e, Function<? super T,? extends V> f) {
         if (f == null) throw new NullPointerException();
         CompletableFuture<V> d =  new CompletableFuture<V>();
-        if (e != null || !d.uniApply(this, f, null)) {
+        // 如果传入线程池，说明当前stage是无论如何都需要被异步执行的。
+        if (e != null ||
+            // 如果没传入线程池，说明当前stage是可以允许被同步执行的
+            // 通过d.uniApply(this, f, null)检测前一个 stage 是否已经结束。
+            // 如果返回 true，说明发现了前一个 stage 已经结束，并且当前线程执行完毕当前 stage，所以这种情况就会直接 return d
+            !d.uniApply(this, f, null)) {
+            // 进入此分支有两种情况：
+            // 1. 要么传入线程池，前一个stage不一定执行完毕。就算前一个stage已经执行完毕，还可以用e来执行当前stage
+            // 2. 要么没传入线程池，但前一个stage还没执行完毕。所以只能入栈等待
             UniApply<T,V> c = new UniApply<T,V>(e, d, this, f);
+            // 入栈
             push(c);
+            // 同步调用
             c.tryFire(SYNC);
         }
         return d;
@@ -1385,9 +1455,19 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /* ------------- Zero-input Async forms -------------- */
 
+    /**
+     * Async 任务的执行过程
+     *   1.执行前一个 stage 的线程来执行 UniApply 内部类对象的tryFire(NESTED)。
+     *   2.接着执行当前stage.uniApply()。
+     *   3.执行 UniApply 内部类对象的claim方法。
+     *   4.由于提供了线程池，claim会把任务提交给线程池（e.execute(this)），把保存的线程池清理掉（executor = null），然后返回 false。执行前一个 stage 的线程接着层层返回，最终tryFire(NESTED)返回 null。
+     *   5.线程池选择一个线程，开始对同一个 UniApply 内部类对象执行tryFire(ASYNC)。
+     *   6.接着执行当前stage.uniApply(a = src, fn, ASYNC > 0 ? null : this)，第三个实参肯定为 null。ASYN C为 1.
+     *   7.if (c != null && !c.claim())不会执行，因为第三个参数为 null。
+     *   8.这个线程以“同步”的方式来执行了任务。但它对于执行前一个 stage 的线程来说是异步的。
+     */
     @SuppressWarnings("serial")
-    static final class AsyncSupply<T> extends ForkJoinTask<Void>
-            implements Runnable, AsynchronousCompletionTask {
+    static final class AsyncSupply<T> extends ForkJoinTask<Void> implements Runnable, AsynchronousCompletionTask {
         CompletableFuture<T> dep; Supplier<T> fn;
         AsyncSupply(CompletableFuture<T> dep, Supplier<T> fn) {
             this.dep = dep; this.fn = fn;
@@ -1400,11 +1480,15 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         public void run() {
             CompletableFuture<T> d; Supplier<T> f;
             if ((d = dep) != null && (f = fn) != null) {
+                // 为了防止内存泄漏，方便GC.
+                // 同时dep为null也是一种代表当前Completion对象的关联stage已完成的标志
                 dep = null; fn = null;
                 if (d.result == null) {
                     try {
+                        // 执行task
                         d.completeValue(f.get());
                     } catch (Throwable ex) {
+                        // 执行task期间抛出了异常
                         d.completeThrowable(ex);
                     }
                 }
@@ -1413,8 +1497,12 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         }
     }
 
-    static <U> CompletableFuture<U> asyncSupplyStage(Executor e,
-                                                     Supplier<U> f) {
+    /**
+     * CompletableFuture 对象是new出来以后就直接返回的，
+     * 但是刚 new 的 CompletableFuture 对象的 result 成员是为 null，
+     * 因为 task 还没有执行完。而 task 的执行交给了e.execute(new AsyncSupply<U>(d, f))
+     */
+    static <U> CompletableFuture<U> asyncSupplyStage(Executor e, Supplier<U> f) {
         if (f == null) throw new NullPointerException();
         CompletableFuture<U> d = new CompletableFuture<U>();
         e.execute(new AsyncSupply<U>(d, f));
@@ -1603,8 +1691,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return asyncSupplyStage(asyncPool, supplier);
     }
 
-    public static <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier,
-                                                       Executor executor) {
+    public static <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier, Executor executor) {
         return asyncSupplyStage(screenExecutor(executor), supplier);
     }
 
@@ -1612,8 +1699,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return asyncRunStage(asyncPool, runnable);
     }
 
-    public static CompletableFuture<Void> runAsync(Runnable runnable,
-                                                   Executor executor) {
+    public static CompletableFuture<Void> runAsync(Runnable runnable, Executor executor) {
         return asyncRunStage(screenExecutor(executor), runnable);
     }
 
@@ -1660,18 +1746,17 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         return triggered;
     }
 
-    public <U> CompletableFuture<U> thenApply(
-        Function<? super T,? extends U> fn) {
+    // thenApply不传入 Executor，因为它优先让当前线程来执行后续 stage 的 task
+    public <U> CompletableFuture<U> thenApply(Function<? super T,? extends U> fn) {
         return uniApplyStage(null, fn);
     }
 
-    public <U> CompletableFuture<U> thenApplyAsync(
-        Function<? super T,? extends U> fn) {
+    public <U> CompletableFuture<U> thenApplyAsync(Function<? super T,? extends U> fn) {
         return uniApplyStage(asyncPool, fn);
     }
 
-    public <U> CompletableFuture<U> thenApplyAsync(
-        Function<? super T,? extends U> fn, Executor executor) {
+    // thenApplyAsync会传入一个 Executor，因为它总是让 Executor 线程池里面的线程 来执行后续 stage 的 task
+    public <U> CompletableFuture<U> thenApplyAsync(Function<? super T,? extends U> fn, Executor executor) {
         return uniApplyStage(screenExecutor(executor), fn);
     }
 
@@ -1880,6 +1965,10 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
     /* ------------- Arbitrary-arity constructions -------------- */
 
+    /**
+     * allOf 使用了一种递归分治的方法，虽然任务可能有很多个，但最终它们都能拆分为 1 个或者 2 个。
+     * 从最底层两两合并，弄成一个树形结构，最终这个树形结构的根节点就是我们想要的 CompletableFuture，它们代表了所有任务都完成的时机
+     */
     public static CompletableFuture<Void> allOf(CompletableFuture<?>... cfs) {
         return andTree(cfs, 0, cfs.length - 1);
     }
