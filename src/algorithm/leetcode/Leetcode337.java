@@ -7,6 +7,9 @@ package src.algorithm.leetcode;
  * @author caoyang
  */
 public class Leetcode337 {
+    /**
+     * 不能用层序+dp，左右子树在相邻层也是无关联的
+    */
     public int rob(TreeNode root) {
         if(root == null){
             return 0;
