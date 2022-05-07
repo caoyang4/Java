@@ -11,7 +11,9 @@ public class StringTest2 {
 
     public static void main(String[] args) {
         change(str, chars);
+        // "young"
         System.out.println(str);
+        // "best"
         System.out.println(chars);
     }
 }
