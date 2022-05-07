@@ -3,7 +3,7 @@ package src.basis.fish;
 /**
  * @author caoyang
  */
-public class StringTest {
+public class StringTest1 {
     public static void main(String[] args) {
         String a = new String("xyz");
         String b = new String("xyz");
@@ -29,6 +29,7 @@ public class StringTest {
         System.out.println(y.intern() == y);
 
         String z = new StringBuilder().append("wor").append("ld").toString();
+        // true
         System.out.println(z.intern() == z);
 
         /*
