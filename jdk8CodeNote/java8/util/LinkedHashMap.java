@@ -5,8 +5,22 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.io.IOException;
 
+/**
+ * LinkedHashMap 继承自 HashMap，在 HashMap 基础上，通过维护一条双向链表，
+ * 解决了 HashMap 不能随时保持遍历顺序和插入顺序一致的问题。
+ * 此之外，LinkedHashMap 对访问顺序也提供了相关支持。在一些场景下，该特性很有用，比如缓存(LRU)
+ *
+ * LinkedHashMap 主要通过覆盖HashMap几个回调函数实现链表维护
+ *   1、Node<K,V> newNode(int hash, K key, V value, Node<K,V> e){ }
+ *   2、void afterNodeAccess(Node<K,V> p) { }
+ *   3、void afterNodeInsertion(boolean evict) { }
+ *   4、void afterNodeRemoval(Node<K,V> p) { }
+ */
 public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
 
+    /**
+     * 双向链表
+     */
     static class Entry<K,V> extends HashMap.Node<K,V> {
         Entry<K,V> before, after;
         Entry(int hash, K key, V value, Node<K,V> next) {
@@ -24,13 +38,15 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
 
     // internal utilities
 
-    // link at the end of list
+    // 链接到尾部
     private void linkNodeLast(LinkedHashMap.Entry<K,V> p) {
         LinkedHashMap.Entry<K,V> last = tail;
         tail = p;
+        // last 为 null，表明链表还未建立
         if (last == null)
             head = p;
         else {
+            // 将新节点 p 接在链表尾部
             p.before = last;
             last.after = p;
         }
@@ -57,6 +73,10 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
         head = tail = null;
     }
 
+    /**
+     * LinkedHashMap中覆写HashMap的newNode方法
+     * LinkedHashMap 创建了 Entry，并通过 linkNodeLast 方法将 Entry 接在双向链表的尾部，实现了双向链表的建立
+     */
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> e) {
         LinkedHashMap.Entry<K,V> p = new LinkedHashMap.Entry<K,V>(hash, key, value, e);
         linkNodeLast(p);
@@ -83,14 +103,20 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
         return t;
     }
 
+    /**
+     * LinkedHashMap 中覆写
+     * Hashmap删除之后的处理，维护链表
+     */
     void afterNodeRemoval(Node<K,V> e) { // unlink
-        LinkedHashMap.Entry<K,V> p =
-            (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+        LinkedHashMap.Entry<K,V> p = (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+        // 将 p 节点的前驱后后继引用置空
         p.before = p.after = null;
+        // b 为 null，表明 p 是头节点
         if (b == null)
             head = a;
         else
             b.after = a;
+        // a 为 null，表明 p 是尾节点
         if (a == null)
             tail = b;
         else
@@ -177,6 +203,7 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
         Node<K,V> e;
         if ((e = getNode(hash(key), key)) == null)
             return null;
+        // 如果 accessOrder 为 true，则调用 afterNodeAccess 将被访问节点移动到链表最后
         if (accessOrder)
             afterNodeAccess(e);
         return e.value;

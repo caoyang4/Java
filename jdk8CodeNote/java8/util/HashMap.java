@@ -81,6 +81,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     static final int hash(Object key) {
         int h;
         // HashMap中key值可以为null, 且null值一定存储在数组的第一个位置.
+        // 通过移位和异或运算，可以让 hash 变得更复杂，进而影响 hash 的分布性
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
 
@@ -290,37 +291,54 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         return null;
     }
 
+    /**
+     * 扩容操作
+     */
     final Node<K,V>[] resize() {
         Node<K,V>[] oldTab = table;
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         int oldThr = threshold;
         int newCap, newThr = 0;
+        // 如果 table 不为空，表明已经初始化过了
         if (oldCap > 0) {
+            // 当 table 容量超过容量最大值，则不再扩容
             if (oldCap >= MAXIMUM_CAPACITY) {
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
             // 容量扩容一倍
+            // 按旧容量和阈值的2倍计算新容量和阈值的大小
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
         }
         else if (oldThr > 0) // initial capacity was placed in threshold
+            /*
+             * 初始化时，将 threshold 的值赋值给 newCap，
+             * HashMap 使用 threshold 变量暂时保存 initialCapacity 参数的值
+             */
             newCap = oldThr;
         else {               // zero initial threshold signifies using defaults
+            /*
+             * 调用无参构造方法时，桶数组容量为默认容量，
+             * 阈值为默认容量与默认负载因子乘积
+             */
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
+        // newThr 为 0 时，按阈值计算公式进行计算
         if (newThr == 0) {
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
         threshold = newThr;
+        // 创建新的桶数组，桶数组的初始化也是在这里完成的
         @SuppressWarnings({"rawtypes","unchecked"})
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
         table = newTab;
         if (oldTab != null) {
+            // 如果旧的桶数组不为空，意味着扩容，则遍历桶数组，并将键值对映射到新的桶数组中
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
@@ -328,11 +346,13 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
                     else if (e instanceof TreeNode)
+                        // 重新映射时，需要对红黑树进行拆分
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { // preserve order
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
+                        // 遍历链表，并将链表节点按原顺序进行分组
                         do {
                             next = e.next;
                             // 链表低位，小于原容量的 key
@@ -369,13 +389,20 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         return newTab;
     }
 
+    /**
+     * 将普通节点链表转换成树形节点链表
+     */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        // 桶数组容量小于64，优先进行扩容而不是树化
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
         else if ((e = tab[index = (n - 1) & hash]) != null) {
+            // hd 为头节点（head），tl 为尾节点（tail）
             TreeNode<K,V> hd = null, tl = null;
+            // 将普通链表转成由树形节点链表
             do {
+                // 将普通节点替换成树形节点
                 TreeNode<K,V> p = replacementTreeNode(e, null);
                 if (tl == null)
                     hd = p;
@@ -386,6 +413,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 tl = p;
             } while ((e = e.next) != null);
             if ((tab[index] = hd) != null)
+                // 将树形链表转换成红黑树
                 hd.treeify(tab);
         }
     }
@@ -415,6 +443,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 if (p instanceof TreeNode)
                     node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
                 else {
+                    // 遍历单链表，寻找要删除的节点，并赋值给 node 变量
                     do {
                         if (e.hash == hash &&
                             ((k = e.key) == key ||
@@ -431,10 +460,11 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 // 在红黑树中
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
-                // 如果在桶头位置
+                // 将要删除的节点从单链表中移除
+                // 1、如果在桶头位置
                 else if (node == p)
                     tab[index] = node.next;
-                // 在链表中
+                // 2、在链表中
                 else
                     p.next = node.next;
                 ++modCount;
@@ -959,6 +989,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             if (e == null)
                 throw new NoSuchElementException();
             if ((next = (current = e).next) == null && (t = table) != null) {
+                // 寻找下一个包含链表节点引用的桶
                 do {} while (index < t.length && (next = t[index++]) == null);
             }
             return e;
@@ -1294,7 +1325,9 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     // Tree bins
 
     /**
-     * TreeNode继承LinkedHashMap.Entr
+     * TreeNode继承LinkedHashMap.Entry, LinkedHashMap.Entry继承HashMap.Node
+     * 链表转成红黑树后，原链表的顺序仍然会被引用仍被保留了（红黑树的根节点会被移动到链表的第一位），
+     * 仍然可以按遍历链表的方式去遍历上面的红黑树
      */
     static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
@@ -1376,31 +1409,46 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             return ((parent != null) ? root() : this).find(h, k, null);
         }
 
+        /**
+         * HashMap 是做了三步处理，确保可以比较出两个键的大小，如下：
+         *  1、比较键与键之间 hash 的大小，如果 hash 相同，继续往下比较
+         *  2、检测键类是否实现了 Comparable 接口，如果实现调用 compareTo 方法进行比较
+         *  3、如果仍未比较出大小，就需要进行仲裁了，仲裁方法为 tieBreakOrder
+         */
         static int tieBreakOrder(Object a, Object b) {
             int d;
             if (a == null || b == null ||
+                // 先比较两个对象的类名，类名是字符串对象，就按字符串的比较规则
                 (d = a.getClass().getName().
                  compareTo(b.getClass().getName())) == 0)
+                // 如果两个对象是同一个类型，那么调用本地方法为两个对象生成hashCode值，再进行比较，hashCode相等的话返回-1
                 d = (System.identityHashCode(a) <= System.identityHashCode(b) ?
                      -1 : 1);
             return d;
         }
 
-
+        // 链表转红黑树
         final void treeify(Node<K,V>[] tab) {
+            // 定义树的根节点
             TreeNode<K,V> root = null;
+            // 遍历链表，x指向当前节点、next指向下一个节点
             for (TreeNode<K,V> x = this, next; x != null; x = next) {
+                // 下一个节点
                 next = (TreeNode<K,V>)x.next;
                 x.left = x.right = null;
                 if (root == null) {
                     x.parent = null;
+                    // 当前节点的红色属性设为false（把当前节点设为黑色
                     x.red = false;
+                    // 根节点指向到当前节点
                     root = x;
                 }
                 else {
+                    // 如果已经存在根节点了
                     K k = x.key;
                     int h = x.hash;
                     Class<?> kc = null;
+                    // 从根节点开始遍历，此遍历没有设置边界，只能从内部跳出
                     for (TreeNode<K,V> p = root;;) {
                         int dir, ph;
                         K pk = p.key;
@@ -1408,11 +1456,22 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                             dir = -1;
                         else if (ph < h)
                             dir = 1;
+                        /*
+                         * 如果两个节点的key的hash值相等，那么还要通过其他方式再进行比较
+                         * 如果当前链表节点的key实现了comparable接口，并且当前树节点和链表节点是相同Class的实例，那么通过comparable的方式再比较两者。
+                         * 如果还是相等，最后再通过tieBreakOrder比较一次
+                         */
                         else if ((kc == null &&
                                   (kc = comparableClassFor(k)) == null) ||
                                  (dir = compareComparables(kc, k, pk)) == 0)
                             dir = tieBreakOrder(k, pk);
-
+                        /*
+                         * 如果dir小于等于0 ： 当前链表节点一定放置在当前树节点的左侧，但不一定是该树节点的左孩子，也可能是左孩子的右孩子 或者 更深层次的节点。
+                         * 如果dir大于0 ： 当前链表节点一定放置在当前树节点的右侧，但不一定是该树节点的右孩子，也可能是右孩子的左孩子 或者 更深层次的节点。
+                         * 如果当前树节点不是叶子节点，那么最终会以当前树节点的左孩子或者右孩子 为 起始节点  再从GOTO1 处开始 重新寻找自己（当前链表节点）的位置
+                         * 如果当前树节点就是叶子节点，那么根据dir的值，就可以把当前链表节点挂载到当前树节点的左或者右侧了。
+                         * 挂载之后，还需要重新把树进行平衡。平衡之后，就可以针对下一个链表节点进行处理了。
+                         */
                         TreeNode<K,V> xp = p;
                         if ((p = (dir <= 0) ? p.left : p.right) == null) {
                             x.parent = xp;
@@ -1426,11 +1485,17 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                     }
                 }
             }
+            // 把所有的链表节点都遍历完之后，最终构造出来的树可能经历多个平衡操作，根节点目前到底是链表的哪一个节点是不确定的
+            // 因为我们要基于树来做查找，所以就应该把 tab[N] 得到的对象一定根节点对象，而目前只是链表的第一个节点对象，所以要做相应的处理。
             moveRootToFront(tab, root);
         }
 
+        /**
+         * 红黑树退化为链表
+         */
         final Node<K,V> untreeify(HashMap<K,V> map) {
             Node<K,V> hd = null, tl = null;
+            // 遍历 TreeNode 链表，并用 Node 替换
             for (Node<K,V> q = this; q != null; q = q.next) {
                 Node<K,V> p = map.replacementNode(q, null);
                 if (tl == null)
@@ -1442,8 +1507,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             return hd;
         }
 
-        final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab,
-                                       int h, K k, V v) {
+        final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab, int h, K k, V v) {
             Class<?> kc = null;
             boolean searched = false;
             TreeNode<K,V> root = (parent != null) ? root() : this;
@@ -1488,8 +1552,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             }
         }
 
-        final void removeTreeNode(HashMap<K,V> map, Node<K,V>[] tab,
-                                  boolean movable) {
+        final void removeTreeNode(HashMap<K,V> map, Node<K,V>[] tab, boolean movable) {
             int n;
             if (tab == null || (n = tab.length) == 0)
                 return;
@@ -1586,12 +1649,20 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 moveRootToFront(tab, r);
         }
 
+        /**
+         * 红黑树拆分，扩容后，普通节点需要重新映射，红黑树节点也不例外
+         */
         final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
             TreeNode<K,V> b = this;
             // Relink into lo and hi lists, preserving order
             TreeNode<K,V> loHead = null, loTail = null;
             TreeNode<K,V> hiHead = null, hiTail = null;
             int lc = 0, hc = 0;
+            /*
+             * 红黑树节点仍然保留了 next 引用，故仍可以按链表方式遍历红黑树。
+             * 下面的循环是对红黑树节点进行分组，与上面类似
+             */
+            // 桶位置对key的哈希值分高低位处理
             for (TreeNode<K,V> e = b, next; e != null; e = next) {
                 next = (TreeNode<K,V>)e.next;
                 e.next = null;
@@ -1614,14 +1685,20 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             }
 
             if (loHead != null) {
+                // 如果 loHead 不为空，且链表长度小于等于 6，则将红黑树转成链表
                 if (lc <= UNTREEIFY_THRESHOLD)
                     tab[index] = loHead.untreeify(map);
                 else {
                     tab[index] = loHead;
+                    /*
+                     * hiHead == null 时，表明扩容后，
+                     * 所有节点仍在原位置，树结构不变，无需重新树化
+                     */
                     if (hiHead != null) // (else is already treeified)
                         loHead.treeify(tab);
                 }
             }
+            // 与上面低位处理类似
             if (hiHead != null) {
                 if (hc <= UNTREEIFY_THRESHOLD)
                     tab[index + bit] = hiHead.untreeify(map);
@@ -1672,8 +1749,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             return root;
         }
 
-        static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
-                                                    TreeNode<K,V> x) {
+        static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root, TreeNode<K,V> x) {
             x.red = true;
             for (TreeNode<K,V> xp, xpp, xppl, xppr;;) {
                 if ((xp = x.parent) == null) {

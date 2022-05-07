@@ -6,6 +6,23 @@ import sun.misc.SharedSecrets;
 
 /**
  * 内部是Hashmap，其元素存在 Hashmap 的 key 中，其value 全部用PRESENT = new Object()填充
+ *
+ * while (it.hasNext()) {
+ *         String tmp=it.next();
+ *         if (tmp.equals("星期三")){
+ *              setString.remove(tmp); // 会出现ConcurrentModificationException，即 fast-fail
+ *         }
+ *         System.out.println(tmp);
+ *     }
+ *    Iterator<String> it = setString.iterator();
+ *     while (it.hasNext()) {
+ *         String tmp=it.next();
+ *         if (tmp.equals("星期三")){
+ *             it.remove();  // 通过迭代器，则不会出现
+ *         }
+ *         System.out.println(tmp);
+ *     }
+ *     System.out.println(setString.size());
  * @param <E>
  */
 public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
@@ -13,7 +30,8 @@ public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, jav
 
     private transient HashMap<E,Object> map;
 
-    // Dummy value to associate with an Object in the backing Map
+    // 若底层hashmap的value维护的是null，则 put 成功或失败都会返回null，
+    // 则 HashSet#add 每次返回值都是true，就无法确认add是否成功了
     private static final Object PRESENT = new Object();
 
     public HashSet() {
@@ -53,6 +71,7 @@ public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, jav
         return map.containsKey(o);
     }
 
+    // value 不能存为null，会无法判断添加成功或者失败
     public boolean add(E e) {
         return map.put(e, PRESENT)==null;
     }
