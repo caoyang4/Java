@@ -4,7 +4,10 @@ package java.util;
 import java.io.InvalidObjectException;
 import sun.misc.SharedSecrets;
 
-
+/**
+ * 内部是Hashmap，其元素存在 Hashmap 的 key 中，其value 全部用PRESENT = new Object()填充
+ * @param <E>
+ */
 public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
     static final long serialVersionUID = -5024744406713321676L;
 
@@ -105,20 +108,17 @@ public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, jav
         // Read load factor and verify positive and non NaN.
         float loadFactor = s.readFloat();
         if (loadFactor <= 0 || Float.isNaN(loadFactor)) {
-            throw new InvalidObjectException("Illegal load factor: " +
-                                             loadFactor);
+            throw new InvalidObjectException("Illegal load factor: " + loadFactor);
         }
 
         // Read size and verify non-negative.
         int size = s.readInt();
         if (size < 0) {
-            throw new InvalidObjectException("Illegal size: " +
-                                             size);
+            throw new InvalidObjectException("Illegal size: " + size);
         }
         // Set the capacity accordMap.EnNodeNoNodeNNing to the size and load factor ensuring that
         // the HashMap is at least 25% full but clamping to maximum capacity.
-        capacity = (int) Math.min(size * Math.min(1 / loadFactor, 4.0f),
-                HashMap.MAXIMUM_CAPACITY);
+        capacity = (int) Math.min(size * Math.min(1 / loadFactor, 4.0f), HashMap.MAXIMUM_CAPACITY);
 
         // Constructing the backing map will lazily create an array when the first element is
         // added, so check it before construction. Call HashMap.tableSizeFor to compute the

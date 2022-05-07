@@ -207,10 +207,10 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
         // 哈希表不为空
         if ((tab = table) != null && (n = tab.length) > 0 &&
-                // 通过key的哈希值取模，找到桶位置
+            // 通过key的哈希值取模，找到桶位置
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
-                    // 如果是头结点，直接返回
+                // 如果是头结点，直接返回
                 ((k = first.key) == key || (key != null && key.equals(k))))
                 return first;
             if ((e = first.next) != null) {
@@ -249,6 +249,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;
+            // 桶头位置
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
@@ -400,12 +401,13 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             null : e.value;
     }
 
-    final Node<K,V> removeNode(int hash, Object key, Object value,
-                               boolean matchValue, boolean movable) {
+    // 删除节点
+    final Node<K,V> removeNode(int hash, Object key, Object value, boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
+            // 桶头位置
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
@@ -426,10 +428,13 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             }
             if (node != null && (!matchValue || (v = node.value) == value ||
                                  (value != null && value.equals(v)))) {
+                // 在红黑树中
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+                // 如果在桶头位置
                 else if (node == p)
                     tab[index] = node.next;
+                // 在链表中
                 else
                     p.next = node.next;
                 ++modCount;
@@ -441,7 +446,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         return null;
     }
 
-
+    // 清除map
     public void clear() {
         Node<K,V>[] tab;
         modCount++;
@@ -1288,6 +1293,9 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     /* ------------------------------------------------------------ */
     // Tree bins
 
+    /**
+     * TreeNode继承LinkedHashMap.Entr
+     */
     static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
         TreeNode<K,V> left;
