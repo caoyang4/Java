@@ -14,13 +14,27 @@ public class TestClassLoader1 {
     public static void main(String[] args) {
         // 通过子类引用父类的静态变量，不会导致子类初始化
         // 对于静态变量，只有直接定义该字段的类才会被初始化
+        System.out.println("SuperClass.value");
         System.out.println(SuperClass.value);
-
-        // 没有触发SuperClass初始化，通过 newarray 指令触发 L...SuperClass 的初始化
-        SuperClass[] classes = new SuperClass[10];
+        System.out.println();
 
         // 常量在编译阶段置入常量池，故也不触发初始化SuperClass
+        System.out.println("SuperClass.YOUNG");
         System.out.println(SuperClass.YOUNG);
+        System.out.println();
+
+        // 没有触发SuperClass初始化，通过 newarray 指令触发 L...SuperClass 的初始化
+        System.out.println("new SuperClass[10]");
+        SuperClass[] classes = new SuperClass[10];
+        System.out.println();
+
+        System.out.println("new SuperClass[10]");
+        SuperClass[] superClasses = new SuperClass[10];
+        System.out.println();
+
+        // 没有触发父类SuperClass初始化
+        System.out.println("SubClass.str");
+        System.out.println(SubClass.str);
     }
 }
 
@@ -33,6 +47,7 @@ class SuperClass {
 }
 
 class SubClass extends SuperClass {
+    static String str = "child";
     static {
         System.out.println("SubClass init!");
     }
