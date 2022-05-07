@@ -1,38 +1,3 @@
-/*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
-/*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
-
 package java.util.concurrent;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,27 +9,34 @@ import java.lang.ref.WeakReference;
 import java.util.Spliterators;
 import java.util.Spliterator;
 
+/**
+ * 数组阻塞队列
+ * 基于数组实现了一个FIFO的阻塞队列，新元素都插入到队列尾部，于是最先进入的元素在队列头而最后进入的元素在队列尾部。
+ * 该数组是有界的，所以构造时需要制定数组的大小。
+ * 此外，该阻塞队列还提供公平和非公平两种模式
+ *
+ * ArrayBlockingQueue和LinkedBlockingQueue有以下区别：
+ *  1、ArrayBlockingQueue基于数组，LinkedBlockingQueue基于链表
+ *  2、ArrayBlockingQueue只有一个ReentrantLock，出队和入队是不能同时进行的，
+ *    而LInkedBlockingQueue有两个ReentrantLock，出队和入队是可以同时进行的
+ */
 public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
 
     private static final long serialVersionUID = -817911632652898426L;
-
+    // 存储结构为数组
     final Object[] items;
-
+    // 头节点下标
     int takeIndex;
-
+    // 尾节点下标
     int putIndex;
 
     int count;
-
-    /*
-     * Concurrency control uses the classic two-condition algorithm
-     * found in any textbook.
-     */
-
+    // 独占锁，入队和出队公用一个lock，说明不能同时出队和入队
     final ReentrantLock lock;
 
+    // 未空的条件队列
     private final Condition notEmpty;
-
+    // 未满的条件队列
     private final Condition notFull;
 
     transient Itrs itrs = null;
@@ -84,38 +56,41 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             throw new NullPointerException();
     }
 
+    // 入队
     private void enqueue(E x) {
-        // assert lock.getHoldCount() == 1;
-        // assert items[putIndex] == null;
         final Object[] items = this.items;
         items[putIndex] = x;
+        // 如果 putIndex 超出数组范围了，就置为0，逻辑上环形队列
         if (++putIndex == items.length)
             putIndex = 0;
         count++;
+        // 唤醒等待出队节点
         notEmpty.signal();
     }
 
+    // 出队
     private E dequeue() {
-        // assert lock.getHoldCount() == 1;
-        // assert items[takeIndex] != null;
         final Object[] items = this.items;
         @SuppressWarnings("unchecked")
         E x = (E) items[takeIndex];
         items[takeIndex] = null;
+        // 如果 takeIndex 超出数组范围了，就置为0，逻辑上环形队列
         if (++takeIndex == items.length)
             takeIndex = 0;
         count--;
+        // 更新迭代器
         if (itrs != null)
             itrs.elementDequeued();
+        // 唤醒等待入队节点
         notFull.signal();
         return x;
     }
-
+    /**
+     * 删除指定索引处的元素
+     */
     void removeAt(final int removeIndex) {
-        // assert lock.getHoldCount() == 1;
-        // assert items[removeIndex] != null;
-        // assert removeIndex >= 0 && removeIndex < items.length;
         final Object[] items = this.items;
+        // 如果要删除的元素索引就是头索引
         if (removeIndex == takeIndex) {
             // removing front item; just advance
             items[takeIndex] = null;
@@ -125,9 +100,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             if (itrs != null)
                 itrs.elementDequeued();
         } else {
-            // an "interior" remove
 
-            // slide over all others up through putIndex.
             final int putIndex = this.putIndex;
             for (int i = removeIndex;;) {
                 int next = i + 1;
@@ -148,22 +121,21 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         }
         notFull.signal();
     }
-
+    // 有界队列，必须传入容量
+    // 默认非公平模式
     public ArrayBlockingQueue(int capacity) {
         this(capacity, false);
     }
 
     public ArrayBlockingQueue(int capacity, boolean fair) {
-        if (capacity <= 0)
-            throw new IllegalArgumentException();
+        if (capacity <= 0) throw new IllegalArgumentException();
         this.items = new Object[capacity];
         lock = new ReentrantLock(fair);
         notEmpty = lock.newCondition();
         notFull =  lock.newCondition();
     }
 
-    public ArrayBlockingQueue(int capacity, boolean fair,
-                              Collection<? extends E> c) {
+    public ArrayBlockingQueue(int capacity, boolean fair, Collection<? extends E> c) {
         this(capacity, fair);
 
         final ReentrantLock lock = this.lock;
@@ -184,16 +156,18 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             lock.unlock();
         }
     }
-
+    // 当队列满的时候，add()会抛出异常
     public boolean add(E e) {
         return super.add(e);
     }
 
+    // 添加，当队列满的时候，offer()返回false
     public boolean offer(E e) {
         checkNotNull(e);
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            //如果队列满了，返回false
             if (count == items.length)
                 return false;
             else {
@@ -204,12 +178,13 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             lock.unlock();
         }
     }
-
+    // put()在队列满的时候，会阻塞
     public void put(E e) throws InterruptedException {
         checkNotNull(e);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
+            // 如果队列满了，notFull等待队列阻塞
             while (count == items.length)
                 notFull.await();
             enqueue(e);
@@ -218,9 +193,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         }
     }
 
-    public boolean offer(E e, long timeout, TimeUnit unit)
-        throws InterruptedException {
-
+    /**
+     * 超时 offer
+     */
+    public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
         checkNotNull(e);
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
@@ -242,16 +218,18 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            // 如果队列为空，返回null
             return (count == 0) ? null : dequeue();
         } finally {
             lock.unlock();
         }
     }
-
+    // 当队列为空的时候，take()会阻塞
     public E take() throws InterruptedException {
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
+            // 如果队列为空，notEmpty等待队列阻塞
             while (count == 0)
                 notEmpty.await();
             return dequeue();
@@ -259,7 +237,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             lock.unlock();
         }
     }
-
+    // 超时 poll
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
@@ -275,7 +253,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
             lock.unlock();
         }
     }
-
+    // 获取队列头元素
     public E peek() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -298,8 +276,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         }
     }
 
-    // this doc comment is a modified copy of the inherited doc comment,
-    // without the reference to unlimited queues.
+    // 剩余容量
     public int remainingCapacity() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -310,6 +287,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         }
     }
 
+    /**
+     * 从此队列中移除指定元素的单个实例（如果存在）
+     */
     public boolean remove(Object o) {
         if (o == null) return false;
         final Object[] items = this.items;
@@ -317,15 +297,20 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
         lock.lock();
         try {
             if (count > 0) {
+                //获取下一个插入元素的索引(尾部之后)
                 final int putIndex = this.putIndex;
+                //获取下一个移除元素的索引(初始化为头部)
                 int i = takeIndex;
                 do {
                     if (o.equals(items[i])) {
+                        //那么移除i位置的元素
                         removeAt(i);
                         return true;
                     }
                     if (++i == items.length)
                         i = 0;
+                //如果i 不等于 下一个插入元素的索引(尾部之后)，那么就可以一直循环
+                //如果相等，说明队列便利完毕也没找到相等的元素，结束循环
                 } while (i != putIndex);
             }
             return false;

@@ -132,7 +132,7 @@ public class ThreadLocal<T> {
             Object value;
 
             /**
-             * ThreadLocalMap维护了Entry环形数组，
+             * ThreadLocalMap维护了Entry数组，该数组逻辑是环形的，物理上还是数组
              * 数组中元素Entry的逻辑上的key为某个ThreadLocal对象（实际上是指向该ThreadLocal对象的弱引用），
              * value为代码中该线程往该ThreadLoacl变量实际塞入的值
              */
