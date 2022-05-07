@@ -35,6 +35,7 @@ public class TestClassLoader1 {
         // 没有触发父类SuperClass初始化
         System.out.println("SubClass.str");
         System.out.println(SubClass.str);
+
     }
 }
 

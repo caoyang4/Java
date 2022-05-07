@@ -3,7 +3,7 @@ package src.basis.fish;
 /**
  * @author caoyang
  */
-public class InterestTest {
+public class InterestTest3 {
 
     public static void general(){
         int a=10;
@@ -28,7 +28,7 @@ public class InterestTest {
         int i = 0;
         // i++ 更改的值不会被使用
         i = i++;
-        System.out.println(i);
+        System.out.println("interest: "+i);
     }
     public static void main(String[] args) {
         general();
