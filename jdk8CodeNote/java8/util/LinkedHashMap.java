@@ -15,6 +15,8 @@ import java.io.IOException;
  *   2、void afterNodeAccess(Node<K,V> p) { }
  *   3、void afterNodeInsertion(boolean evict) { }
  *   4、void afterNodeRemoval(Node<K,V> p) { }
+ *
+ * 当我们基于 LinkedHashMap 实现缓存时，通过覆写removeEldestEntry方法可以实现自定义策略的 LRU 缓存
  */
 public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
 
@@ -30,13 +32,13 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
 
     private static final long serialVersionUID = 3801124242820219131L;
 
+    // 头结点
     transient LinkedHashMap.Entry<K,V> head;
-
+    // 尾节点，新节点会被置为尾结点
     transient LinkedHashMap.Entry<K,V> tail;
 
+    // 该变量为true时，即按访问顺序遍历，此时你任何一次的操作，包括put、get操作，都会改变map中已有的存储顺序
     final boolean accessOrder;
-
-    // internal utilities
 
     // 链接到尾部
     private void linkNodeLast(LinkedHashMap.Entry<K,V> p) {
@@ -123,19 +125,28 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
             a.before = b;
     }
 
+    /**
+     * evict从 Hashmap 中传过来为true
+     */
     void afterNodeInsertion(boolean evict) { // possibly remove eldest
         LinkedHashMap.Entry<K,V> first;
+        // removeEldestEntry(first)默认为 false，不会删除第一个节点
         if (evict && (first = head) != null && removeEldestEntry(first)) {
             K key = first.key;
             removeNode(hash(key), key, null, false, true);
         }
     }
 
+    /**
+     * 保证操作过的Node节点永远在最后，从而保证读取的顺序性，在调用put方法和get方法时都会用到
+     */
     void afterNodeAccess(Node<K,V> e) { // move node to last
         LinkedHashMap.Entry<K,V> last;
+        // accessOrder为 true，且当前节点不是最后节点
         if (accessOrder && (last = tail) != e) {
-            LinkedHashMap.Entry<K,V> p =
-                (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+            // p：当前节点 b：当前节点的前一个节点 a：当前节点的后一个节点；
+            LinkedHashMap.Entry<K,V> p = (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+            // 将p.after设置为null，断开了与后一个节点的关系
             p.after = null;
             if (b == null)
                 head = a;
@@ -151,6 +162,7 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
                 p.before = last;
                 last.after = p;
             }
+            // 置为尾结点
             tail = p;
             ++modCount;
         }

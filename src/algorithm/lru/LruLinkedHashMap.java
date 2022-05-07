@@ -22,7 +22,6 @@ public class LruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
         this.capacity = capacity;
     }
 
-
     @Override
     public synchronized V put(K key, V value) {
         return super.put(key, value);
@@ -35,8 +34,6 @@ public class LruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
      * 实现LRU的关键方法，如果 map 里面的元素个数大于了缓存最大容量，则删除链表的尾部元素
-     * @param eldest
-     * @return
      */
     @Override
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
