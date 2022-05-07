@@ -180,6 +180,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
     }
     // put()在队列满的时候，会阻塞
     public void put(E e) throws InterruptedException {
+        // 不允许添加 null 节点
         checkNotNull(e);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
