@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author caoyang
  */
-public class TestAnnotation {
+public class TestAnnotation1 {
     @Override
     @MyAnnotation(name = "toStringMethod", description = "override toString method")
     public String toString() {
@@ -35,7 +35,7 @@ public class TestAnnotation {
     }
 
     public static void main(String[] args) {
-        TestAnnotation testAnnotation = new TestAnnotation();
+        TestAnnotation1 testAnnotation = new TestAnnotation1();
         Method[] methods = testAnnotation.getClass().getMethods();
         for (Method method : methods) {
             if(method.isAnnotationPresent(MyAnnotation.class)){
