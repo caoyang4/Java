@@ -10,6 +10,9 @@ import javax.tools.Diagnostic.Kind;
 import com.google.auto.service.AutoService;
 import src.basis.annotation.CheckGetter;
 
+/**
+ * 注解处理器，重写process方法
+ */
 @AutoService(Processor.class)
 @SupportedAnnotationTypes("src.basis.annotation.CheckGetter")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)

@@ -32,9 +32,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
         return ftask;
     }
 
-    private <T> T doInvokeAny(Collection<? extends Callable<T>> tasks,
-                              boolean timed, long nanos)
-        throws InterruptedException, ExecutionException, TimeoutException {
+    private <T> T doInvokeAny(Collection<? extends Callable<T>> tasks, boolean timed, long nanos) throws InterruptedException, ExecutionException, TimeoutException {
         if (tasks == null)
             throw new NullPointerException();
         int ntasks = tasks.size();
@@ -103,8 +101,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
         }
     }
 
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-        throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         try {
             return doInvokeAny(tasks, false, 0);
         } catch (TimeoutException cannotHappen) {
@@ -113,14 +110,11 @@ public abstract class AbstractExecutorService implements ExecutorService {
         }
     }
 
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
-                           long timeout, TimeUnit unit)
-        throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return doInvokeAny(tasks, true, unit.toNanos(timeout));
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-        throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         if (tasks == null)
             throw new NullPointerException();
         ArrayList<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
@@ -150,9 +144,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
         }
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks,
-                                         long timeout, TimeUnit unit)
-        throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
         if (tasks == null)
             throw new NullPointerException();
         long nanos = unit.toNanos(timeout);
