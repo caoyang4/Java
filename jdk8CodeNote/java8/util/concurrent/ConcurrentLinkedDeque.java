@@ -12,7 +12,7 @@ import java.util.Spliterators;
 import java.util.function.Consumer;
 
 /**
- * ConcurrentLinkedDeque是一种基于链接节点的无限并发链表，非阻塞式线程安全链表。可以安全地并发执行插入、删除和访问操作。
+ * ConcurrentLinkedDeque是一种基于链接节点的无限并发链表，非阻塞式双端队列。可以安全地并发执行插入、删除和访问操作。
  * 当许多线程同时访问一个公共集合时，ConcurrentLinkedDeque是一个合适的选择。
  * 和大多数其他并发的集合类型一样，这个类不允许使用空元素
  * 因为链表的异步性质，确定当前元素的数量需要遍历所有的元素，所以如果在遍历期间有其他线程修改了这个集合，size方法就可能会报告不准确的结果。

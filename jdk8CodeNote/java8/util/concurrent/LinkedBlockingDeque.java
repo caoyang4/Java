@@ -10,34 +10,40 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
+/**
+ * LinkedBlockingDeque来自于JDK1.5的JUC包，是一个支持并发操作的无界阻塞队列，
+ * 底层数据结构是一个双向链表，可以看作LinkedList的并发版本！
+ */
 public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements BlockingDeque<E>, java.io.Serializable {
 
     private static final long serialVersionUID = -387911632671998426L;
 
+    /**
+     * 双向链表
+     */
     static final class Node<E> {
         E item;
-
+        // 前驱节点
         Node<E> prev;
-
+        // 后继节点
         Node<E> next;
-
         Node(E x) {
             item = x;
         }
     }
-
+    // 头结点，可以为null
     transient Node<E> first;
-
+    // 尾结点，可以为null
     transient Node<E> last;
 
     private transient int count;
-
+    // 队列的容量，初始化之后就不能变了
     private final int capacity;
-
+    // 生产、消费都需要获取的独占锁
     final ReentrantLock lock = new ReentrantLock();
-
+    // notEmpty条件变量
     private final Condition notEmpty = lock.newCondition();
-
+    // notFull条件变量
     private final Condition notFull = lock.newCondition();
 
     public LinkedBlockingDeque() {
@@ -45,6 +51,7 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
     }
 
     public LinkedBlockingDeque(int capacity) {
+        // 指定容量必须大于 0
         if (capacity <= 0) throw new IllegalArgumentException();
         this.capacity = capacity;
     }
@@ -68,57 +75,79 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
 
     // Basic linking and unlinking operations, called only while holding lock
 
+    /**
+     * linkFirst用于将指定node结点链接到队列头部成为新的头结点，
+     * 原理很简单就是在原头结点first指向的结点前面新添加一个node结点，
+     * 同时建立prev和next的引用关系。如果最开始队列为空，那么head和last都指向该node结点。
+     */
     private boolean linkFirst(Node<E> node) {
-        // assert lock.isHeldByCurrentThread();
         if (count >= capacity)
             return false;
         Node<E> f = first;
         node.next = f;
         first = node;
+        // 队列未满
+        // 如果last也为null，说明队列为空
         if (last == null)
             last = node;
         else
+            //f的前驱指向新结点
             f.prev = node;
         ++count;
+        //添加了元素结点之后，唤醒在notEmpty等待的消费线程
         notEmpty.signal();
         return true;
     }
 
+    /**
+     * linkLast用于将指定node结点链接到队列尾部成为新的尾结点，
+     * 原理很简单就是在原尾结点last指向的结点后面新添加一个node结点，
+     * 同时建立prev和next的引用关系。如果最开始队列为空，那么head和last都指向该node结点
+     */
     private boolean linkLast(Node<E> node) {
-        // assert lock.isHeldByCurrentThread();
+        // 如果队列满了，那么直接返回false
         if (count >= capacity)
             return false;
         Node<E> l = last;
         node.prev = l;
         last = node;
+        // 如果first也为null，说明队列为空
         if (first == null)
             first = node;
         else
+            // l的后继指向新结点
             l.next = node;
         ++count;
+        // 添加了元素结点之后，唤醒在notEmpty等待的消费线程
         notEmpty.signal();
         return true;
     }
-
+    // 头结点出队
     private E unlinkFirst() {
         // assert lock.isHeldByCurrentThread();
         Node<E> f = first;
+        //如果头结点为null，表示队列为空，直接返回null
         if (f == null)
             return null;
         Node<E> n = f.next;
         E item = f.item;
         f.item = null;
+        // f的后继指向自己，结点出队列，
+        // 同时用于迭代器辨认是该结点被删除了而不是到达了队列末尾，因为迭代器中以后继为null表示迭代完毕，在迭代器的succ方法部分会讲到
         f.next = f; // help GC
         first = n;
+        // first指向f的后继n
         if (n == null)
             last = null;
         else
+            //n的前驱置空
             n.prev = null;
         --count;
+        // 出队成功之后，唤醒在notFull等待的生产线程
         notFull.signal();
         return item;
     }
-
+    // 尾结点出队
     private E unlinkLast() {
         // assert lock.isHeldByCurrentThread();
         Node<E> l = last;
@@ -147,12 +176,13 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
         } else if (n == null) {
             unlinkLast();
         } else {
+            // 未从链表中移除，即没有将x的prev和next引用置空，因为可能存在迭代器正在迭代这个结点
             p.next = n;
             n.prev = p;
+            // x结点的item值置为null
             x.item = null;
-            // Don't mess with x's links.  They may still be in use by
-            // an iterator.
             --count;
+            //出队成功之后，唤醒在notFull等待的生产线程
             notFull.signal();
         }
     }
@@ -163,15 +193,9 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
         if (!offerFirst(e))
             throw new IllegalStateException("Deque full");
     }
-
-    public void addLast(E e) {
-        if (!offerLast(e))
-            throw new IllegalStateException("Deque full");
-    }
-
     public boolean offerFirst(E e) {
         if (e == null) throw new NullPointerException();
-        Node<E> node = new Node<E>(e);
+        java.util.concurrent.LinkedBlockingDeque.Node<E> node = new java.util.concurrent.LinkedBlockingDeque.Node<E>(e);
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -180,22 +204,9 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             lock.unlock();
         }
     }
-
-    public boolean offerLast(E e) {
-        if (e == null) throw new NullPointerException();
-        Node<E> node = new Node<E>(e);
-        final ReentrantLock lock = this.lock;
-        lock.lock();
-        try {
-            return linkLast(node);
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public void putFirst(E e) throws InterruptedException {
         if (e == null) throw new NullPointerException();
-        Node<E> node = new Node<E>(e);
+        java.util.concurrent.LinkedBlockingDeque.Node<E> node = new java.util.concurrent.LinkedBlockingDeque.Node<E>(e);
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -205,20 +216,42 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             lock.unlock();
         }
     }
+    // 队列满了，会抛异常
+    public void addLast(E e) {
+        if (!offerLast(e))
+            throw new IllegalStateException("Deque full");
+    }
 
+    public boolean offerLast(E e) {
+        if (e == null) throw new NullPointerException();
+        Node<E> node = new Node<E>(e);
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            // 仅仅调用一次linkLast方法，返回linkLast的返回值，无论成功还是失败
+            return linkLast(node);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 将指定的元素插入此队列的尾部，如果该队列已满，则线程等待
+     */
     public void putLast(E e) throws InterruptedException {
         if (e == null) throw new NullPointerException();
         Node<E> node = new Node<E>(e);
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            // 如果该队列已满，则线程等待
             while (!linkLast(node))
                 notFull.await();
         } finally {
             lock.unlock();
         }
     }
-
+    // 超时队头添加节点
     public boolean offerFirst(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
         if (e == null) throw new NullPointerException();
@@ -288,12 +321,14 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             lock.unlock();
         }
     }
-
+    // 出队头
     public E takeFirst() throws InterruptedException {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             E x;
+            // 如果x为null，表示队列空了，那么该线程在notEmpty条件队列中等待并释放锁，
+            // 被唤醒之后会继续尝试获取锁、并循环判断
             while ( (x = unlinkFirst()) == null)
                 notEmpty.await();
             return x;
@@ -307,6 +342,7 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
         lock.lock();
         try {
             E x;
+            // 获取并移除此双端队列的尾部元素，如果该队列已空，则线程等待。
             while ( (x = unlinkLast()) == null)
                 notEmpty.await();
             return x;
@@ -535,48 +571,6 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             lock.unlock();
         }
     }
-
-    /*
-     * TODO: Add support for more efficient bulk operations.
-     *
-     * We don't want to acquire the lock for every iteration, but we
-     * also want other threads a chance to interact with the
-     * collection, especially when count is close to capacity.
-     */
-
-//     /**
-//      * Adds all of the elements in the specified collection to this
-//      * queue.  Attempts to addAll of a queue to itself result in
-//      * {@code IllegalArgumentException}. Further, the behavior of
-//      * this operation is undefined if the specified collection is
-//      * modified while the operation is in progress.
-//      *
-//      * @param c collection containing elements to be added to this queue
-//      * @return {@code true} if this queue changed as a result of the call
-//      * @throws ClassCastException            {@inheritDoc}
-//      * @throws NullPointerException          {@inheritDoc}
-//      * @throws IllegalArgumentException      {@inheritDoc}
-//      * @throws IllegalStateException if this deque is full
-//      * @see #add(Object)
-//      */
-//     public boolean addAll(Collection<? extends E> c) {
-//         if (c == null)
-//             throw new NullPointerException();
-//         if (c == this)
-//             throw new IllegalArgumentException();
-//         final ReentrantLock lock = this.lock;
-//         lock.lock();
-//         try {
-//             boolean modified = false;
-//             for (E e : c)
-//                 if (linkLast(e))
-//                     modified = true;
-//             return modified;
-//         } finally {
-//             lock.unlock();
-//         }
-//     }
-
     @SuppressWarnings("unchecked")
     public Object[] toArray() {
         final ReentrantLock lock = this.lock;
@@ -687,17 +681,30 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             }
         }
 
+        /**
+         * 获取下一个要被迭代的结点
+         */
         private Node<E> succ(Node<E> n) {
-            // Chains of deleted nodes ending in null or self-links
-            // are possible if multiple interior nodes are removed.
+            // 开启一个死循环查找，因为n可能作为中间结点被移除了，或者头结点被移除了，需要排除这些因素的影响
             for (;;) {
+                //获取n的后继结点s
                 Node<E> s = nextNode(n);
+                // 如果s等于null，说明到了队列尾部，直接返回null，可以看到在迭代器中以某个结点的next为null来判断队尾
                 if (s == null)
                     return null;
+                // 否则，如果s的item不等于null，表示s没有被移除，那么就返回s
                 else if (s.item != null)
                     return s;
+                // 如果s等于n，说明n结点作为first结点被移除了队列，那么查找最新的first结点并返回，从头开始迭代
+                // 这里我们就能明白在头结点出队列的时候将next指向自己的作用
                 else if (s == n)
                     return firstNode();
+                /*
+                 * 确认是否作为中间结点被删除
+                 * 否则，表示s结点作为被删除的中间结点，在remove(o)中我们就说过
+                 * 中间被删除的结点的item为null，并且它的前驱后继直接关联，但是它自己的前驱后继关系并没有移除
+                 * 因此需要跳过被删除的结点，继续向后查找
+                 */
                 else
                     n = s;
             }
@@ -728,6 +735,11 @@ public class LinkedBlockingDeque<E> extends AbstractQueue<E> implements Blocking
             return x;
         }
 
+        /**
+         * 这里被移除的结点如果是中间结点，会将item置为null，并且它的前驱后继直接关联，但是它自己的前驱后继关系并没有移除，
+         * 除了表示该结点出队列之外，同时用于迭代器辨认是该中间结点是否被删除了，因为可能存在迭代器正在迭代这个中间结点，
+         * 此时迭代器就可以跳过这个结点
+         */
         public void remove() {
             Node<E> n = lastRet;
             if (n == null)

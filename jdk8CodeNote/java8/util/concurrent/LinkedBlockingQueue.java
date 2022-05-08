@@ -12,8 +12,7 @@ import java.util.Spliterators;
 import java.util.function.Consumer;
 
 /**
- * 基于链表的无界队列
- * 不同于ConcurrentLinkedQueue的CAS非阻塞算法，它底层是用锁实现的阻塞队列
+ * 基于链表的无界阻塞队列，不同于ConcurrentLinkedQueue的CAS非阻塞算法，它底层是用锁实现的阻塞队列
  */
 public class LinkedBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = -6903933977591709194L;

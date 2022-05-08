@@ -10,10 +10,27 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
+/**
+ * ConcurrentLinkedQueue 是一个由链表结构组成的无界非阻塞队列，
+ * 为了减少 CAS 操作造成的资源争夺损耗，其链表结构被设计为“松弛”的Slack
+ * ConcurrentLinkedQueue 是非阻塞队列，采用 CAS 和自旋保证并发安全。
+ * ConcurrentLinkedQueue 的 tail 并不是严格指向尾节点，通过减少出队时对 tail 的 CAS 以提高效率。
+ * ConcurrentLinkedQueue 的 head 所指节点可能是空节点，也可能是数据节点，通过减少出队时对 head 的 CAS 以提高效率。
+ * 采用非阻塞算法，允许队列处于不一致状态（head/tail），通过保证不变式和可变式，来维护非阻塞算法的正确性。
+ * 由于是非阻塞队列，无法使用在线程池中。
+ */
 public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<E>, java.io.Serializable {
     private static final long serialVersionUID = 196745693267521676L;
 
+    /**
+     * 单向链表
+     */
     private static class Node<E> {
+        /**
+         * item 为空表示无效节点，非空表示有效节点
+         * ConcurrentLinkedQueue 队列中为什么要存储无效节点呢
+         *   ，通过减少出队时对 head 的 CAS更新 以提高效率。
+         */
         volatile E item;
         volatile Node<E> next;
 
@@ -53,10 +70,32 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<
         }
     }
 
+    /**
+     * head 和 tail 节点并不严格指向链表的头尾节点，
+     * 也就是每次入队出队操作并不会及时更新 head 和 tail 节点
+     *
+     * head 的不变式：
+     *  所有的有效节点，都能从 head 通过调用 succ() 方法遍历可达。
+     *  head 不能为 null。
+     *  head 节点的 next 域不能引用到自身。
+     * head 的可变式：
+     *  head 节点的 item 域可能为 null，也可能不为 null。
+     *  允许 tail 滞后（lag behind）于 head，也就是说：从 head 开始遍历队列，不一定能到达 tail。
+     */
+    // 头结点
     private transient volatile Node<E> head;
-
+    /**
+     * tail 的不变式：
+     *  通过 tail 调用 succ() 方法，最后节点总是可达的。
+     *  tail 不能为 null。
+     * tail 的可变式：
+     *  tail 节点的 item 域可能为 null，也可能不为 null。
+     *  允许 tail 滞后于 head，也就是说：从 head 开始遍历队列，不一定能到达 tail。
+     *  tail 节点的 next 域可以引用到自身。
+     */
+    // 尾结点
     private transient volatile Node<E> tail;
-
+    // 无参构造，默认创建空节点，head 和 tail 都指向该节点
     public ConcurrentLinkedQueue() {
         head = tail = new Node<E>(null);
     }
@@ -79,72 +118,109 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<
         tail = t;
     }
 
-    // Have to override just to update the javadoc
-
+    // 因为是无界队列，add(e)方法不用抛出异常。不支持添加 null
     public boolean add(E e) {
         return offer(e);
     }
 
     final void updateHead(Node<E> h, Node<E> p) {
+        // 节点h和p不等，且当前头节点为h，则把头节点设为p
         if (h != p && casHead(h, p))
+            // 原头节点h的next指向自身，表示h出队
             h.lazySetNext(h);
     }
 
     final Node<E> succ(Node<E> p) {
         Node<E> next = p.next;
+        // 如果p已经出队了，则重新从头节点开始，否则继续遍历下一个节点
         return (p == next) ? head : next;
     }
 
+    /**
+     * 入队的基本思想：
+     *  从 tail 节点开始遍历到尾节点，若定位到尾节点（p.next == null），则入队。
+     *  遍历过程中，如果遍历到无效节点（p.next == p），需要重新从有效节点（tail 或 head）开始遍历。
+     *  遍历过程中，时刻关注 tail 节点是否无效。若无效了需要重新从最新的 tail 开始遍历，否则继续遍历当前的下一个节点。
+     *
+     * 需要注意的点：
+     *  入队过程中没有频繁执行 casTail（出队过程不会执行 casTail），因此 tail 位置有滞后，不一定指向尾节点，甚至可能位于废弃的链上。
+     *  使用 p.next == null 来判断尾节点，比使用 tail 准确。
+     *  通过 tail 遍历节点可能会遍历到无效节点，但是从 head 遍历总能访问到有效节点。
+     */
     public boolean offer(E e) {
         checkNotNull(e);
         final Node<E> newNode = new Node<E>(e);
-
+        // 注意tail不一定是尾节点（甚至tail有可能存在于废弃的链上，后有解释），但是也不妨从tail节点开始遍历链表
         for (Node<E> t = tail, p = t;;) {
             Node<E> q = p.next;
+            // 使用p.next是否为空来判断p是否是尾节点，比较准确
             if (q == null) {
-                // p is last node
+                // 若尾节点p的下一个节点为null，则设置为newNode
                 if (p.casNext(null, newNode)) {
-                    // Successful CAS is the linearization point
-                    // for e to become an element of this queue,
-                    // and for newNode to become "live".
+                    // 不管p与t是否相同，都应该casTail。
+                    // 但是这里只在p与t不同时才casTail，导致tail节点不总是尾节点，目的是减少对tail的CAS
                     if (p != t) // hop two nodes at a time
+                        // 将尾节点tail由t改为newNode，更新失败了也没关系，因为tail是不是尾节点不重要
                         casTail(t, newNode);  // Failure is OK.
                     return true;
                 }
                 // Lost CAS race to another thread; re-read next
             }
+            // p已经出队了，需要重新设置p、t的值
             else if (p == q)
-                // We have fallen off list.  If tail is unchanged, it
-                // will also be off-list, in which case we need to
-                // jump to head, from which all live nodes are always
-                // reachable.  Else the new tail is a better bet.
+                // 1. 若节点t不再是tail，说明其他线程加入过元素(修改过tail)，则取最新tail作为t和p，从新的tail节点继续遍历链表
+                // 2. 若节点t依旧是tail，说明从tail节点开始遍历链表已经不管用了，则把head作为p，从head节点从头遍历链表（注意这一步造成后续遍历中p!=t成立）
                 p = (t != (t = tail)) ? t : head;
             else
-                // Check for tail updates after two hops.
+                // 进入这里，说明p.next不为null，且p未出队，需要判断：
+                // 1. 若p与t相等，则t留在原位，p=p.next一直往下遍历（注意这一步造成后续遍历中p!=t成立）。
+                // 2. 若p与t不等，需进一步判断t与tail是否相等。若t不为tail，则取最新tail作为t和p；若t为tail，则p=p.next一直往下遍历。
+                // 就是说从tail节点往后遍历链表的过程，需时刻关注tail是否发生变化
                 p = (p != t && t != (t = tail)) ? t : q;
         }
     }
 
+    /**
+     * 由于出队 poll() 逻辑并不会执行 casTail() 来维护 tail 所在位置，因此 tail 可能滞后于 head，甚至位于废弃链上
+     *
+     * 出队的基本思想：
+     *   从 head 节点开始遍历找出首个有效节点（p.item != null），返回该节点的数据（p.item）。
+     *   遍历过程中，如果遍历到尾节点（p.next == null），则返回空。
+     *   遍历过程中，如果遍历到无效节点（p.next == p），说明其他线程修改了 head，需要重新从有效节点（新的 head）开始遍历。
+     *
+     * 需要注意的是，并不是每次出队时都执行 updateHead() 更新 head 节点：
+     *   当 head 节点里有元素时，直接弹出 head 节点里的元素，而不会更新 head 节点。
+     *   只有当 head 节点里没有元素时，出队操作才会更新 head 节点。
+     * 采用这种方式同样是为了减少使用 CAS 更新 head 节点的消耗，从而提高出队效率。
+     */
     public E poll() {
         restartFromHead:
         for (;;) {
+            // 初始时h和p都指向head节点，从head节点开始遍历链表
             for (Node<E> h = head, p = h, q;;) {
                 E item = p.item;
-
+                // p.item不为空，cas把p节点的数据域设为空，返回p节点的数据
                 if (item != null && p.casItem(item, null)) {
                     // Successful CAS is the linearization point
                     // for item to be removed from this queue.
                     if (p != h) // hop two nodes at a time
+                        // 若p.next不为空，则把p.next设为头节点，把h和p出队；
+                        // 若p.next为空，则把p设为头节点，把h出队
                         updateHead(h, ((q = p.next) != null) ? q : p);
                     return item;
                 }
+                // 进入这里，说明p.item必然为空
                 else if ((q = p.next) == null) {
+                    // 若p.next也为空，说明队列中没有数据了，需要返回null
+                    // 把头节点设为p，把h出队
                     updateHead(h, p);
                     return null;
                 }
+                // 如果p的next等于p，说明p已经出队了，重新从头节点开始遍历
                 else if (p == q)
                     continue restartFromHead;
                 else
+                    // p = p.next 继续遍历链表
                     p = q;
             }
         }
@@ -188,8 +264,12 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<
         return first() == null;
     }
 
+    /**
+     * 获取队列的容量：从头开始遍历队列中的有效节点，并计数。注意是遍历过程是弱一致的
+     */
     public int size() {
         int count = 0;
+        // 从第一个有数据的节点开始，一直遍历链表
         for (Node<E> p = first(); p != null; p = succ(p))
             if (p.item != null)
                 // Collection.size() spec says to max out
@@ -387,14 +467,6 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<
         }
     }
 
-    /**
-     * Saves this queue to a stream (that is, serializes it).
-     *
-     * @param s the stream
-     * @throws java.io.IOException if an I/O error occurs
-     * @serialData All of the elements (each an {@code E}) in
-     * the proper order, followed by a null
-     */
     private void writeObject(java.io.ObjectOutputStream s)
         throws java.io.IOException {
 
