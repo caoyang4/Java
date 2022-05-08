@@ -1,38 +1,3 @@
-/*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
-/*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
- *
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
- */
-
 package java.util.concurrent;
 
 import java.util.AbstractQueue;
@@ -46,45 +11,6 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
-/**
- * An unbounded {@link TransferQueue} based on linked nodes.
- * This queue orders elements FIFO (first-in-first-out) with respect
- * to any given producer.  The <em>head</em> of the queue is that
- * element that has been on the queue the longest time for some
- * producer.  The <em>tail</em> of the queue is that element that has
- * been on the queue the shortest time for some producer.
- *
- * <p>Beware that, unlike in most collections, the {@code size} method
- * is <em>NOT</em> a constant-time operation. Because of the
- * asynchronous nature of these queues, determining the current number
- * of elements requires a traversal of the elements, and so may report
- * inaccurate results if this collection is modified during traversal.
- * Additionally, the bulk operations {@code addAll},
- * {@code removeAll}, {@code retainAll}, {@code containsAll},
- * {@code equals}, and {@code toArray} are <em>not</em> guaranteed
- * to be performed atomically. For example, an iterator operating
- * concurrently with an {@code addAll} operation might view only some
- * of the added elements.
- *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
- *
- * <p>Memory consistency effects: As with other concurrent
- * collections, actions in a thread prior to placing an object into a
- * {@code LinkedTransferQueue}
- * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * actions subsequent to the access or removal of that element from
- * the {@code LinkedTransferQueue} in another thread.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
- * @since 1.7
- * @author Doug Lea
- * @param <E> the type of elements held in this collection
- */
 public class LinkedTransferQueue<E> extends AbstractQueue<E> implements TransferQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = -3223113410248163686L;
 
@@ -121,10 +47,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E> implements Transfer
 
     static final int SWEEP_THRESHOLD = 32;
 
+    /**
+     * 单向链表
+     */
     static final class Node {
         final boolean isData;   // false if this is a request node
         volatile Object item;   // initially non-null if isData; CASed to match
+        // 后继节点
         volatile Node next;
+        // 等待线程
         volatile Thread waiter; // null until waiting
 
         // CAS methods for fields

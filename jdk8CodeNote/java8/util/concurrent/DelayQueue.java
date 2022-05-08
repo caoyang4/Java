@@ -4,11 +4,22 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.*;
 
+/**
+ * DelayQueue 是BlockingQueue接口的实现类，
+ * 它根据"延时时间"来确定队列内的元素的处理优先级（即根据队列元素的“延时时间”进行排序）。
+ * 另一层含义是只有那些超过“延时时间”的元素才能从队列里面被拿出来进行处理。
+ *
+ * DelayQueue 队列将阻止其元素对象从队列中被取出，直到达到为元素对象设置的延迟时间。
+ * DelayQueue 在队列的头部存储最近过期的元素，如果队列内没有元素过期，使用poll()方法获取队列内的元素将会返回null。
+ * DelayQueue 类及其迭代器实现了Collection和Iterator接口的所有可选方法，但迭代器方法iterator()不能保证以特定的顺序遍历DelayQueue的元素。
+ * DelayQueue 不接收null元素，DelayQueue 只接受那些实现了java.util.concurrent.Delayed接口的对象，并将其放入队列内
+ */
 public class DelayQueue<E extends Delayed> extends AbstractQueue<E> implements BlockingQueue<E> {
 
     private final transient ReentrantLock lock = new ReentrantLock();
+    // 内部基于优先级队列
     private final PriorityQueue<E> q = new PriorityQueue<E>();
-
+    // 排队等待获取头结点的线程
     private Thread leader = null;
 
     private final Condition available = lock.newCondition();
@@ -27,9 +38,16 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E> implements B
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            // 新增
             q.offer(e);
+            // 判断插入的元素是否是第一个
+            // 当插入的元素在队列头时，肯定会打断原有等待队列头的线程leader，
+            // 然后在take方法中的死循环重新选出leader，等待队列头时候超时
             if (q.peek() == e) {
+                // 把排队线程置为null
                 leader = null;
+                // 是第一个就要唤醒在available条件队列里面的线程，
+                // 因为此时最短的延迟时间更新了，要唤醒让线程重新去取
                 available.signal();
             }
             return true;
@@ -65,23 +83,33 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E> implements B
         lock.lockInterruptibly();
         try {
             for (;;) {
+                //取队列第一个元素
                 E first = q.peek();
                 if (first == null)
+                    //没有元素就进入等待队列
                     available.await();
                 else {
+                    //算出剩余到期时间
+                    //注意这是的getDelay()是调用的需要自己实现的
                     long delay = first.getDelay(NANOSECONDS);
                     if (delay <= 0)
+                        //<=0说明到时间了，可以取出了，调Poll
                         return q.poll();
-                    first = null; // don't retain ref while waiting
+                    // 等待期间，不持有引用
+                    first = null;
                     if (leader != null)
+                        // 有其他等待线程，先进入等待队列
                         available.await();
                     else {
                         Thread thisThread = Thread.currentThread();
+                        // 延迟未满足，先将 leader 赋值为当前线程，避免后续线程竞争
                         leader = thisThread;
                         try {
+                            //休眠剩余到期时间
                             available.awaitNanos(delay);
                         } finally {
                             if (leader == thisThread)
+                                // 休眠结束，满足延迟，将 leader 置空，意味着其他线程可以竞争获取元素了
                                 leader = null;
                         }
                     }
@@ -89,6 +117,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E> implements B
             }
         } finally {
             if (leader == null && q.peek() != null)
+                //唤醒下一个
                 available.signal();
             lock.unlock();
         }

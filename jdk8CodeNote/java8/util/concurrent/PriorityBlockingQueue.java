@@ -37,8 +37,7 @@ import sun.misc.SharedSecrets;
  * }}
  */
 @SuppressWarnings("unchecked")
-public class PriorityBlockingQueue<E> extends AbstractQueue<E>
-    implements BlockingQueue<E>, java.io.Serializable {
+public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = 5595510919245408276L;
 
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
@@ -67,8 +66,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         this(initialCapacity, null);
     }
 
-    public PriorityBlockingQueue(int initialCapacity,
-                                 Comparator<? super E> comparator) {
+    public PriorityBlockingQueue(int initialCapacity, Comparator<? super E> comparator) {
         if (initialCapacity < 1)
             throw new IllegalArgumentException();
         this.lock = new ReentrantLock();
