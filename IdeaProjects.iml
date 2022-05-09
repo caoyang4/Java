@@ -53,5 +53,6 @@
     <orderEntry type="library" name="jboss.netty" level="project" />
     <orderEntry type="library" name="google.auto.service" level="project" />
     <orderEntry type="library" name="net.sf.ehcache.internal.core" level="project" />
+    <orderEntry type="library" name="googlecode.junit.toolbox" level="project" />
   </component>
 </module>
