@@ -10,9 +10,9 @@
     <output-test url="file://$MODULE_DIR$/../target/test-classes" />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/jdk8CodeNote/java8/util" />
-      <excludeFolder url="file://$MODULE_DIR$/jdk8CodeNote/java8/lang" />
-      <excludeFolder url="file://$MODULE_DIR$/jdk8CodeNote/java8" />
+      <excludeFolder url="file://$MODULE_DIR$/jdkCodeAnalysis/java8" />
+      <excludeFolder url="file://$MODULE_DIR$/jdkCodeAnalysis/java8/util" />
+      <excludeFolder url="file://$MODULE_DIR$/jdkCodeAnalysis/java8/lang" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
