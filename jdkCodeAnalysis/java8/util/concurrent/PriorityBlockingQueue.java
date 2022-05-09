@@ -36,26 +36,32 @@ import sun.misc.SharedSecrets;
  *   }
  * }}
  */
+
+/**
+ * PriorityBlockingQueue是BlockingQueue接口的实现类，它是一种优先级阻塞队列，
+ * 每次出队都返回优先级最高或最低的元素，其内部是用平衡二叉树的最大/最小堆实现的，入队和出队操作，都需要维护这个堆。
+ * 这里的优先级指的是元素类必须实现Comparable接口，然后用compareTo()方法比较元素的优先级大小，当然也可指定自定义的比较器comparator。
+ */
 @SuppressWarnings("unchecked")
 public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = 5595510919245408276L;
-
+    // 队列默认容量为11
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
-
+    // 队列最大容量
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-
+    // 底层数组实现
     private transient Object[] queue;
 
     private transient int size;
-
+    // 自定义比较器
     private transient Comparator<? super E> comparator;
-
+    // 操作元素数组的互斥锁
     private final ReentrantLock lock;
-
+    // 数组非空条件变量
     private final Condition notEmpty;
-
+    // 数组扩容操作的自璇锁，1表示正在扩容，0表示没有在扩容
     private transient volatile int allocationSpinLock;
-
+    // 普通的优先级队列，只有序列化/反序列化时会用到它，入队出队没有用到，是为了和之前的JDK版本兼容
     private PriorityQueue<E> q;
 
     public PriorityBlockingQueue() {
@@ -72,6 +78,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         this.lock = new ReentrantLock();
         this.notEmpty = lock.newCondition();
         this.comparator = comparator;
+        // 存放元素的数组初始化
         this.queue = new Object[initialCapacity];
     }
 
@@ -104,35 +111,47 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         }
         this.queue = a;
         this.size = n;
+        // 堆化
         if (heapify)
             heapify();
     }
-
+    // 数组扩容
     private void tryGrow(Object[] array, int oldCap) {
+        // 先释放操作数组的互斥锁，去尝试获取扩容的自璇锁
         lock.unlock(); // must release and then re-acquire main lock
         Object[] newArray = null;
+        // 尝试获取扩容的锁
         if (allocationSpinLock == 0 &&
-            UNSAFE.compareAndSwapInt(this, allocationSpinLockOffset,
-                                     0, 1)) {
+            UNSAFE.compareAndSwapInt(this, allocationSpinLockOffset, 0, 1)) {
             try {
+                // 计算扩容后的新容量
+                // 扩容前容量小于64时，扩容为原来2倍+2，大于等于64时，扩容为原来的1.5倍
                 int newCap = oldCap + ((oldCap < 64) ?
                                        (oldCap + 2) : // grow faster if small
                                        (oldCap >> 1));
+                // 新容量超出最大容量时，则取最大容量
                 if (newCap - MAX_ARRAY_SIZE > 0) {    // possible overflow
+                    // 旧容量加1仍然溢出时，抛内存溢出异常
                     int minCap = oldCap + 1;
                     if (minCap < 0 || minCap > MAX_ARRAY_SIZE)
                         throw new OutOfMemoryError();
+                    // 置为最大容量
                     newCap = MAX_ARRAY_SIZE;
                 }
+                // 扩容成功，初始化新数组
                 if (newCap > oldCap && queue == array)
                     newArray = new Object[newCap];
             } finally {
+                // 释放扩容操作的自璇锁
                 allocationSpinLock = 0;
             }
         }
+        // 其他线程抢到了扩容锁并正在扩容时，当前线程则让出CPU调度权
         if (newArray == null) // back off if another thread is allocating
             Thread.yield();
+        // 获取操作数组的互斥锁，用于数组拷贝迁移
         lock.lock();
+        // 扩容操作成功时，将旧数组元素拷贝到扩容后的新数组
         if (newArray != null && queue == array) {
             queue = newArray;
             System.arraycopy(array, 0, newArray, 0, oldCap);
@@ -141,14 +160,19 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     private E dequeue() {
         int n = size - 1;
+        // 队列为空时返回null
         if (n < 0)
             return null;
         else {
             Object[] array = queue;
+            // 保存队列头部元素，即优先级最大或最小的元素，也就是要出队的元素
             E result = (E) array[0];
+            // 记录队尾元素
             E x = (E) array[n];
+            // 将队列尾部位置元素置为null
             array[n] = null;
             Comparator<? super E> cmp = comparator;
+            // 重新调整堆，使得移除头部元素后仍然保持堆的性质。
             if (cmp == null)
                 siftDownComparable(0, x, array, n);
             else
@@ -160,19 +184,23 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     private static <T> void siftUpComparable(int k, T x, Object[] array) {
         Comparable<? super T> key = (Comparable<? super T>) x;
+        // 数组0号位置即为堆的根节点，从底层往根节点遍历
         while (k > 0) {
+            // 获取当前结点的父结点
             int parent = (k - 1) >>> 1;
             Object e = array[parent];
+            // 待插入元素比父结点元素优先级高时，k即为我们要找的待插入元素的位置，退出循环
             if (key.compareTo((T) e) >= 0)
                 break;
+            // 否则将父结点元素值复制到当前位置k
             array[k] = e;
+            // k从父结点位置再往上遍历，找合适的位置
             k = parent;
         }
         array[k] = key;
     }
-
-    private static <T> void siftUpUsingComparator(int k, T x, Object[] array,
-                                       Comparator<? super T> cmp) {
+    // 它与siftUpComparable()逻辑类似，只是比较优先级时，采用用户传入的自定义比较器
+    private static <T> void siftUpUsingComparator(int k, T x, Object[] array, Comparator<? super T> cmp) {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
             Object e = array[parent];
@@ -184,23 +212,31 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         array[k] = x;
     }
 
-    private static <T> void siftDownComparable(int k, T x, Object[] array,
-                                               int n) {
+    private static <T> void siftDownComparable(int k, T x, Object[] array, int n) {
         if (n > 0) {
             Comparable<? super T> key = (Comparable<? super T>)x;
             int half = n >>> 1;           // loop while a non-leaf
+            // 由于移除了根节点，要从左右子树中找到最小值来当新的根节点
+            // 从根节点开始往叶子节点遍历
             while (k < half) {
+                // 先获取左孩子的值
                 int child = (k << 1) + 1; // assume left child is least
                 Object c = array[child];
+                // 再获取右孩子的值
                 int right = child + 1;
                 if (right < n &&
+                    // 右孩子比左孩子小时，c变更为右孩子的值
                     ((Comparable<? super T>) c).compareTo((T) array[right]) > 0)
                     c = array[child = right];
+                // 尾节点的值比c小时，找到目标根节点，结束循环
                 if (key.compareTo((T) c) <= 0)
                     break;
+                // 否则将父结点置为左右孩子较小的那个值
                 array[k] = c;
+                // k赋值为左右孩子较小的那个结点，继续往下找
                 k = child;
             }
+            // 将尾结点移动到合适位置k，此时最小的节点在遍历的过程中也已经移动的堆的顶部了
             array[k] = key;
         }
     }
@@ -239,7 +275,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
                 siftDownUsingComparator(i, (E) array[i], array, n, cmp);
         }
     }
-
+    // 入队，自下而上的堆化
     public boolean add(E e) {
         return offer(e);
     }
@@ -251,22 +287,25 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         lock.lock();
         int n, cap;
         Object[] array;
+        // 队列当前长度>=队列容量时，进行扩容
         while ((n = size) >= (cap = (array = queue).length))
             tryGrow(array, cap);
         try {
             Comparator<? super E> cmp = comparator;
+            // 未指定比较器时，则使用元素默认或自实现的compareTo()来计算插入元素的位置，即维护堆的过程。
             if (cmp == null)
                 siftUpComparable(n, e, array);
             else
                 siftUpUsingComparator(n, e, array, cmp);
             size = n + 1;
+            // 唤醒某个等待在notEmpty条件的线程
             notEmpty.signal();
         } finally {
             lock.unlock();
         }
         return true;
     }
-
+    // 不需要阻塞
     public void put(E e) {
         offer(e); // never need to block
     }
@@ -279,17 +318,20 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            // 非阻塞，队列为空时返回null
             return dequeue();
         } finally {
             lock.unlock();
         }
     }
-
+    // 出队，自上而下的堆化
     public E take() throws InterruptedException {
         final ReentrantLock lock = this.lock;
+        // 中断式获取锁
         lock.lockInterruptibly();
         E result;
         try {
+            // 队列元素为空时，阻塞等待
             while ( (result = dequeue()) == null)
                 notEmpty.await();
         } finally {
