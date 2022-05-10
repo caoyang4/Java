@@ -1,5 +1,8 @@
 package java.util.concurrent;
 
+/**
+ * 时间单位
+ */
 public enum TimeUnit {
     NANOSECONDS {
         public long toNanos(long d)   { return d; }

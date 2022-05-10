@@ -8,6 +8,7 @@ package java.util.concurrent;
  *   }
  * }}
  */
+// 用于生产线程
 public interface ThreadFactory {
 
     Thread newThread(Runnable r);

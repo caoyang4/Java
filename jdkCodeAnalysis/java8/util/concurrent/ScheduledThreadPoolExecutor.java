@@ -37,8 +37,6 @@ import java.util.*;
  * 特别是，由于它使用corePoolSize线程和无界队列(队列最大为Integer.MAX_VALUE)充当固定大小的池，
  * 所以对maximumPoolSize的调整没有任何有用的效果。
  *
- *
- *
  */
 public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements ScheduledExecutorService {
 
