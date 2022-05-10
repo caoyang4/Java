@@ -44,6 +44,7 @@ public class StringTest1 {
         final String a = "java";
         final String b = "world";
         String c = "javaworld";
+        // a、b 都是常量引用，内部会编译器优化
         String d = a + b;
         // true
         System.out.println(c == d);
