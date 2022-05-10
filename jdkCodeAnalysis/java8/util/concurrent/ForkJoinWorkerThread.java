@@ -8,8 +8,7 @@ public class ForkJoinWorkerThread extends Thread {
     final ForkJoinPool.WorkQueue workQueue; // work-stealing mechanics
 
     private static final AccessControlContext INNOCUOUS_ACC =
-        new AccessControlContext(
-            new ProtectionDomain[] { new ProtectionDomain(null, null) });
+        new AccessControlContext(new ProtectionDomain[] { new ProtectionDomain(null, null) });
 
     protected ForkJoinWorkerThread(ForkJoinPool pool) {
         // Use a placeholder until a useful name can be set in registerWorker
@@ -27,8 +26,7 @@ public class ForkJoinWorkerThread extends Thread {
         this.workQueue = pool.registerWorker(this);
     }
 
-    ForkJoinWorkerThread(ForkJoinPool pool, ThreadGroup threadGroup,
-                         AccessControlContext acc) {
+    ForkJoinWorkerThread(ForkJoinPool pool, ThreadGroup threadGroup, AccessControlContext acc) {
         super(threadGroup, null, "aForkJoinWorkerThread");
         U.putOrderedObject(this, INHERITEDACCESSCONTROLCONTEXT, acc);
         eraseThreadLocals(); // clear before registering
@@ -49,7 +47,7 @@ public class ForkJoinWorkerThread extends Thread {
 
     protected void onTermination(Throwable exception) {
     }
-
+    // run()方法重写
     public void run() {
         if (workQueue.array == null) { // only run once
             Throwable exception = null;
@@ -71,7 +69,7 @@ public class ForkJoinWorkerThread extends Thread {
             }
         }
     }
-
+    // 清除ThreadLocal里的数据
     final void eraseThreadLocals() {
         U.putObject(this, THREADLOCALS, null);
         U.putObject(this, INHERITABLETHREADLOCALS, null);

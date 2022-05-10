@@ -40,9 +40,13 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
 
     volatile int status; // accessed directly by pool and workers
     static final int DONE_MASK   = 0xf0000000;  // mask out non-completion bits
+    // 任务正常完成
     static final int NORMAL      = 0xf0000000;  // must be negative
+    // 任务被取消
     static final int CANCELLED   = 0xc0000000;  // must be < NORMAL
+    // 任务异常终止
     static final int EXCEPTIONAL = 0x80000000;  // must be < CANCELLED
+    // 某个线程在等待当前任务执行完成，需要在任务结束时唤醒等待的线程
     static final int SIGNAL      = 0x00010000;  // must be >= 1 << 16
     static final int SMASK       = 0x0000ffff;  // short bits for tags
 
@@ -86,6 +90,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         }
     }
 
+    //阻塞普通线程等待任务执行完成
     private int externalAwaitDone() {
         int s = ((this instanceof CountedCompleter) ? // try helping
                  ForkJoinPool.common.externalHelpComplete(
