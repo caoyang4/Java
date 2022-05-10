@@ -17,6 +17,7 @@ import java.util.function.Consumer;
  * ConcurrentLinkedQueue 的 tail 并不是严格指向尾节点，通过减少出队时对 tail 的 CAS 以提高效率。
  * ConcurrentLinkedQueue 的 head 所指节点可能是空节点，也可能是数据节点，通过减少出队时对 head 的 CAS 以提高效率。
  * 采用非阻塞算法，允许队列处于不一致状态（head/tail），通过保证不变式和可变式，来维护非阻塞算法的正确性。
+ *
  * 由于是非阻塞队列，无法使用在线程池中。
  */
 public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<E>, java.io.Serializable {

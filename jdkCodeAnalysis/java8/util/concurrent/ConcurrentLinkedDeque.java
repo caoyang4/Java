@@ -39,6 +39,8 @@ import java.util.function.Consumer;
  *   先找到删除结点x的有效前驱和有效后继，统计中间已经处于逻辑删除的结点个数
  *   如果统计个数已经超过阈值个数或者是内部结点删除，有效前驱和后继互连，即活动结点不能访问逻辑删除结点了（unlinking阶段）
  *   有效前驱和后继是队头或队尾，尝试进行gc-unlink，通过updateHead、updateTail使被删除的结点无法从head/tail可达，最后让被删除结点指向自己或者执行终结结点
+ *
+ * 由于是非阻塞队列，无法使用在线程池中。
  */
 public class ConcurrentLinkedDeque<E> extends AbstractCollection<E> implements Deque<E>, java.io.Serializable {
 
