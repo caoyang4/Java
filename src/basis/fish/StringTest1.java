@@ -3,6 +3,10 @@ package src.basis.fish;
 import org.junit.Test;
 
 /**
+ * new String("a")创建几个对象？
+ * 2个： new String() 和 常量"a"
+ * new String("a") + new String("b") +创建几个对象？
+ * 5个：2*2+1 另创建了 StringBuilder对象 做拼接
  * @author caoyang
  */
 public class StringTest1 {
@@ -31,7 +35,9 @@ public class StringTest1 {
         String x = "java";
         String y = new StringBuilder().append("ja").append("va").toString();
         // 由于"java"在常量池已出现过，y.intern 返回 x 的地址，与 y 不同
+        // true
         System.out.println(y.intern() == x);
+        // false
         System.out.println(y.intern() == y);
 
         String z = new StringBuilder().append("wor").append("ld").toString();
@@ -61,5 +67,44 @@ public class StringTest1 {
         String b = "\uD834\uDD1E";
         System.out.println(b);
         System.out.println(a.length());
+    }
+
+    @Test
+    public void stringTest5(){
+        long start = System.currentTimeMillis();
+        String str = "";
+        for (int i = 0; i < 10000; i++) {
+            // 内部会不断新创建StringBuilder做拼接，然后toString方法返回，toString 内部会 new String()
+            str = str + i;
+        }
+        // cost 359ms
+        System.out.println("cost "+(System.currentTimeMillis()-start));
+    }
+
+    @Test
+    public void stringTest6(){
+        long start = System.currentTimeMillis();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < 10000; i++) {
+            builder.append(i);
+        }
+        // cost 2ms
+        System.out.println("cost "+(System.currentTimeMillis()-start));
+    }
+
+
+    public static void main(String[] args) {
+        String s1 = new String("1");
+        s1.intern();
+        String s2 = "1";
+        // false
+        System.out.println(s1 == s2);
+        // 由于"1"已存在于常量池，等价于 s3 = new String("11")
+        String s3 = new String("1") + new String("1");
+        // 常量池不存在"11"，调用intern()复制一份new String("11")的引用地址，放入字符串常量池
+        s3.intern();
+        String s4 = "11"; // 返回new String("11")在字符串常量池的地址
+        // true
+        System.out.println(s3 == s4);
     }
 }
