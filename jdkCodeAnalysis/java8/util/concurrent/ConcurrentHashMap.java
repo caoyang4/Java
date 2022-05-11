@@ -38,7 +38,16 @@ import java.util.function.ToLongBiFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
-
+/**
+ * Hashtable与SynchronizeMap采取的并发策略是对整个数组对象加锁，导致性能及其低下。
+ *
+ * jdk1.7之前，ConcurrentHashMap采用的是锁分段策略来优化性能，
+ * 相当于把整个数组，拆分成多个小数组。每次操作只需要锁住操作的小数组即可，不同的segment之间不互相影响，提高了性能
+ *
+ * jdk1.8之后，对整个策略进行了重构：ConcurrentHashMap 选择了与 HashMap 相同的数组+链表+红黑树结构，
+ * 在锁的实现上，采用 CAS 操作和 synchronized 锁实现更加低粒度的锁，将锁的级别控制在了更细粒度的 table 元素级别，
+ * 也就是说只需要锁住这个链表的首节点，并不会影响其他的 table 元素的读写，大大提高了并发度
+ */
 public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 7249069246763182397L;
