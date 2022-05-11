@@ -1,7 +1,7 @@
 package src.algorithm.leetcode;
 
 /**
- * 400. 第 N 位数字
+ * 400. 第N位数字
  *
  * 给你一个整数 n ，请你在无限的整数序列 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ...] 中找出并返回第 n 位上的数字
  *
@@ -17,6 +17,7 @@ public class Leetcode400 {
         long remain = n;
         while ((remain = remain - 9 * multiple * start) > 0){
             start++;
+            // 此处可能存在int溢出，故需要 long 类型
             multiple *= 10;
         }
 
