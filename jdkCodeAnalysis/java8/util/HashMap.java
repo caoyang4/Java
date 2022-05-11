@@ -428,7 +428,12 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             null : e.value;
     }
 
-    // 删除节点
+    /**
+     * 删除节点
+     * @param matchValue false忽略 value 值，true则 k-v 同时正确
+     * @param movable     删除后是否移动节点，如果为false，则不移动，用于红黑树
+     * @return
+     */
     final Node<K,V> removeNode(int hash, Object key, Object value, boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
         if ((tab = table) != null && (n = tab.length) > 0 &&
@@ -992,7 +997,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             }
             return e;
         }
-
+        // 迭代器删除当前节点
         public final void remove() {
             Node<K,V> p = current;
             if (p == null)
@@ -1001,6 +1006,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 throw new ConcurrentModificationException();
             current = null;
             K key = p.key;
+            // 删除后不移动节点
             removeNode(hash(key), key, null, false, false);
             expectedModCount = modCount;
         }

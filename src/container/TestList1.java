@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author caoyang
  */
-public class TestList {
+public class TestList1 {
     // List非线程安全
     // List<Object> objects = new ArrayList<>();
     // synchronizedList 能保证 add remove 等安全
@@ -15,7 +15,7 @@ public class TestList {
     List<Object> objects = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) {
-        TestList testList = new TestList();
+        TestList1 testList = new TestList1();
         new Thread(() -> {
             for (int i = 0; i < 10; i++) {
                 System.out.println("add object" + i);

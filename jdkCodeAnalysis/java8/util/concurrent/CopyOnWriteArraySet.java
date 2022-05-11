@@ -8,6 +8,10 @@ import java.util.Spliterators;
 import java.util.function.Predicate;
 import java.util.function.Consumer;
 
+/**
+ * CopyOnWriteArraySet内部是构造了一个CopyOnWriteArrayList
+ * 内部的 add 是调用CopyOnWriteArrayList的addIfAbsent，即不存在才添加，保证元素去重
+ */
 public class CopyOnWriteArraySet<E> extends AbstractSet<E> implements java.io.Serializable {
     private static final long serialVersionUID = 5457747651344034263L;
 
@@ -19,8 +23,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E> implements java.io.Se
 
     public CopyOnWriteArraySet(Collection<? extends E> c) {
         if (c.getClass() == CopyOnWriteArraySet.class) {
-            @SuppressWarnings("unchecked") CopyOnWriteArraySet<E> cc =
-                (CopyOnWriteArraySet<E>)c;
+            @SuppressWarnings("unchecked") CopyOnWriteArraySet<E> cc = (CopyOnWriteArraySet<E>)c;
             al = new CopyOnWriteArrayList<E>(cc.al);
         }
         else {

@@ -19,12 +19,34 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import sun.misc.SharedSecrets;
 
-public class CopyOnWriteArrayList<E>
-    implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+/**
+ * CopyOnWriteArrayList是ArrayList的线程安全变体，其中通过创建底层数组的新副本来实现所有可变操作
+ * 优点：保证多线程的并发读写的线程安全
+ * 缺点：有数组拷贝自然有内存问题，在数据量比较大的情况下，占用内存会比较大
+ *      内存占用问题。因为CopyOnWrite的写时复制机制，所以在进行写操作的时候，内存里会同时驻扎两个对象的内存，旧的对象和新写入的对象
+ *      （注意:在复制的时候只是复制容器里的引用，只是在写的时候会创建新对象添加到新容器里，而旧容器的对象还在使用，所以有两份对象内存）
+ *
+ * CopyOnWrite容器只能保证数据的最终一致性，不能保证数据的实时一致性，适用于读多写少的并发场景
+ *
+ * 使用CopyOnWriteMap需要注意两件事情：
+ *    1、减少扩容开销。根据实际需要，初始化CopyOnWriteMap的大小，避免写时CopyOnWriteMap扩容的开销。
+ *    2、使用批量添加。因为每次添加，容器每次都会进行复制，所以减少添加次数，可以减少容器的复制次数
+ *
+ * 在java.util.concurrent包中没有加入并发的ArrayList实现的主要原因是：
+ *    很难去开发一个通用并且没有并发瓶颈的线程安全的List，
+ *    而ArrayList中很多操作很难避免锁整表，就如contains()、随机取get()等，进行查询搜索时都是要整张表操作的，
+ *    那多线程时数据的实时一致性就只能通过锁来保证，这就限制了并发
+ *
+ * CopyOnWriteArrayList 使用写时复制的策略来保证 list 的一致性，而获取—修改—写入三步操作并不是原子性的，
+ * 所以在增删改的过程中都使用了独占锁，来保证在某个时间只有一个线程能对 list 数组进行修改。
+ * 另外 CopyOnWriteArrayList 提供了弱一致性的迭代器，从而保证在获取迭代器后，其他线程对 list 的修改是不可见的，迭代器遍历的数组是一个快照。
+ * CopyOnWrite 并发容器用于读多写少的并发场景，缺点：内存占用问题、数据一致性问题（只能保证数据的最终一致性，不能保证数据的实时一致性）
+ */
+public class CopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8673264195747942595L;
-
+    // 独占锁
     final transient ReentrantLock lock = new ReentrantLock();
-
+    // 底层数据结构是数组
     private transient volatile Object[] array;
 
     final Object[] getArray() {
@@ -34,11 +56,11 @@ public class CopyOnWriteArrayList<E>
     final void setArray(Object[] a) {
         array = a;
     }
-
+    // 在无参构造函数中，默认创建大小为 0 的 Object 数组作为初始值。
     public CopyOnWriteArrayList() {
         setArray(new Object[0]);
     }
-
+    // 入参为集合，复制到list中
     public CopyOnWriteArrayList(Collection<? extends E> c) {
         Object[] elements;
         if (c.getClass() == CopyOnWriteArrayList.class)
@@ -50,7 +72,7 @@ public class CopyOnWriteArrayList<E>
         }
         setArray(elements);
     }
-
+    // 传入的toCopyIn的副本
     public CopyOnWriteArrayList(E[] toCopyIn) {
         setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
     }
@@ -67,8 +89,7 @@ public class CopyOnWriteArrayList<E>
         return (o1 == null) ? o2 == null : o1.equals(o2);
     }
 
-    private static int indexOf(Object o, Object[] elements,
-                               int index, int fence) {
+    private static int indexOf(Object o, Object[] elements, int index, int fence) {
         if (o == null) {
             for (int i = index; i < fence; i++)
                 if (elements[i] == null)
@@ -122,8 +143,7 @@ public class CopyOnWriteArrayList<E>
     public Object clone() {
         try {
             @SuppressWarnings("unchecked")
-            CopyOnWriteArrayList<E> clone =
-                (CopyOnWriteArrayList<E>) super.clone();
+            CopyOnWriteArrayList<E> clone = (CopyOnWriteArrayList<E>) super.clone();
             clone.resetLock();
             return clone;
         } catch (CloneNotSupportedException e) {
@@ -153,6 +173,9 @@ public class CopyOnWriteArrayList<E>
 
     // Positional Access Operations
 
+    // get未加锁，根据当前快照获取元素
+    // 数组a指向老数组，其他线程的增数组改是在新数组上，且之后也是将新数组赋给array
+    // 弱一致性的体现
     @SuppressWarnings("unchecked")
     private E get(Object[] a, int index) {
         return (E) a[index];
@@ -171,11 +194,14 @@ public class CopyOnWriteArrayList<E>
 
             if (oldValue != element) {
                 int len = elements.length;
+                // 复制一份，再修改
                 Object[] newElements = Arrays.copyOf(elements, len);
                 newElements[index] = element;
+                // newElements赋给array
                 setArray(newElements);
             } else {
-                // Not quite a no-op; ensures volatile write semantics
+                // 如果指定位置元素和新值一样，则为了保证 volatile 语义，还是需要重新设置 array
+                // 目的就是刷新一下缓存，通知其他线程，也就是所谓的操作结果可见
                 setArray(elements);
             }
             return oldValue;
@@ -183,22 +209,31 @@ public class CopyOnWriteArrayList<E>
             lock.unlock();
         }
     }
-
+    /**
+     * 添加元素
+     *
+     * 首先会获取独占锁，如果有多个线程同时调用 add 方法则只有一个线程能获取到该锁，其它线程会被阻塞直到锁被释放。
+     * 之后使用新数组替换原数组，并释放锁，需要注意的就是在添加元素时，
+     * 首先复制了一个快照，然后在快照上进行添加，而不是直接在原来数组上进行
+     */
     public boolean add(E e) {
+        // 获取独占锁
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             Object[] elements = getArray();
             int len = elements.length;
+            //复制array到新数组并且添加新元素到新数组，新数组长度+1，即每次新增都会进行数组拷贝
             Object[] newElements = Arrays.copyOf(elements, len + 1);
             newElements[len] = e;
+            // 使用新数组替换旧的数组
             setArray(newElements);
             return true;
         } finally {
             lock.unlock();
         }
     }
-
+    // 指定索引上添加元素
     public void add(int index, E element) {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -206,17 +241,17 @@ public class CopyOnWriteArrayList<E>
             Object[] elements = getArray();
             int len = elements.length;
             if (index > len || index < 0)
-                throw new IndexOutOfBoundsException("Index: "+index+
-                                                    ", Size: "+len);
+                throw new IndexOutOfBoundsException("Index: "+index+ ", Size: "+len);
             Object[] newElements;
             int numMoved = len - index;
+            // 添加位置就是数组尾部
             if (numMoved == 0)
                 newElements = Arrays.copyOf(elements, len + 1);
             else {
+                // 添加位置数组中间，分段复制，空出 index 位置
                 newElements = new Object[len + 1];
                 System.arraycopy(elements, 0, newElements, 0, index);
-                System.arraycopy(elements, index, newElements, index + 1,
-                                 numMoved);
+                System.arraycopy(elements, index, newElements, index + 1, numMoved);
             }
             newElements[index] = element;
             setArray(newElements);
@@ -225,21 +260,26 @@ public class CopyOnWriteArrayList<E>
         }
     }
 
+    /**
+     * 删除元素
+     */
     public E remove(int index) {
         final ReentrantLock lock = this.lock;
+        // 获取独占锁
         lock.lock();
         try {
             Object[] elements = getArray();
             int len = elements.length;
             E oldValue = get(elements, index);
             int numMoved = len - index - 1;
+            // 如果要删除的是最后一个元素
             if (numMoved == 0)
                 setArray(Arrays.copyOf(elements, len - 1));
             else {
+                // 分两次复制删除后剩余的元素到新数组
                 Object[] newElements = new Object[len - 1];
                 System.arraycopy(elements, 0, newElements, 0, index);
-                System.arraycopy(elements, index + 1, newElements, index,
-                                 numMoved);
+                System.arraycopy(elements, index + 1, newElements, index, numMoved);
                 setArray(newElements);
             }
             return oldValue;
@@ -278,9 +318,7 @@ public class CopyOnWriteArrayList<E>
             }
             Object[] newElements = new Object[len - 1];
             System.arraycopy(current, 0, newElements, 0, index);
-            System.arraycopy(current, index + 1,
-                             newElements, index,
-                             len - index - 1);
+            System.arraycopy(current, index + 1, newElements, index, len - index - 1);
             setArray(newElements);
             return true;
         } finally {
@@ -304,8 +342,7 @@ public class CopyOnWriteArrayList<E>
             else {
                 Object[] newElements = new Object[newlen];
                 System.arraycopy(elements, 0, newElements, 0, fromIndex);
-                System.arraycopy(elements, toIndex, newElements,
-                                 fromIndex, numMoved);
+                System.arraycopy(elements, toIndex, newElements, fromIndex, numMoved);
                 setArray(newElements);
             }
         } finally {
@@ -480,8 +517,7 @@ public class CopyOnWriteArrayList<E>
             Object[] elements = getArray();
             int len = elements.length;
             if (index > len || index < 0)
-                throw new IndexOutOfBoundsException("Index: "+index+
-                                                    ", Size: "+len);
+                throw new IndexOutOfBoundsException("Index: "+index+ ", Size: "+len);
             if (cs.length == 0)
                 return false;
             int numMoved = len - index;
@@ -659,7 +695,18 @@ public class CopyOnWriteArrayList<E>
             (getArray(), Spliterator.IMMUTABLE | Spliterator.ORDERED);
     }
 
+    /**
+     * 迭代器弱一致性
+     * 为什么说 snapshot 是 list 的快照呢？明明是指针传递的引用，而不是副本。
+     *   如果在该线程使用返回的迭代器遍历元素的过程中，其他线程没有对 list 进行增删改，
+     *     那么 snapshot 本身就是 list 的 array，因为它们是引用关系。
+     *   但是如果在遍历期间其他线程对该 list 进行了增删改，那么 snapshot 就是快照了，
+     *     因为增删改后 list 里面的数组被新数组替换了，这时候老数组被snapshot引用。
+     *     这也说明获取迭代器后，使用该迭代器元素时，其他线程对该 list 进行的增删改不可见，
+     *     因为它们操作的是两个不同的数组，这就是弱一致性。
+     */
     static final class COWIterator<E> implements ListIterator<E> {
+        // array的快照
         private final Object[] snapshot;
         private int cursor;
 
@@ -667,7 +714,7 @@ public class CopyOnWriteArrayList<E>
             cursor = initialCursor;
             snapshot = elements;
         }
-
+        // 是否遍历结束
         public boolean hasNext() {
             return cursor < snapshot.length;
         }
