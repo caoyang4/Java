@@ -9,7 +9,7 @@ import java.util.List;
  * guava 测试
  * @author caoyang
  */
-public class GuavaTest {
+public class GuavaMainTest {
     public static void main(String[] args) {
         List<String> lists = Lists.newArrayList("a","b","g",null,"8","9");
         String result1 = Joiner.on(",").skipNulls().join(lists);
