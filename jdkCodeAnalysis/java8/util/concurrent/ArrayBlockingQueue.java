@@ -25,6 +25,14 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQ
     private static final long serialVersionUID = -817911632652898426L;
     // 存储结构为数组
     final Object[] items;
+    /**
+     * ArrayBlockingQueue有三个成员变量：
+     *   - takeIndex：需要被取走的元素下标
+     *   - putIndex：可被元素插入的位置的下标
+     *   - count：队列中元素的数量
+     * 这三个变量很容易放到一个缓存行中，但是之间修改没有太多的关联。所以每次修改，都会使之前缓存的数据失效，从而不能完全达到共享的效果。
+     */
+
     // 头节点下标
     int takeIndex;
     // 尾节点下标

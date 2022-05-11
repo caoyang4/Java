@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
  * 缓存行对齐测试
  * @author caoyang
  */
-public class TestCacheLinePadding {
+public class TestCacheLine1 {
     public static final long COUNT = 100000000L;
     private static class Line{
         private long p1, p2, p3, p4, p5, p6, p7;

@@ -28,3 +28,10 @@ SynchronousQueue--同步队列，容量为0
 是特殊的TransferQueue，必须先有消费线程等待，才能使用的队列。
 boolean add(E e)：父类方法，无阻塞，若没有消费线程阻塞等待数据，则抛出异常。
 put(E e)：有阻塞，若没有消费线程阻塞等待数据，则阻塞。
+
+ArrayBlockingQueue         有界          加锁  数组
+LinkedBlockingQueue        有界（2^31-1） 加锁  链表
+ConcurrentLinkedQueue      无界          无锁  链表
+LinkedTransferQueue        无界          无锁  链表
+PriorityBlockingQueue      无界          加锁  堆
+DelayQueue                 无界          加锁  堆
