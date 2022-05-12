@@ -27,6 +27,7 @@ public class FinalizeEscapeGC {
         调用 gc 时，若对象的finalize未被调用过，会被调用，因此第一次gc不会被回收
          */
         hook = null;
+        // full gc
         System.gc();
         System.out.println("first gc");
         // Finalizer线程优先级很低，等待让它执行

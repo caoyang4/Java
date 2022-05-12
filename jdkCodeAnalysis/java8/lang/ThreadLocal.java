@@ -141,10 +141,10 @@ public class ThreadLocal<T> {
                 value = v;
             }
         }
-
+        // table的初始容量
         private static final int INITIAL_CAPACITY = 16;
 
-        //  Entry表，大小必须为2的幂
+        //  Entry表，大小必须为2的幂，逻辑上是环形数组，初始容量16
         private Entry[] table;
 
         private int size = 0;
