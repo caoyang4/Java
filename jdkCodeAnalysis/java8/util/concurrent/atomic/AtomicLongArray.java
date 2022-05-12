@@ -118,8 +118,7 @@ public class AtomicLongArray implements java.io.Serializable {
         return next;
     }
 
-    public final long getAndAccumulate(int i, long x,
-                                      LongBinaryOperator accumulatorFunction) {
+    public final long getAndAccumulate(int i, long x, LongBinaryOperator accumulatorFunction) {
         long offset = checkedByteOffset(i);
         long prev, next;
         do {
@@ -129,8 +128,7 @@ public class AtomicLongArray implements java.io.Serializable {
         return prev;
     }
 
-    public final long accumulateAndGet(int i, long x,
-                                      LongBinaryOperator accumulatorFunction) {
+    public final long accumulateAndGet(int i, long x, LongBinaryOperator accumulatorFunction) {
         long offset = checkedByteOffset(i);
         long prev, next;
         do {

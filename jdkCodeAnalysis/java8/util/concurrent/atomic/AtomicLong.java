@@ -16,8 +16,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     static {
         try {
-            valueOffset = unsafe.objectFieldOffset
-                (AtomicLong.class.getDeclaredField("value"));
+            valueOffset = unsafe.objectFieldOffset(AtomicLong.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 
@@ -96,8 +95,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
         return next;
     }
 
-    public final long getAndAccumulate(long x,
-                                       LongBinaryOperator accumulatorFunction) {
+    public final long getAndAccumulate(long x, LongBinaryOperator accumulatorFunction) {
         long prev, next;
         do {
             prev = get();
@@ -106,8 +104,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
         return prev;
     }
 
-    public final long accumulateAndGet(long x,
-                                       LongBinaryOperator accumulatorFunction) {
+    public final long accumulateAndGet(long x, LongBinaryOperator accumulatorFunction) {
         long prev, next;
         do {
             prev = get();

@@ -11,6 +11,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.Spliterator;
 
+/**
+ * ConcurrentSkipListSet基于ConcurrentSkipListMap
+ * 元素用 key 填充，value 为 Boolean.TRUE
+ */
 public class ConcurrentSkipListSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
 
     private static final long serialVersionUID = -2479143111061671589L;
@@ -42,8 +46,7 @@ public class ConcurrentSkipListSet<E> extends AbstractSet<E> implements Navigabl
     public ConcurrentSkipListSet<E> clone() {
         try {
             @SuppressWarnings("unchecked")
-            ConcurrentSkipListSet<E> clone =
-                (ConcurrentSkipListSet<E>) super.clone();
+            ConcurrentSkipListSet<E> clone = (ConcurrentSkipListSet<E>) super.clone();
             clone.setMap(new ConcurrentSkipListMap<E,Object>(m));
             return clone;
         } catch (CloneNotSupportedException e) {

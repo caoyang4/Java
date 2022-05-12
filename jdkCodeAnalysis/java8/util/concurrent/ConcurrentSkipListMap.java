@@ -25,6 +25,22 @@ import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+/**
+ * ConcurrentSkipListMap是在JDK 1.6中新增的，ConcurrentSkipListMap可以看成是并发版本的TreeMap，
+ * 但是和TreeMap不同的是，ConcurrentSkipListMap并不是基于红黑树实现的，其底层是一种类似跳表（Skip List）的结构
+ * 为了对高并发场景下的有序Map提供更好的支持，它有几个特点：
+ *   key是有序的，key和value都不能为null
+ *   添加、删除、查找操作都是基于跳表结构（Skip List）实现的
+ * 跳表（Skip List）是一种类似于链表的数据结构，其查询、插入、删除的时间复杂度都是 O(logn)，而跳表结合了树和链表的特点，其特性如下：
+ *   跳表由很多层组成，跳表实际上是一种 空间换时间 的数据结构
+ *   每一层都是一个有序的链表；
+ *   最底层的链表包含所有元素；
+ *   对于每一层的任意一个节点，不仅有指向其下一个节点的指针，也有指向其下一层的指针；
+ *   如果一个元素出现在Level n层的链表中，则它在Level n层以下的链表也都会出现。
+ *
+ * Node节点代表了真正存储数据的节点，包含了key、value、指向下一个节点的指针next
+ * Index节点代表了跳表的层级，包含了当前节点node、下一层down、当前层的下一个节点right
+ */
 public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements ConcurrentNavigableMap<K,V>, Cloneable, Serializable {
     /*
      *
@@ -85,9 +101,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
      */
 
     private static final long serialVersionUID = -8627078645895051609L;
-
+    // 最底层链表的头指针BASE_HEADER
     private static final Object BASE_HEADER = new Object();
-
+    // 最上层链表的头指针head
     private transient volatile HeadIndex<K,V> head;
 
     final Comparator<? super K> comparator;
@@ -95,70 +111,87 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
     private transient KeySet<K> keySet;
     private transient EntrySet<K,V> entrySet;
     private transient Values<V> values;
+    // 降序Map
     private transient ConcurrentNavigableMap<K,V> descendingMap;
-
+    // 初始化
     private void initialize() {
         keySet = null;
         entrySet = null;
         values = null;
         descendingMap = null;
-        head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null),
-                                  null, null, 1);
+        // head指针指向新创建的HeadIndex结点
+        head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null), null, null, 1);
     }
 
     private boolean casHead(HeadIndex<K,V> cmp, HeadIndex<K,V> val) {
         return UNSAFE.compareAndSwapObject(this, headOffset, cmp, val);
     }
 
-    /* ---------------- Nodes -------------- */
 
+    /**
+     * Node节点代表了真正存储数据的节点，包含了key、value、指向下一个节点的指针next
+     * 最底层链表中的结点，保存着实际的键值对，如果单独看底层链，其实就是一个按照Key有序排列的单链表
+     */
     static final class Node<K,V> {
+        // 键
         final K key;
+        // 值
         volatile Object value;
+        // 后继节点
         volatile Node<K,V> next;
-
+        // 普通节点
         Node(K key, Object value, Node<K,V> next) {
             this.key = key;
             this.value = value;
             this.next = next;
         }
-
+        // 标记结点
         Node(Node<K,V> next) {
             this.key = null;
             this.value = this;
             this.next = next;
         }
-
+        // CAS更新结点的value
         boolean casValue(Object cmp, Object val) {
             return UNSAFE.compareAndSwapObject(this, valueOffset, cmp, val);
         }
-
+        // CAS更新结点的next
         boolean casNext(Node<K,V> cmp, Node<K,V> val) {
             return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
         }
-
+        // 判断当前结点是否为[标记结点]
         boolean isMarker() {
             return value == this;
         }
-
+        // 判断当前结点是否是最底层链表的头结点
         boolean isBaseHeader() {
             return value == BASE_HEADER;
         }
 
+        /**
+         * 在当前结点后面插入一个标记结点.
+         * @param f 当前结点的后继结点
+         */
         boolean appendMarker(Node<K,V> f) {
             return casNext(f, new Node<K,V>(f));
         }
 
+        /**
+         * 辅助删除结点方法
+         * @param b 当前结点的前驱结点
+         * @param f 当前结点的后继结点
+         */
         void helpDelete(Node<K,V> b, Node<K,V> f) {
             /*
-             * Rechecking links and then doing only one of the
-             * help-out stages per call tends to minimize CAS
-             * interference among helping threads.
+             * 重新检查一遍结点位置
+             * 确保b和f分别为当前结点的前驱/后继
              */
             if (f == next && this == b.next) {
-                if (f == null || f.value != f) // not already marked
+                // f为null或非标记结点
+                if (f == null || f.value != f)
                     casNext(f, new Node<K,V>(f));
                 else
+                    // 删除当前结点
                     b.casNext(this, f.next);
             }
         }
@@ -170,7 +203,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             @SuppressWarnings("unchecked") V vv = (V)v;
             return vv;
         }
-
+        // 返回当前结点的一个Immutable快照.
         AbstractMap.SimpleImmutableEntry<K,V> createSnapshot() {
             Object v = value;
             if (v == null || v == this || v == BASE_HEADER)
@@ -189,21 +222,26 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             try {
                 UNSAFE = sun.misc.Unsafe.getUnsafe();
                 Class<?> k = Node.class;
-                valueOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("value"));
-                nextOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("next"));
+                valueOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("value"));
+                nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("next"));
             } catch (Exception e) {
                 throw new Error(e);
             }
         }
     }
 
-    /* ---------------- Indexing -------------- */
 
+    /**
+     * Index节点代表了跳表的层级，包含了当前节点node、下一层down、当前层的下一个节点right
+     * 每个Index结点包含3个指针： down、 right、 node。d
+     * own和right指针分别指向下层结点和后继结点，node指针指向其最底部的node结点
+     */
     static class Index<K,V> {
+        // node指向最底层链表的Node结点
         final Node<K,V> node;
+        // down指向下层Index结点
         final Index<K,V> down;
+        // right指向右边的Index结点
         volatile Index<K,V> right;
 
         Index(Node<K,V> node, Index<K,V> down, Index<K,V> right) {
@@ -211,21 +249,26 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             this.down = down;
             this.right = right;
         }
-
+        // CAS更新右边的Index结点
         final boolean casRight(Index<K,V> cmp, Index<K,V> val) {
             return UNSAFE.compareAndSwapObject(this, rightOffset, cmp, val);
         }
-
+        // 判断Node结点是否已经删除
         final boolean indexesDeletedNode() {
             return node.value == null;
         }
 
+        /**
+         * CAS插入一个右边结点newSucc.
+         * @param succ    当前的后继结点
+         * @param newSucc 新的后继结点
+         */
         final boolean link(Index<K,V> succ, Index<K,V> newSucc) {
             Node<K,V> n = node;
             newSucc.right = succ;
             return n.value != null && casRight(succ, newSucc);
         }
-
+        // 跳过当前结点的后继结点
         final boolean unlink(Index<K,V> succ) {
             return node.value != null && casRight(succ, succ.right);
         }
@@ -237,17 +280,19 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             try {
                 UNSAFE = sun.misc.Unsafe.getUnsafe();
                 Class<?> k = Index.class;
-                rightOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("right"));
+                rightOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("right"));
             } catch (Exception e) {
                 throw new Error(e);
             }
         }
     }
 
-    /* ---------------- Head nodes -------------- */
-
+    /**
+     * HeadIndex结点是各层链表的头结点，它是Index类的子类，
+     * 唯一的区别是增加了一个 level字段，用于表示当前链表的级别，越往上层，level值越大
+     */
     static final class HeadIndex<K,V> extends Index<K,V> {
+        // 层级
         final int level;
         HeadIndex(Node<K,V> node, Index<K,V> down, Index<K,V> right, int level) {
             super(node, down, right);
@@ -262,30 +307,38 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         return (c != null) ? c.compare(x, y) : ((Comparable)x).compareTo(y);
     }
 
-    /* ---------------- Traversal -------------- */
-
+    /**
+     * 返回“小于且最接近给定key”的数据结点.
+     * 如果不存在这样的数据结点，则返回底层链表的头结点.
+     * @param key 待查找的键
+     */
     private Node<K,V> findPredecessor(Object key, Comparator<? super K> cmp) {
-        if (key == null)
-            throw new NullPointerException(); // don't postpone errors
+        if (key == null) throw new NullPointerException(); // don't postpone errors
+        // 从最上层开始，往右下方向查找
         for (;;) {
+            // 从最顶层的head结点开始查找
             for (Index<K,V> q = head, r = q.right, d;;) {
                 if (r != null) {
                     Node<K,V> n = r.node;
                     K k = n.key;
+                    // 处理结点”懒删除“的情况，此处将其从链表去除
                     if (n.value == null) {
                         if (!q.unlink(r))
                             break;           // restart
                         r = q.right;         // reread r
                         continue;
                     }
+                    // key大于k,继续向右查找
                     if (cpr(cmp, key, k) > 0) {
                         q = r;
                         r = r.right;
                         continue;
                     }
                 }
+                // 不存在下结点，已经到了level1的层，直接返回对应的Node结点
                 if ((d = q.down) == null)
                     return q.node;
+                // 转到下一层，继续查找(level-1层)
                 q = d;
                 r = d.right;
             }
@@ -322,10 +375,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
     }
 
     private V doGet(Object key) {
-        if (key == null)
-            throw new NullPointerException();
+        if (key == null) throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // b指向“小于且最接近给定key”的Node结点(或底层链表头结点)
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 Object v; int c;
                 if (n == null)
@@ -355,65 +408,86 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
     /* ---------------- Insertion -------------- */
 
     private V doPut(K key, V value, boolean onlyIfAbsent) {
-        Node<K,V> z;             // added node
-        if (key == null)
-            throw new NullPointerException();
+        // z指向待添加的Node结点
+        Node<K,V> z;
+        if (key == null) throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // b是“是小于且最接近给定key”的Node结点(或底层链表头结点)
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
+                // b存在后继结点：b -> n -> f
                 if (n != null) {
                     Object v; int c;
+                    // f 是 n 的后继节点
                     Node<K,V> f = n.next;
-                    if (n != b.next)               // inconsistent read
+                    // / 存在并发修改,放弃并重试
+                    if (n != b.next)
                         break;
+                    // n为标记删除结点
                     if ((v = n.value) == null) {   // n is deleted
                         n.helpDelete(b, f);
                         break;
                     }
+                    // b为标记删除结点
                     if (b.value == null || v == n) // b is deleted
                         break;
+                    // 向后遍历,找到第一个大于key的结点
                     if ((c = cpr(cmp, key, n.key)) > 0) {
                         b = n;
                         n = f;
                         continue;
                     }
+                    // 存在Key相同的结点
                     if (c == 0) {
                         if (onlyIfAbsent || n.casValue(v, value)) {
                             @SuppressWarnings("unchecked") V vv = (V)v;
                             return vv;
                         }
-                        break; // restart if lost race to replace value
+                        // CAS更新失败,则重试
+                        break;
                     }
                     // else c < 0; fall through
                 }
 
                 z = new Node<K,V>(key, value, n);
+                // 尝试插入z结点：b -> z -> n
                 if (!b.casNext(n, z))
+                    // CAS插入失败，则重试
                     break;         // restart if lost race to append to b
+                // 插入成功，跳出最外层循环
                 break outer;
             }
         }
-
+        // 生成一个随机数种子
         int rnd = ThreadLocalRandom.nextSecondarySeed();
+        // 为true表示需要增加层级
         if ((rnd & 0x80000001) == 0) { // test highest and lowest bits
             int level = 1, max;
+            // level表示新的层级,通过下面这个while循环可以确认新的层级数
             while (((rnd >>>= 1) & 1) != 0)
                 ++level;
             Index<K,V> idx = null;
             HeadIndex<K,V> h = head;
+            // CASE1: 新层级level没有超过最大层级head.level（head指针指向最高层）
             if (level <= (max = h.level)) {
+                // 以“头插法”创建level个Index结点,idx最终指向最高层的Index结点
                 for (int i = 1; i <= level; ++i)
                     idx = new Index<K,V>(z, idx, null);
             }
+            // CASE2: 新层级level超过了最大层级head.level
             else { // try to grow by one level
+                // 重置level为最大层级+1
                 level = max + 1; // hold in array and later pick the one to use
-                @SuppressWarnings("unchecked")Index<K,V>[] idxs =
-                    (Index<K,V>[])new Index<?,?>[level+1];
+                // 生成一个Index结点数组,idxs[0]不会使用
+                @SuppressWarnings("unchecked")Index<K,V>[] idxs = (Index<K,V>[])new Index<?,?>[level+1];
                 for (int i = 1; i <= level; ++i)
                     idxs[i] = idx = new Index<K,V>(z, idx, null);
+                // 生成新的HeadIndex结点
                 for (;;) {
                     h = head;
+                    // 原最大层级
                     int oldLevel = h.level;
+                    // oldbase指向最底层链表的头结点
                     if (level <= oldLevel) // lost race to add level
                         break;
                     HeadIndex<K,V> newh = h;
@@ -427,7 +501,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                     }
                 }
             }
-            // find insertion points and splice in
+            // 以下用于链接新层级的各个HeadIndex和Index结点
+            // 此时level为oldLevel，即原最大层级
             splice: for (int insertionLevel = level;;) {
                 int j = h.level;
                 for (Index<K,V> q = h, r = q.right, t = idx;;) {
@@ -451,6 +526,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                     }
 
                     if (j == insertionLevel) {
+                        // 在q和r之间插入t，即从 q -> r 变成 q -> t -> r
                         if (!q.link(r, t))
                             break; // restart
                         if (t.node.value == null) {
@@ -478,11 +554,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // b指向“小于且最接近给定key”的Node结点(或底层链表头结点)
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 Object v; int c;
                 if (n == null)
                     break outer;
+                // b -> n -> f
                 Node<K,V> f = n.next;
+                // 是否被其他线程修改过
                 if (n != b.next)                    // inconsistent read
                     break;
                 if ((v = n.value) == null) {        // n is deleted
@@ -498,14 +577,20 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                     n = f;
                     continue;
                 }
+                // 此时n指向查到的结点
                 if (value != null && !value.equals(v))
                     break outer;
+                // cas更新查找到的结点的value为null
                 if (!n.casValue(v, null))
                     break;
+                // 在n和f之间添加标记结点，并将b直接指向f
+                // n -> marker -> f
                 if (!n.appendMarker(f) || !b.casNext(n, f))
                     findNode(key);                  // retry via findNode
                 else {
+                    // 删除Index结点
                     findPredecessor(key, cmp);      // clean index
+                    // 减少层级
                     if (head.right == null)
                         tryReduceLevel();
                 }
@@ -742,18 +827,18 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         this.comparator = null;
         initialize();
     }
-
+    // 指定比较器
     public ConcurrentSkipListMap(Comparator<? super K> comparator) {
         this.comparator = comparator;
         initialize();
     }
-
+    // 从已给定的Map构造一个新Map.
     public ConcurrentSkipListMap(Map<? extends K, ? extends V> m) {
         this.comparator = null;
         initialize();
         putAll(m);
     }
-
+    // 从已给定的SortedMap构造一个新Map
     public ConcurrentSkipListMap(SortedMap<K, ? extends V> m) {
         this.comparator = m.comparator();
         initialize();
@@ -793,8 +878,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             q = q.down;
         }
 
-        Iterator<? extends Map.Entry<? extends K, ? extends V>> it =
-            map.entrySet().iterator();
+        Iterator<? extends Map.Entry<? extends K, ? extends V>> it = map.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<? extends K, ? extends V> e = it.next();
             int rnd = ThreadLocalRandom.current().nextInt();
@@ -918,7 +1002,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
     public boolean containsKey(Object key) {
         return doGet(key) != null;
     }
-
+    // 根据 key 获取 value
     public V get(Object key) {
         return doGet(key);
     }
@@ -927,13 +1011,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         V v;
         return (v = doGet(key)) == null ? defaultValue : v;
     }
-
+    // k,v 不允许为 null
     public V put(K key, V value) {
         if (value == null)
             throw new NullPointerException();
         return doPut(key, value, false);
     }
-
+    // 删除节点，实际为懒删除，只是将 value 置为 null，并没有将其从链表去除，
+    // 在findPredecessor，发现有 value=null 时，将其从链表剔除
     public V remove(Object key) {
         return doRemove(key, null);
     }
@@ -1057,17 +1142,6 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             }
         }
     }
-
-    /* ---------------- View methods -------------- */
-
-    /*
-     * Note: Lazy initialization works for views because view classes
-     * are stateless/immutable so it doesn't matter wrt correctness if
-     * more than one is created (which will only rarely happen).  Even
-     * so, the following idiom conservatively ensures that the method
-     * returns the one it created if it does so, not one created by
-     * another racing thread.
-     */
 
     public NavigableSet<K> keySet() {
         KeySet<K> ks = keySet;
@@ -1395,8 +1469,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         return list;
     }
 
-    static final class KeySet<E>
-            extends AbstractSet<E> implements NavigableSet<E> {
+    static final class KeySet<E> extends AbstractSet<E> implements NavigableSet<E> {
         final ConcurrentNavigableMap<E,?> m;
         KeySet(ConcurrentNavigableMap<E,?> map) { m = map; }
         public int size() { return m.size(); }
@@ -1571,8 +1644,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             if (m instanceof ConcurrentSkipListMap)
                 return ((ConcurrentSkipListMap<K1,V1>)m).entrySpliterator();
             else
-                return (Spliterator<Map.Entry<K1,V1>>)
-                    ((SubMap<K1,V1>)m).entryIterator();
+                return (Spliterator<Map.Entry<K1,V1>>) ((SubMap<K1,V1>)m).entryIterator();
         }
     }
 
@@ -1927,12 +1999,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                         throw new IllegalArgumentException("key out of range");
                 }
             }
-            return new SubMap<K,V>(m, fromKey, fromInclusive,
-                                   toKey, toInclusive, isDescending);
+            return new SubMap<K,V>(m, fromKey, fromInclusive, toKey, toInclusive, isDescending);
         }
 
-        public SubMap<K,V> subMap(K fromKey, boolean fromInclusive,
-                                  K toKey, boolean toInclusive) {
+        public SubMap<K,V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
             if (fromKey == null || toKey == null)
                 throw new NullPointerException();
             return newSubMap(fromKey, fromInclusive, toKey, toInclusive);
@@ -1963,8 +2033,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         }
 
         public SubMap<K,V> descendingMap() {
-            return new SubMap<K,V>(m, lo, loInclusive,
-                                   hi, hiInclusive, !isDescending);
+            return new SubMap<K,V>(m, lo, loInclusive, hi, hiInclusive, !isDescending);
         }
 
         /* ----------------  Relational methods -------------- */
@@ -2244,14 +2313,12 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             this.comparator = comparator; this.row = row;
             this.current = origin; this.fence = fence; this.est = est;
         }
-
         public final long estimateSize() { return (long)est; }
     }
 
     static final class KeySpliterator<K,V> extends CSLMSpliterator<K,V>
         implements Spliterator<K> {
-        KeySpliterator(Comparator<? super K> comparator, Index<K,V> row,
-                       Node<K,V> origin, K fence, int est) {
+        KeySpliterator(Comparator<? super K> comparator, Index<K,V> row, Node<K,V> origin, K fence, int est) {
             super(comparator, row, origin, fence, est);
         }
 
@@ -2330,16 +2397,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             HeadIndex<K,V> h; Node<K,V> p;
             Node<K,V> b = (h = head).node;
             if ((p = b.next) == null || p.value != null)
-                return new KeySpliterator<K,V>(cmp, h, p, null, (p == null) ?
-                                               0 : Integer.MAX_VALUE);
+                return new KeySpliterator<K,V>(cmp, h, p, null, (p == null) ? 0 : Integer.MAX_VALUE);
             p.helpDelete(b, p.next);
         }
     }
 
     static final class ValueSpliterator<K,V> extends CSLMSpliterator<K,V>
         implements Spliterator<V> {
-        ValueSpliterator(Comparator<? super K> comparator, Index<K,V> row,
-                       Node<K,V> origin, K fence, int est) {
+        ValueSpliterator(Comparator<? super K> comparator, Index<K,V> row, Node<K,V> origin, K fence, int est) {
             super(comparator, row, origin, fence, est);
         }
 
@@ -2417,16 +2482,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             HeadIndex<K,V> h; Node<K,V> p;
             Node<K,V> b = (h = head).node;
             if ((p = b.next) == null || p.value != null)
-                return new ValueSpliterator<K,V>(cmp, h, p, null, (p == null) ?
-                                                 0 : Integer.MAX_VALUE);
+                return new ValueSpliterator<K,V>(cmp, h, p, null, (p == null) ? 0 : Integer.MAX_VALUE);
             p.helpDelete(b, p.next);
         }
     }
 
     static final class EntrySpliterator<K,V> extends CSLMSpliterator<K,V>
         implements Spliterator<Map.Entry<K,V>> {
-        EntrySpliterator(Comparator<? super K> comparator, Index<K,V> row,
-                         Node<K,V> origin, K fence, int est) {
+        EntrySpliterator(Comparator<? super K> comparator, Index<K,V> row, Node<K,V> origin, K fence, int est) {
             super(comparator, row, origin, fence, est);
         }
 
@@ -2464,8 +2527,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                     break;
                 if ((v = e.value) != null && v != e) {
                     @SuppressWarnings("unchecked") V vv = (V)v;
-                    action.accept
-                        (new AbstractMap.SimpleImmutableEntry<K,V>(k, vv));
+                    action.accept(new AbstractMap.SimpleImmutableEntry<K,V>(k, vv));
                 }
             }
         }
@@ -2484,8 +2546,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
                 if ((v = e.value) != null && v != e) {
                     current = e.next;
                     @SuppressWarnings("unchecked") V vv = (V)v;
-                    action.accept
-                        (new AbstractMap.SimpleImmutableEntry<K,V>(k, vv));
+                    action.accept(new AbstractMap.SimpleImmutableEntry<K,V>(k, vv));
                     return true;
                 }
             }
@@ -2521,8 +2582,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
             HeadIndex<K,V> h; Node<K,V> p;
             Node<K,V> b = (h = head).node;
             if ((p = b.next) == null || p.value != null)
-                return new EntrySpliterator<K,V>(cmp, h, p, null, (p == null) ?
-                                                 0 : Integer.MAX_VALUE);
+                return new EntrySpliterator<K,V>(cmp, h, p, null, (p == null) ? 0 : Integer.MAX_VALUE);
             p.helpDelete(b, p.next);
         }
     }
@@ -2535,12 +2595,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements Conc
         try {
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> k = ConcurrentSkipListMap.class;
-            headOffset = UNSAFE.objectFieldOffset
-                (k.getDeclaredField("head"));
+            headOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("head"));
             Class<?> tk = Thread.class;
-            SECONDARY = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
-
+            SECONDARY = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSecondarySeed"));
         } catch (Exception e) {
             throw new Error(e);
         }

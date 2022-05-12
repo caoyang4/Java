@@ -9,8 +9,7 @@ public class AtomicBoolean implements java.io.Serializable {
 
     static {
         try {
-            valueOffset = unsafe.objectFieldOffset
-                (AtomicBoolean.class.getDeclaredField("value"));
+            valueOffset = unsafe.objectFieldOffset(AtomicBoolean.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 

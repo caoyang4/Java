@@ -112,8 +112,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
         return next;
     }
 
-    public final int getAndAccumulate(T obj, int x,
-                                      IntBinaryOperator accumulatorFunction) {
+    public final int getAndAccumulate(T obj, int x, IntBinaryOperator accumulatorFunction) {
         int prev, next;
         do {
             prev = get(obj);
@@ -122,8 +121,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
         return prev;
     }
 
-    public final int accumulateAndGet(T obj, int x,
-                                      IntBinaryOperator accumulatorFunction) {
+    public final int accumulateAndGet(T obj, int x, IntBinaryOperator accumulatorFunction) {
         int prev, next;
         do {
             prev = get(obj);
@@ -139,9 +137,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
         private final Class<?> cclass;
         private final Class<T> tclass;
 
-        AtomicIntegerFieldUpdaterImpl(final Class<T> tclass,
-                                      final String fieldName,
-                                      final Class<?> caller) {
+        AtomicIntegerFieldUpdaterImpl(final Class<T> tclass, final String fieldName, final Class<?> caller) {
             final Field field;
             final int modifiers;
             try {
@@ -172,13 +168,6 @@ public abstract class AtomicIntegerFieldUpdater<T> {
             if (!Modifier.isVolatile(modifiers))
                 throw new IllegalArgumentException("Must be volatile type");
 
-            // Access to protected field members is restricted to receivers only
-            // of the accessing class, or one of its subclasses, and the
-            // accessing class must in turn be a subclass (or package sibling)
-            // of the protected member's defining class.
-            // If the updater refers to a protected field of a declaring class
-            // outside the current package, the receiver argument will be
-            // narrowed to the type of the accessing class.
             this.cclass = (Modifier.isProtected(modifiers) &&
                            tclass.isAssignableFrom(caller) &&
                            !isSamePackage(tclass, caller))
@@ -220,12 +209,9 @@ public abstract class AtomicIntegerFieldUpdater<T> {
             else
                 throw new RuntimeException(
                     new IllegalAccessException(
-                        "Class " +
-                        cclass.getName() +
-                        " can not access a protected member of class " +
-                        tclass.getName() +
-                        " using an instance of " +
-                        obj.getClass().getName()));
+                        "Class " + cclass.getName() +
+                        " can not access a protected member of class " + tclass.getName() +
+                        " using an instance of " + obj.getClass().getName()));
         }
 
         public final boolean compareAndSet(T obj, int expect, int update) {

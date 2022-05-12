@@ -12,8 +12,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     static {
         try {
-            valueOffset = unsafe.objectFieldOffset
-                (AtomicInteger.class.getDeclaredField("value"));
+            valueOffset = unsafe.objectFieldOffset(AtomicInteger.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 
@@ -23,8 +22,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
         value = initialValue;
     }
 
-    public AtomicInteger() {
-    }
+    public AtomicInteger() {}
 
     public final int get() {
         return value;
@@ -92,8 +90,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
         return next;
     }
 
-    public final int getAndAccumulate(int x,
-                                      IntBinaryOperator accumulatorFunction) {
+    public final int getAndAccumulate(int x, IntBinaryOperator accumulatorFunction) {
         int prev, next;
         do {
             prev = get();
@@ -102,8 +99,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
         return prev;
     }
 
-    public final int accumulateAndGet(int x,
-                                      IntBinaryOperator accumulatorFunction) {
+    public final int accumulateAndGet(int x, IntBinaryOperator accumulatorFunction) {
         int prev, next;
         do {
             prev = get();

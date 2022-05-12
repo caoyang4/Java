@@ -130,8 +130,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
         return prev;
     }
 
-    public final int accumulateAndGet(int i, int x,
-                                      IntBinaryOperator accumulatorFunction) {
+    public final int accumulateAndGet(int i, int x, IntBinaryOperator accumulatorFunction) {
         long offset = checkedByteOffset(i);
         int prev, next;
         do {
