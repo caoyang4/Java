@@ -3,6 +3,9 @@ import java.util.function.UnaryOperator;
 import java.util.function.BinaryOperator;
 import sun.misc.Unsafe;
 
+/**
+ * cas更新引用类型
+ */
 public class AtomicReference<V> implements java.io.Serializable {
     private static final long serialVersionUID = -1848883965231344442L;
 
@@ -11,8 +14,7 @@ public class AtomicReference<V> implements java.io.Serializable {
 
     static {
         try {
-            valueOffset = unsafe.objectFieldOffset
-                (AtomicReference.class.getDeclaredField("value"));
+            valueOffset = unsafe.objectFieldOffset(AtomicReference.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 
@@ -49,7 +51,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     public final V getAndSet(V newValue) {
         return (V)unsafe.getAndSetObject(this, valueOffset, newValue);
     }
-
+    // 自旋更新，直到成功
     public final V getAndUpdate(UnaryOperator<V> updateFunction) {
         V prev, next;
         do {
@@ -68,8 +70,7 @@ public class AtomicReference<V> implements java.io.Serializable {
         return next;
     }
 
-    public final V getAndAccumulate(V x,
-                                    BinaryOperator<V> accumulatorFunction) {
+    public final V getAndAccumulate(V x, BinaryOperator<V> accumulatorFunction) {
         V prev, next;
         do {
             prev = get();
@@ -78,8 +79,7 @@ public class AtomicReference<V> implements java.io.Serializable {
         return prev;
     }
 
-    public final V accumulateAndGet(V x,
-                                    BinaryOperator<V> accumulatorFunction) {
+    public final V accumulateAndGet(V x, BinaryOperator<V> accumulatorFunction) {
         V prev, next;
         do {
             prev = get();

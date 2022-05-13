@@ -2,6 +2,9 @@ package java.util.concurrent.atomic;
 
 public class AtomicStampedReference<V> {
 
+    /**
+     * Pair保存对象和对象版本
+     */
     private static class Pair<T> {
         final T reference;
         final int stamp;
@@ -34,25 +37,24 @@ public class AtomicStampedReference<V> {
         return pair.reference;
     }
 
-    public boolean weakCompareAndSet(V   expectedReference,
-                                     V   newReference,
-                                     int expectedStamp,
-                                     int newStamp) {
-        return compareAndSet(expectedReference, newReference,
-                             expectedStamp, newStamp);
+    public boolean weakCompareAndSet(V   expectedReference, V   newReference, int expectedStamp, int newStamp) {
+        return compareAndSet(expectedReference, newReference, expectedStamp, newStamp);
     }
 
-    public boolean compareAndSet(V   expectedReference,
-                                 V   newReference,
-                                 int expectedStamp,
-                                 int newStamp) {
+    public boolean compareAndSet(V   expectedReference, V   newReference, int expectedStamp, int newStamp) {
+        // pair 就是当前的值
         Pair<V> current = pair;
-        return
-            expectedReference == current.reference &&
-            expectedStamp == current.stamp &&
-            ((newReference == current.reference &&
+              // 旧数据与当前数据是否相等。如果是基础数据类型，则比较值；如果是引用数据类型，则判断的是内存地址。
+        return expectedReference == current.reference &&
+              // 旧版本号是否与当前的版本号相等。
+              expectedStamp == current.stamp &&
+                // 上面这两个条件，有一个不成立，就说明数据已经被别的线程已经修改过了，
+
+                // 下面这两个条件就是为了防止做无用的 CAS 操作；也就是说，新数据、新版本号和当前的数据、版本号都是一样的，也没有别要再做 CAS 操作了。
+              ((newReference == current.reference &&
               newStamp == current.stamp) ||
-             casPair(current, Pair.of(newReference, newStamp)));
+               // casPair才是主要做 CAS 操作的方法
+              casPair(current, Pair.of(newReference, newStamp)));
     }
 
     public void set(V newReference, int newStamp) {

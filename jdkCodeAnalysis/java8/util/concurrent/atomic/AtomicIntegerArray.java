@@ -10,6 +10,7 @@ public class AtomicIntegerArray implements java.io.Serializable {
     private static final Unsafe unsafe = Unsafe.getUnsafe();
     private static final int base = unsafe.arrayBaseOffset(int[].class);
     private static final int shift;
+    // 数组
     private final int[] array;
 
     static {
@@ -25,15 +26,15 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
         return byteOffset(i);
     }
-
+    // 索引为 i 的偏移量
     private static long byteOffset(int i) {
         return ((long) i << shift) + base;
     }
-
+    // 初始化方式一：给定长度，生成新数组
     public AtomicIntegerArray(int length) {
         array = new int[length];
     }
-
+    // 初始化方式二：给定数组，将数组设置为数组的深拷贝，防止不经过这个类修改而是直接修改外界数组，导致结果错误
     public AtomicIntegerArray(int[] array) {
         // Visibility guaranteed by final field guarantees
         this.array = array.clone();
@@ -63,6 +64,11 @@ public class AtomicIntegerArray implements java.io.Serializable {
         return unsafe.getAndSetInt(array, checkedByteOffset(i), newValue);
     }
 
+    /**
+     * @param i        索引
+     * @param expect   旧值
+     * @param update   新值
+     */
     public final boolean compareAndSet(int i, int expect, int update) {
         return compareAndSetRaw(checkedByteOffset(i), expect, update);
     }

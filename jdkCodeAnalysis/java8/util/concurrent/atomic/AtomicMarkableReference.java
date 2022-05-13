@@ -1,5 +1,10 @@
 package java.util.concurrent.atomic;
 
+/**
+ * AtomicMarkableReference和 AtomicStampedReference源码几乎相同，唯一区别就在于一个是int型的时间戳，而这个类则是布尔型的标记值。
+ * 两者区别在于AtomicStampedReference可以知道修改了多少次，而AtomicMarkableReference则只知道有没有被修改过
+ * @param <V>
+ */
 public class AtomicMarkableReference<V> {
 
     private static class Pair<T> {
