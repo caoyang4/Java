@@ -23,7 +23,7 @@ import java.util.Spliterator;
 public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
 
     private static final long serialVersionUID = -817911632652898426L;
-    // 存储结构为数组
+    // 存储结构为数组，逻辑上是环形数组
     final Object[] items;
     /**
      * ArrayBlockingQueue有三个成员变量：

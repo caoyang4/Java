@@ -35,14 +35,12 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
 
     public WeakHashMap(int initialCapacity, float loadFactor) {
         if (initialCapacity < 0)
-            throw new IllegalArgumentException("Illegal Initial Capacity: "+
-                                               initialCapacity);
+            throw new IllegalArgumentException("Illegal Initial Capacity: "+ initialCapacity);
         if (initialCapacity > MAXIMUM_CAPACITY)
             initialCapacity = MAXIMUM_CAPACITY;
 
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
-            throw new IllegalArgumentException("Illegal Load factor: "+
-                                               loadFactor);
+            throw new IllegalArgumentException("Illegal Load factor: "+ loadFactor);
         int capacity = 1;
         while (capacity < initialCapacity)
             capacity <<= 1;
@@ -60,9 +58,7 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
     }
 
     public WeakHashMap(Map<? extends K, ? extends V> m) {
-        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1,
-                DEFAULT_INITIAL_CAPACITY),
-             DEFAULT_LOAD_FACTOR);
+        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
         putAll(m);
     }
 
@@ -367,9 +363,7 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
         final int hash;
         Entry<K,V> next;
 
-        Entry(Object key, V value,
-              ReferenceQueue<Object> queue,
-              int hash, Entry<K,V> next) {
+        Entry(Object key, V value, ReferenceQueue<Object> queue, int hash, Entry<K,V> next) {
             super(key, queue);
             this.value = value;
             this.hash  = hash;
