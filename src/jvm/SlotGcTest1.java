@@ -2,6 +2,7 @@ package src.jvm;
 
 /**
  * 局部变量表垃圾回收
+ * -verbose:gc -XX:+PrintCommandLineFlags
  * @author caoyang
  */
 public class SlotGcTest1 {

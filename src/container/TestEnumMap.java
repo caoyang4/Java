@@ -26,7 +26,8 @@ public class TestEnumMap {
         map.put(Animal.DOG, "汪汪汪");
         map.put(Animal.HORSE, "嘶嘶嘶");
         for (Animal animal : map.keySet()) {
-            System.out.println(animal);
+            System.out.println(animal.name + " " + map.get(animal));
         }
+
     }
 }
