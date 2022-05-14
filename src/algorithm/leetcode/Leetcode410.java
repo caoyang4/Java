@@ -16,6 +16,7 @@ public class Leetcode410 {
     // 动态规划
     public static int splitArray(int[] nums, int m) {
         int n = nums.length;
+        // dp[i][j]表示 0-i 的子数组分割成 j 个子数组
         // 转移方程：dp[i][j] = min{dp[i][j], max{dp[k][j-1], sum[i] - sum[k]}}
         int[][] dp = new int[n][m+1];
 
