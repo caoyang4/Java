@@ -44,11 +44,11 @@ public class Arrays {
             throw new ArrayIndexOutOfBoundsException(toIndex);
         }
     }
-
+    // 排序
     public static void sort(int[] a) {
         DualPivotQuicksort.sort(a, 0, a.length - 1, null, 0, 0);
     }
-
+    // 索引范围排序
     public static void sort(int[] a, int fromIndex, int toIndex) {
         rangeCheck(a.length, fromIndex, toIndex);
         DualPivotQuicksort.sort(a, fromIndex, toIndex - 1, null, 0, 0);
@@ -132,7 +132,7 @@ public class Arrays {
                  ((g = n / (p << 2)) <= MIN_ARRAY_SORT_GRAN) ?
                  MIN_ARRAY_SORT_GRAN : g).invoke();
     }
-
+    // 并行排序，底层调用ForkJoinPool的commonPool
     public static void parallelSort(char[] a) {
         int n = a.length, p, g;
         if (n <= MIN_ARRAY_SORT_GRAN ||
@@ -298,8 +298,7 @@ public class Arrays {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Comparable<? super T>>
-    void parallelSort(T[] a, int fromIndex, int toIndex) {
+    public static <T extends Comparable<? super T>> void parallelSort(T[] a, int fromIndex, int toIndex) {
         rangeCheck(a.length, fromIndex, toIndex);
         int n = toIndex - fromIndex, p, g;
         if (n <= MIN_ARRAY_SORT_GRAN ||
@@ -330,8 +329,7 @@ public class Arrays {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void parallelSort(T[] a, int fromIndex, int toIndex,
-                                        Comparator<? super T> cmp) {
+    public static <T> void parallelSort(T[] a, int fromIndex, int toIndex, Comparator<? super T> cmp) {
         rangeCheck(a.length, fromIndex, toIndex);
         if (cmp == null)
             cmp = NaturalOrder.INSTANCE;
@@ -385,11 +383,7 @@ public class Arrays {
     private static final int INSERTIONSORT_THRESHOLD = 7;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static void mergeSort(Object[] src,
-                                  Object[] dest,
-                                  int low,
-                                  int high,
-                                  int off) {
+    private static void mergeSort(Object[] src, Object[] dest, int low, int high, int off) {
         int length = high - low;
 
         // Insertion sort on smallest arrays
@@ -425,7 +419,7 @@ public class Arrays {
                 dest[i] = src[q++];
         }
     }
-
+    // 交换
     private static void swap(Object[] x, int a, int b) {
         Object t = x[a];
         x[a] = x[b];
@@ -451,8 +445,7 @@ public class Arrays {
             mergeSort(aux, a, 0, a.length, 0, c);
     }
 
-    public static <T> void sort(T[] a, int fromIndex, int toIndex,
-                                Comparator<? super T> c) {
+    public static <T> void sort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c) {
         if (c == null) {
             sort(a, fromIndex, toIndex);
         } else {
@@ -464,8 +457,7 @@ public class Arrays {
         }
     }
 
-    private static <T> void legacyMergeSort(T[] a, int fromIndex, int toIndex,
-                                            Comparator<? super T> c) {
+    private static <T> void legacyMergeSort(T[] a, int fromIndex, int toIndex, Comparator<? super T> c) {
         T[] aux = copyOfRange(a, fromIndex, toIndex);
         if (c==null)
             mergeSort(aux, a, fromIndex, toIndex, -fromIndex);
@@ -474,10 +466,7 @@ public class Arrays {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void mergeSort(Object[] src,
-                                  Object[] dest,
-                                  int low, int high, int off,
-                                  Comparator c) {
+    private static void mergeSort(Object[] src, Object[] dest, int low, int high, int off, Comparator c) {
         int length = high - low;
 
         // Insertion sort on smallest arrays
@@ -522,8 +511,7 @@ public class Arrays {
                     (null, op, array, 0, array.length).invoke();
     }
 
-    public static <T> void parallelPrefix(T[] array, int fromIndex,
-                                          int toIndex, BinaryOperator<T> op) {
+    public static <T> void parallelPrefix(T[] array, int fromIndex, int toIndex, BinaryOperator<T> op) {
         Objects.requireNonNull(op);
         rangeCheck(array.length, fromIndex, toIndex);
         if (fromIndex < toIndex)
@@ -552,8 +540,7 @@ public class Arrays {
                     (null, op, array, 0, array.length).invoke();
     }
 
-    public static void parallelPrefix(double[] array, int fromIndex,
-                                      int toIndex, DoubleBinaryOperator op) {
+    public static void parallelPrefix(double[] array, int fromIndex, int toIndex, DoubleBinaryOperator op) {
         Objects.requireNonNull(op);
         rangeCheck(array.length, fromIndex, toIndex);
         if (fromIndex < toIndex)
@@ -568,8 +555,7 @@ public class Arrays {
                     (null, op, array, 0, array.length).invoke();
     }
 
-    public static void parallelPrefix(int[] array, int fromIndex,
-                                      int toIndex, IntBinaryOperator op) {
+    public static void parallelPrefix(int[] array, int fromIndex, int toIndex, IntBinaryOperator op) {
         Objects.requireNonNull(op);
         rangeCheck(array.length, fromIndex, toIndex);
         if (fromIndex < toIndex)
@@ -578,20 +564,18 @@ public class Arrays {
     }
 
     // Searching
-
+    // 二分查找
     public static int binarySearch(long[] a, long key) {
         return binarySearch0(a, 0, a.length, key);
     }
 
-    public static int binarySearch(long[] a, int fromIndex, int toIndex,
-                                   long key) {
+    public static int binarySearch(long[] a, int fromIndex, int toIndex, long key) {
         rangeCheck(a.length, fromIndex, toIndex);
         return binarySearch0(a, fromIndex, toIndex, key);
     }
 
     // Like public version, but without range checks.
-    private static int binarySearch0(long[] a, int fromIndex, int toIndex,
-                                     long key) {
+    private static int binarySearch0(long[] a, int fromIndex, int toIndex, long key) {
         int low = fromIndex;
         int high = toIndex - 1;
 
@@ -613,8 +597,7 @@ public class Arrays {
         return binarySearch0(a, 0, a.length, key);
     }
 
-    public static int binarySearch(int[] a, int fromIndex, int toIndex,
-                                   int key) {
+    public static int binarySearch(int[] a, int fromIndex, int toIndex, int key) {
         rangeCheck(a.length, fromIndex, toIndex);
         return binarySearch0(a, fromIndex, toIndex, key);
     }
@@ -1022,7 +1005,7 @@ public class Arrays {
         return true;
     }
 
-    // Filling
+    // 数组填充
 
     public static void fill(long[] a, long val) {
         for (int i = 0, len = a.length; i < len; i++)
@@ -1084,8 +1067,7 @@ public class Arrays {
             a[i] = val;
     }
 
-    public static void fill(boolean[] a, int fromIndex, int toIndex,
-                            boolean val) {
+    public static void fill(boolean[] a, int fromIndex, int toIndex, boolean val) {
         rangeCheck(a.length, fromIndex, toIndex);
         for (int i = fromIndex; i < toIndex; i++)
             a[i] = val;
@@ -1136,29 +1118,25 @@ public class Arrays {
         T[] copy = ((Object)newType == (Object)Object[].class)
             ? (T[]) new Object[newLength]
             : (T[]) Array.newInstance(newType.getComponentType(), newLength);
-        System.arraycopy(original, 0, copy, 0,
-                         Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
         return copy;
     }
 
     public static byte[] copyOf(byte[] original, int newLength) {
         byte[] copy = new byte[newLength];
-        System.arraycopy(original, 0, copy, 0,
-                         Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
         return copy;
     }
 
     public static short[] copyOf(short[] original, int newLength) {
         short[] copy = new short[newLength];
-        System.arraycopy(original, 0, copy, 0,
-                         Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
         return copy;
     }
 
     public static int[] copyOf(int[] original, int newLength) {
         int[] copy = new int[newLength];
-        System.arraycopy(original, 0, copy, 0,
-                         Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
         return copy;
     }
 
@@ -1303,8 +1281,7 @@ public class Arrays {
         return new ArrayList<>(a);
     }
 
-    private static class ArrayList<E> extends AbstractList<E>
-        implements RandomAccess, java.io.Serializable
+    private static class ArrayList<E> extends AbstractList<E> implements RandomAccess, java.io.Serializable
     {
         private static final long serialVersionUID = -2764017481108945198L;
         private final E[] a;

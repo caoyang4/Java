@@ -33,22 +33,20 @@ public class Collections {
     public static <T extends Comparable<? super T>> void sort(List<T> list) {
         list.sort(null);
     }
-
+    // 集合排序，需传入比较器
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> void sort(List<T> list, Comparator<? super T> c) {
         list.sort(c);
     }
-
-    public static <T>
-    int binarySearch(List<? extends Comparable<? super T>> list, T key) {
+    // 二分查找
+    public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T key) {
         if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
             return Collections.indexedBinarySearch(list, key);
         else
             return Collections.iteratorBinarySearch(list, key);
     }
 
-    private static <T>
-    int indexedBinarySearch(List<? extends Comparable<? super T>> list, T key) {
+    private static <T> int indexedBinarySearch(List<? extends Comparable<? super T>> list, T key) {
         int low = 0;
         int high = list.size()-1;
 
@@ -67,8 +65,7 @@ public class Collections {
         return -(low + 1);  // key not found
     }
 
-    private static <T>
-    int iteratorBinarySearch(List<? extends Comparable<? super T>> list, T key)
+    private static <T> int iteratorBinarySearch(List<? extends Comparable<? super T>> list, T key)
     {
         int low = 0;
         int high = list.size()-1;
@@ -222,7 +219,7 @@ public class Collections {
         arr[i] = arr[j];
         arr[j] = tmp;
     }
-
+    // list 填充
     public static <T> void fill(List<? super T> list, T obj) {
         int size = list.size();
 
@@ -284,7 +281,7 @@ public class Collections {
         }
         return candidate;
     }
-
+    // 集合最大属性
     public static <T extends Object & Comparable<? super T>> T max(Collection<? extends T> coll) {
         Iterator<? extends T> i = coll.iterator();
         T candidate = i.next();
@@ -312,7 +309,7 @@ public class Collections {
         }
         return candidate;
     }
-
+    // 集合旋转
     public static void rotate(List<?> list, int distance) {
         if (list instanceof RandomAccess || list.size() < ROTATE_THRESHOLD)
             rotate1(list, distance);
@@ -357,7 +354,7 @@ public class Collections {
         reverse(list.subList(mid, size));
         reverse(list);
     }
-
+    // 全量替换
     public static <T> boolean replaceAll(List<T> list, T oldVal, T newVal) {
         boolean result = false;
         int size = list.size();
@@ -403,8 +400,7 @@ public class Collections {
         int targetSize = target.size();
         int maxCandidate = sourceSize - targetSize;
 
-        if (sourceSize < INDEXOFSUBLIST_THRESHOLD ||
-            (source instanceof RandomAccess&&target instanceof RandomAccess)) {
+        if (sourceSize < INDEXOFSUBLIST_THRESHOLD || (source instanceof RandomAccess&&target instanceof RandomAccess)) {
         nextCand:
             for (int candidate = 0; candidate <= maxCandidate; candidate++) {
                 for (int i=0, j=candidate; i<targetSize; i++, j++)
@@ -566,8 +562,7 @@ public class Collections {
         return new UnmodifiableSet<>(s);
     }
 
-    static class UnmodifiableSet<E> extends UnmodifiableCollection<E>
-                                 implements Set<E>, Serializable {
+    static class UnmodifiableSet<E> extends UnmodifiableCollection<E> implements Set<E>, Serializable {
         private static final long serialVersionUID = -9215047833775013803L;
 
         UnmodifiableSet(Set<? extends E> s)     {super(s);}
@@ -579,9 +574,7 @@ public class Collections {
         return new UnmodifiableSortedSet<>(s);
     }
 
-    static class UnmodifiableSortedSet<E>
-                             extends UnmodifiableSet<E>
-                             implements SortedSet<E>, Serializable {
+    static class UnmodifiableSortedSet<E> extends UnmodifiableSet<E> implements SortedSet<E>, Serializable {
         private static final long serialVersionUID = -4929149591599911165L;
         private final SortedSet<E> ss;
 
@@ -607,14 +600,11 @@ public class Collections {
         return new UnmodifiableNavigableSet<>(s);
     }
 
-    static class UnmodifiableNavigableSet<E>
-                             extends UnmodifiableSortedSet<E>
-                             implements NavigableSet<E>, Serializable {
+    static class UnmodifiableNavigableSet<E> extends UnmodifiableSortedSet<E> implements NavigableSet<E>, Serializable {
 
         private static final long serialVersionUID = -6027448201786391929L;
 
-        private static class EmptyNavigableSet<E> extends UnmodifiableNavigableSet<E>
-            implements Serializable {
+        private static class EmptyNavigableSet<E> extends UnmodifiableNavigableSet<E> implements Serializable {
             private static final long serialVersionUID = -6291252904449939134L;
 
             public EmptyNavigableSet() {
@@ -625,8 +615,7 @@ public class Collections {
         }
 
         @SuppressWarnings("rawtypes")
-        private static final NavigableSet<?> EMPTY_NAVIGABLE_SET =
-                new EmptyNavigableSet<>();
+        private static final NavigableSet<?> EMPTY_NAVIGABLE_SET = new EmptyNavigableSet<>();
 
         private final NavigableSet<E> ns;
 
@@ -644,8 +633,7 @@ public class Collections {
                                          { return descendingSet().iterator(); }
 
         public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
-            return new UnmodifiableNavigableSet<>(
-                ns.subSet(fromElement, fromInclusive, toElement, toInclusive));
+            return new UnmodifiableNavigableSet<>(ns.subSet(fromElement, fromInclusive, toElement, toInclusive));
         }
 
         public NavigableSet<E> headSet(E toElement, boolean inclusive) {
@@ -665,8 +653,7 @@ public class Collections {
                 new UnmodifiableList<>(list));
     }
 
-    static class UnmodifiableList<E> extends UnmodifiableCollection<E>
-            implements List<E> {
+    static class UnmodifiableList<E> extends UnmodifiableCollection<E> implements List<E> {
         private static final long serialVersionUID = -283967356065247728L;
 
         final List<? extends E> list;
@@ -746,8 +733,7 @@ public class Collections {
         }
     }
 
-    static class UnmodifiableRandomAccessList<E> extends UnmodifiableList<E>
-                                              implements RandomAccess
+    static class UnmodifiableRandomAccessList<E> extends UnmodifiableList<E> implements RandomAccess
     {
         UnmodifiableRandomAccessList(List<? extends E> list) {
             super(list);
@@ -764,11 +750,11 @@ public class Collections {
             return new UnmodifiableList<>(list);
         }
     }
-
+    // 创建一个不可更改的 map
     public static <K,V> Map<K,V> unmodifiableMap(Map<? extends K, ? extends V> m) {
         return new UnmodifiableMap<>(m);
     }
-
+    // 不可变 map，装饰器模式
     private static class UnmodifiableMap<K,V> implements Map<K,V>, Serializable {
         private static final long serialVersionUID = -1034234728574286014L;
 
@@ -869,20 +855,17 @@ public class Collections {
         }
 
         @Override
-        public V computeIfPresent(K key,
-                BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public V compute(K key,
-                BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public V merge(K key, V value,
-                BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }
 
@@ -905,8 +888,7 @@ public class Collections {
                 c.forEach(entryConsumer(action));
             }
 
-            static final class UnmodifiableEntrySetSpliterator<K, V>
-                    implements Spliterator<Entry<K,V>> {
+            static final class UnmodifiableEntrySetSpliterator<K, V> implements Spliterator<Entry<K,V>> {
                 final Spliterator<Map.Entry<K, V>> s;
 
                 UnmodifiableEntrySetSpliterator(Spliterator<Entry<K, V>> s) {
@@ -961,8 +943,7 @@ public class Collections {
 
             @SuppressWarnings("unchecked")
             public Spliterator<Entry<K,V>> spliterator() {
-                return new UnmodifiableEntrySetSpliterator<>(
-                        (Spliterator<Map.Entry<K, V>>) c.spliterator());
+                return new UnmodifiableEntrySetSpliterator<>((Spliterator<Map.Entry<K, V>>) c.spliterator());
             }
 
             @Override
@@ -1069,14 +1050,12 @@ public class Collections {
             }
         }
     }
-
+    // 不可变的有序 map
     public static <K,V> SortedMap<K,V> unmodifiableSortedMap(SortedMap<K, ? extends V> m) {
         return new UnmodifiableSortedMap<>(m);
     }
 
-    static class UnmodifiableSortedMap<K,V>
-          extends UnmodifiableMap<K,V>
-          implements SortedMap<K,V>, Serializable {
+    static class UnmodifiableSortedMap<K,V> extends UnmodifiableMap<K,V> implements SortedMap<K,V>, Serializable {
         private static final long serialVersionUID = -8806743815996713206L;
 
         private final SortedMap<K, ? extends V> sm;
@@ -1097,13 +1076,10 @@ public class Collections {
         return new UnmodifiableNavigableMap<>(m);
     }
 
-    static class UnmodifiableNavigableMap<K,V>
-          extends UnmodifiableSortedMap<K,V>
-          implements NavigableMap<K,V>, Serializable {
+    static class UnmodifiableNavigableMap<K,V> extends UnmodifiableSortedMap<K,V> implements NavigableMap<K,V>, Serializable {
         private static final long serialVersionUID = -4858195264774772197L;
 
-        private static class EmptyNavigableMap<K,V> extends UnmodifiableNavigableMap<K,V>
-            implements Serializable {
+        private static class EmptyNavigableMap<K,V> extends UnmodifiableNavigableMap<K,V> implements Serializable {
 
             private static final long serialVersionUID = -2239321462712562324L;
 
@@ -1116,8 +1092,7 @@ public class Collections {
             private Object readResolve()        { return EMPTY_NAVIGABLE_MAP; }
         }
 
-        private static final EmptyNavigableMap<?,?> EMPTY_NAVIGABLE_MAP =
-            new EmptyNavigableMap<>();
+        private static final EmptyNavigableMap<?,?> EMPTY_NAVIGABLE_MAP = new EmptyNavigableMap<>();
 
         private final NavigableMap<K, ? extends V> nm;
 
@@ -1209,7 +1184,7 @@ public class Collections {
     static <T> Collection<T> synchronizedCollection(Collection<T> c, Object mutex) {
         return new SynchronizedCollection<>(c, mutex);
     }
-
+    // 线程安全类，用synchronized修饰，性能低
     static class SynchronizedCollection<E> implements Collection<E>, Serializable {
         private static final long serialVersionUID = 3053995032091335093L;
 
@@ -1305,9 +1280,7 @@ public class Collections {
         return new SynchronizedSet<>(s, mutex);
     }
 
-    static class SynchronizedSet<E>
-          extends SynchronizedCollection<E>
-          implements Set<E> {
+    static class SynchronizedSet<E> extends SynchronizedCollection<E> implements Set<E> {
         private static final long serialVersionUID = 487447009682186044L;
 
         SynchronizedSet(Set<E> s) {
@@ -1331,9 +1304,7 @@ public class Collections {
         return new SynchronizedSortedSet<>(s);
     }
 
-    static class SynchronizedSortedSet<E>
-        extends SynchronizedSet<E>
-        implements SortedSet<E>
+    static class SynchronizedSortedSet<E> extends SynchronizedSet<E> implements SortedSet<E>
     {
         private static final long serialVersionUID = 8695801310862127406L;
 
@@ -1381,9 +1352,7 @@ public class Collections {
         return new SynchronizedNavigableSet<>(s);
     }
 
-    static class SynchronizedNavigableSet<E>
-        extends SynchronizedSortedSet<E>
-        implements NavigableSet<E>
+    static class SynchronizedNavigableSet<E> extends SynchronizedSortedSet<E>implements NavigableSet<E>
     {
         private static final long serialVersionUID = -5505529816273629798L;
 
@@ -1460,7 +1429,7 @@ public class Collections {
                 new SynchronizedRandomAccessList<>(list, mutex) :
                 new SynchronizedList<>(list, mutex));
     }
-
+    // 线程安全的数组
     static class SynchronizedList<E> extends SynchronizedCollection<E> implements List<E> {
         private static final long serialVersionUID = -7754090372962971524L;
 
@@ -1539,9 +1508,7 @@ public class Collections {
         }
     }
 
-    static class SynchronizedRandomAccessList<E>
-        extends SynchronizedList<E>
-        implements RandomAccess {
+    static class SynchronizedRandomAccessList<E> extends SynchronizedList<E> implements RandomAccess {
 
         SynchronizedRandomAccessList(List<E> list) {
             super(list);
@@ -1568,9 +1535,8 @@ public class Collections {
     public static <K,V> Map<K,V> synchronizedMap(Map<K,V> m) {
         return new SynchronizedMap<>(m);
     }
-
-    private static class SynchronizedMap<K,V>
-        implements Map<K,V>, Serializable {
+    // 线程安全的 hashmao
+    private static class SynchronizedMap<K,V> implements Map<K,V>, Serializable {
         private static final long serialVersionUID = 1978198479659022715L;
 
         private final Map<K,V> m;     // Backing Map
@@ -1714,9 +1680,7 @@ public class Collections {
         return new SynchronizedSortedMap<>(m);
     }
 
-    static class SynchronizedSortedMap<K,V>
-        extends SynchronizedMap<K,V>
-        implements SortedMap<K,V>
+    static class SynchronizedSortedMap<K,V> extends SynchronizedMap<K,V> implements SortedMap<K,V>
     {
         private static final long serialVersionUID = -8798146769416483793L;
 
@@ -2029,8 +1993,7 @@ public class Collections {
         return new CheckedSortedSet<>(s, type);
     }
 
-    static class CheckedSortedSet<E> extends CheckedSet<E>
-        implements SortedSet<E>, Serializable
+    static class CheckedSortedSet<E> extends CheckedSet<E> implements SortedSet<E>, Serializable
     {
         private static final long serialVersionUID = 1599911165492914959L;
 
@@ -3610,7 +3573,7 @@ public class Collections {
     public static <T> Queue<T> asLifoQueue(Deque<T> deque) {
         return new AsLIFOQueue<>(deque);
     }
-
+    // 栈
     static class AsLIFOQueue<E> extends AbstractQueue<E>
         implements Queue<E>, Serializable {
         private static final long serialVersionUID = 1802017725587941708L;

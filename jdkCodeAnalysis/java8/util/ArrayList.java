@@ -5,16 +5,18 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import sun.misc.SharedSecrets;
 
-
+/**
+ * ArrayList底层数组实现，允许元素为 null
+ */
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8683452581122892189L;
-
+    // 默认容量是 10
     private static final int DEFAULT_CAPACITY = 10;
 
     private static final Object[] EMPTY_ELEMENTDATA = {};
 
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
-
+    // 数组存储元素
     transient Object[] elementData; // non-private to simplify nested class access
 
     private int size;
@@ -23,6 +25,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
         if (initialCapacity > 0) {
             this.elementData = new Object[initialCapacity];
         } else if (initialCapacity == 0) {
+            // 如果长度为 0，则创建空数组
             this.elementData = EMPTY_ELEMENTDATA;
         } else {
             throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
@@ -30,6 +33,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
     }
 
     public ArrayList() {
+        // 默认创建空数组
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
     }
 
@@ -68,9 +72,10 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
             ensureExplicitCapacity(minCapacity);
         }
     }
-
+    // 计算容量
     private static int calculateCapacity(Object[] elementData, int minCapacity) {
         if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+            // 添加第一个数组时，默认容量为 10
             return Math.max(DEFAULT_CAPACITY, minCapacity);
         }
         return minCapacity;
@@ -85,14 +90,16 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
         // overflow-conscious code
         if (minCapacity - elementData.length > 0)
+            // 扩容
             grow(minCapacity);
     }
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-
+    // 数组扩容
     private void grow(int minCapacity) {
         // overflow-conscious code
         int oldCapacity = elementData.length;
+        // 新数组扩容 1.5 倍
         int newCapacity = oldCapacity + (oldCapacity >> 1);
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
@@ -121,7 +128,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
     public boolean contains(Object o) {
         return indexOf(o) >= 0;
     }
-
+    // 从头查找元素
     public int indexOf(Object o) {
         if (o == null) {
             for (int i = 0; i < size; i++)
@@ -132,9 +139,10 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
                 if (o.equals(elementData[i]))
                     return i;
         }
+        // 不存在返回-1
         return -1;
     }
-
+    // 从尾部查找元素
     public int lastIndexOf(Object o) {
         if (o == null) {
             for (int i = size-1; i >= 0; i--)
@@ -181,13 +189,14 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
     E elementData(int index) {
         return (E) elementData[index];
     }
-
+    // 获取元素
     public E get(int index) {
+        // 范围检验
         rangeCheck(index);
 
         return elementData(index);
     }
-
+    // 更新元素值
     public E set(int index, E element) {
         rangeCheck(index);
 
@@ -195,8 +204,9 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
         elementData[index] = element;
         return oldValue;
     }
-
+    // 添加元素
     public boolean add(E e) {
+        // 添加第一个元素时，将数组容量置为 10
         ensureCapacityInternal(size + 1);  // Increments modCount!!
         elementData[size++] = e;
         return true;
@@ -206,12 +216,12 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
         rangeCheckForAdd(index);
 
         ensureCapacityInternal(size + 1);  // Increments modCount!!
-        System.arraycopy(elementData, index, elementData, index + 1,
-                         size - index);
+        // 数组扩容，腾出 index 位置，性能低
+        System.arraycopy(elementData, index, elementData, index + 1, size - index);
         elementData[index] = element;
         size++;
     }
-
+    // 删除元素，返回删除元素的值
     public E remove(int index) {
         rangeCheck(index);
 
@@ -220,13 +230,13 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
         int numMoved = size - index - 1;
         if (numMoved > 0)
-            System.arraycopy(elementData, index+1, elementData, index,
-                             numMoved);
+            System.arraycopy(elementData, index+1, elementData, index, numMoved);
+        // 清空 slot，便于 gc
         elementData[--size] = null; // clear to let GC do its work
 
         return oldValue;
     }
-
+    // 删除元素，从头遍历
     public boolean remove(Object o) {
         if (o == null) {
             for (int index = 0; index < size; index++)
@@ -252,11 +262,10 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
         modCount++;
         int numMoved = size - index - 1;
         if (numMoved > 0)
-            System.arraycopy(elementData, index+1, elementData, index,
-                             numMoved);
+            System.arraycopy(elementData, index+1, elementData, index, numMoved);
         elementData[--size] = null; // clear to let GC do its work
     }
-
+    // 清除数组
     public void clear() {
         modCount++;
 
@@ -285,8 +294,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
         int numMoved = size - index;
         if (numMoved > 0)
-            System.arraycopy(elementData, index, elementData, index + numNew,
-                             numMoved);
+            System.arraycopy(elementData, index, elementData, index + numNew, numMoved);
 
         System.arraycopy(a, 0, elementData, index, numNew);
         size += numNew;
@@ -296,8 +304,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
     protected void removeRange(int fromIndex, int toIndex) {
         modCount++;
         int numMoved = size - toIndex;
-        System.arraycopy(elementData, toIndex, elementData, fromIndex,
-                         numMoved);
+        System.arraycopy(elementData, toIndex, elementData, fromIndex, numMoved);
 
         // clear to let GC do its work
         int newSize = size - (toIndex-fromIndex);
@@ -343,9 +350,7 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
             // Preserve behavioral compatibility with AbstractCollection,
             // even if c.contains() throws.
             if (r != size) {
-                System.arraycopy(elementData, r,
-                                 elementData, w,
-                                 size - r);
+                System.arraycopy(elementData, r, elementData, w, size - r);
                 w += size - r;
             }
             if (w != size) {

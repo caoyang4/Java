@@ -52,8 +52,7 @@ import java.io.ObjectStreamException;
  * @see     java.util.EnumMap
  * @since   1.5
  */
-public abstract class Enum<E extends Enum<E>>
-        implements Comparable<E>, Serializable {
+public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable {
     /**
      * The name of this enum constant, as declared in the enum declaration.
      * Most programmers should use the {@link #toString} method rather than
@@ -245,12 +244,11 @@ public abstract class Enum<E extends Enum<E>>
 
     /**
      * prevent default deserialization
+     * 无法通过序列化创建实例
      */
-    private void readObject(ObjectInputStream in) throws IOException,
-        ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         throw new InvalidObjectException("can't deserialize enum");
     }
-
     private void readObjectNoData() throws ObjectStreamException {
         throw new InvalidObjectException("can't deserialize enum");
     }

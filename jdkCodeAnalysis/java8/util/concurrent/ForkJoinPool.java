@@ -53,7 +53,7 @@ import java.security.Permissions;
  */
 
 /**
- * Stream 流计算和 CompletableFuture 内部也运用了ForkJoinPool
+ * Stream 流计算和 CompletableFuture 内部也运用了ForkJoinPool，以及 Arrays.parallelSort()并行排序
  */
 
 /**
