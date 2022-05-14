@@ -33,8 +33,7 @@ public abstract class TimerTask implements Runnable {
 
     public long scheduledExecutionTime() {
         synchronized(lock) {
-            return (period < 0 ? nextExecutionTime + period
-                               : nextExecutionTime - period);
+            return (period < 0 ? nextExecutionTime + period : nextExecutionTime - period);
         }
     }
 }
