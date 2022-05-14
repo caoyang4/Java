@@ -13,6 +13,7 @@ import java.util.Arrays;
  * @author caoyang
  */
 public class Leetcode410 {
+    // 动态规划
     public static int splitArray(int[] nums, int m) {
         int n = nums.length;
         // 转移方程：dp[i][j] = min{dp[i][j], max{dp[k][j-1], sum[i] - sum[k]}}
@@ -34,6 +35,11 @@ public class Leetcode410 {
             }
         }
         return dp[n-1][m];
+    }
+
+    // 二分查找
+    public static int binarySplitArray(int[] nums, int m) {
+        return 0;
     }
 
     public static void main(String[] args) {
