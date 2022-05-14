@@ -3,11 +3,14 @@ package java.util;
 import java.util.Map.Entry;
 import sun.misc.SharedSecrets;
 
+/**
+ * 使用enum类型作为key的特殊Map实现,内部数据结构使用数组来进行数据存储
+ */
 public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements java.io.Serializable, Cloneable {
     private final Class<K> keyType;
-
+    // 类型k对应的数组,实例化时进行初始化
     private transient K[] keyUniverse;
-
+    // 存放值的数组
     private transient Object[] vals;
 
     private transient int size = 0;
@@ -35,7 +38,9 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements 
 
     public EnumMap(Class<K> keyType) {
         this.keyType = keyType;
+        // 获取keyType对应类型的数组，如：DayOfWeek，返回：[MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
         keyUniverse = getKeyUniverse(keyType);
+        // 初始化map值数组长度，即所有枚举类型的个数即数组长度
         vals = new Object[keyUniverse.length];
     }
 
@@ -96,10 +101,12 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements 
     // Modification Operations
 
     public V put(K key, V value) {
+        // 检查key的类型是否指定的枚举类型keyType
         typeCheck(key);
-
+        // 获取枚举值的索引
         int index = key.ordinal();
         Object oldValue = vals[index];
+        // 根据每个枚举的索引值，向vals数组中放值，如果value为null，替换为内置的NULL对象
         vals[index] = maskNull(value);
         if (oldValue == null)
             size++;
@@ -107,11 +114,14 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements 
     }
 
     public V remove(Object key) {
+        //不 是有效key，返回null
         if (!isValidKey(key))
             return null;
+        // 获取key值索引对应的value
         int index = ((Enum<?>)key).ordinal();
         Object oldValue = vals[index];
         vals[index] = null;
+        // 原来不为null，说明原来有这个key，则将size减1
         if (oldValue != null)
             size--;
         return unmaskNull(oldValue);
@@ -498,8 +508,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V> implements 
     }
 
     private static <K extends Enum<K>> K[] getKeyUniverse(Class<K> keyType) {
-        return SharedSecrets.getJavaLangAccess()
-                                        .getEnumConstantsShared(keyType);
+        return SharedSecrets.getJavaLangAccess().getEnumConstantsShared(keyType);
     }
 
     private static final long serialVersionUID = 458661240069192865L;

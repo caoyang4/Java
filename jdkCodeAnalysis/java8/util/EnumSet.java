@@ -2,9 +2,10 @@ package java.util;
 
 import sun.misc.SharedSecrets;
 
-public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
-    implements Cloneable, java.io.Serializable
-{
+/**
+ * EnumSet表示一个枚举类的集合，这个集合中只包含同一种枚举类的对象
+ */
+public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E> implements Cloneable, java.io.Serializable {
     final Class<E> elementType;
 
     final Enum<?>[] universe;
@@ -16,13 +17,20 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
         this.universe    = universe;
     }
 
+    /**
+     * noneOf返回一个空的EnumSet，
+     * allOf返回一个包含指定枚举类所有枚举值的EnumSet，
+     * of方法返回一个包含一个或者多个的指定枚举值的EnumSet，
+     * range返回一个包含指定范围的枚举值的EnumSet
+     */
     public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
         Enum<?>[] universe = getUniverse(elementType);
         if (universe == null)
             throw new ClassCastException(elementType + " not an enum");
-
+        // 当枚举类中的元素少于64时，返回RegularEnumSet对象
         if (universe.length <= 64)
             return new RegularEnumSet<>(elementType, universe);
+        // 当元素多于64时，返回JumboEnumSet对象
         else
             return new JumboEnumSet<>(elementType, universe);
     }

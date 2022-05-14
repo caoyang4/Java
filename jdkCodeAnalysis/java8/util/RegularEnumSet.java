@@ -1,5 +1,11 @@
 package java.util;
 
+/**
+ * EnumSet的子类
+ * RegularEnumSet适用于枚举值个数小于等于64的EnumSet，
+ * RegularEnumSet定义了一个私有的long类型变量elements，long类型一共64位，
+ * 如果某一位为1则表示该位对应的值对应的枚举值已经添加到RegularEnumSet中了
+ */
 class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
     private static final long serialVersionUID = 3411599620347842686L;
     private long elements = 0L;
@@ -79,10 +85,12 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
     // Modification Operations
 
     public boolean add(E e) {
+        // 检查e的枚举类型是否指定的类型
         typeCheck(e);
-
         long oldElements = elements;
+        // 将ordinal对应的位标识为1，表示添加了对应元素
         elements |= (1L << ((Enum<?>)e).ordinal());
+        // 如果不等说明原来不存在e，返回true
         return elements != oldElements;
     }
 

@@ -1,4 +1,12 @@
 package java.util;
+/**
+ * EnumSet的子类
+ * JumboEnumSet适用于枚举值个数大于64个的枚举类，
+ * 其底层实现跟RegularEnumSet一样都是根据位是否为1来判断该枚举值是否添加到了Set中，
+ * 不过因为枚举值个数大于64个，无法用64位的long类型来记录所有的枚举值，
+ * 所以将RegularEnumSet中long类型的elements改成了一个long类型数组，添加某个枚举值时，
+ * 先将某个枚举值的ordinal属性除以64，算出该枚举值所属的elements数组索引，再用ordinal属性对64求余，将对应的位标识位1
+ */
 class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
     private static final long serialVersionUID = 334349849919042784L;
 
@@ -116,11 +124,15 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
         typeCheck(e);
 
         int eOrdinal = e.ordinal();
+        // 左移6位就是除以64，算出该枚举所属的elements数组索引
         int eWordNum = eOrdinal >>> 6;
-
         long oldElements = elements[eWordNum];
+        // eOrdinal的值是大于64的，此处右移，实际移动的位数是eOrdinal对64求余的结果
+        // 比如eOrdinal的值是68,1L<<68的结果就是1<<4,10000
         elements[eWordNum] |= (1L << eOrdinal);
+        // 判断原elements数组索引的元素是否发生改变，如果改变则说明添加的枚举值原来不存在
         boolean result = (elements[eWordNum] != oldElements);
+        // 为true说明添加了一个新元素，size加1
         if (result)
             size++;
         return result;
