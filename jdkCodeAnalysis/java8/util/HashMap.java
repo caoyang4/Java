@@ -87,6 +87,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         int h;
         // HashMap中key值可以为null, 且null值一定存储在数组的第一个位置.
         // 通过移位和异或运算，可以让 hash 变得更复杂，进而影响 hash 的分布性
+        // key 为 null 时，放在数组 0 位置
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
 
@@ -286,6 +287,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                     e.value = value;
                 // 子类实现，用于扩展回调
                 afterNodeAccess(e);
+                // 返回旧值
                 return oldValue;
             }
         }
@@ -295,6 +297,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             resize();
         // 子类实现，只在LinkedHashMap中用到, 这里是空函数
         afterNodeInsertion(evict);
+        // 成功与否，都会返回 null，这也是 HashSet 的 value 不是 null 的原因，主要是为了避免歧义
         return null;
     }
 
@@ -973,6 +976,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     abstract class HashIterator {
         Node<K,V> next;        // next entry to return
         Node<K,V> current;     // current entry
+        // 迭代器的快速失败机制
         int expectedModCount;  // for fast-fail
         int index;             // current slot
 

@@ -6,20 +6,30 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
-
+/**
+ * HashMap对4个key执行put操作时，使用hashCode作为hash值，使用equals进行相等判断
+ * IdentityHashMap对4个key执行put操作时，使用System.identityHashCode作为hash值，使用==进行相等判断
+ *
+ * IdentityHashMap是一致性哈希表，使用引用相等，而不是equals方法来比较两个对象的相等性
+ *
+ * IdentityHashMap将所有的key和value都存储到Object[]数组table中，并且key和value相邻存储，
+ * 当出现哈希冲突时，会往下遍历数组，直到找到一个空闲的位置。注意，数组第一个位置存储的是key，第二个位置存储的是value。
+ * 因此索引偶数位存储 key，key 右相邻位置存储 value
+ */
 public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, java.io.Serializable, Cloneable {
+    // 哈希表的默认容量
     private static final int DEFAULT_CAPACITY = 32;
-
+    // 哈希表的最小容量
     private static final int MINIMUM_CAPACITY = 4;
-
+    // 哈希表的最大容量，其中包括了一个键为null的键值对
     private static final int MAXIMUM_CAPACITY = 1 << 29;
-
+    // 哈希表内部存储的数组
     transient Object[] table; // non-private to simplify nested class access
-
+    // 哈希表存储的键值对数量
     int size;
 
     transient int modCount;
-
+    // 存储键为null的key，如果键为null，实际用NULL_KEY存储
     static final Object NULL_KEY = new Object();
 
     private static Object maskNull(Object key) {
@@ -29,7 +39,7 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
     static final Object unmaskNull(Object key) {
         return (key == NULL_KEY ? null : key);
     }
-
+    // 默认构造函数，容量为32，加载因子为2/3，最多可存储32*2/3=21个键值对
     public IdentityHashMap() {
         init(DEFAULT_CAPACITY);
     }
@@ -39,7 +49,8 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
             throw new IllegalArgumentException("expectedMaxSize is negative: " + expectedMaxSize);
         init(capacity(expectedMaxSize));
     }
-
+    // 返回一个介于MINIMUM_CAPACITY和MAXIMUM_CAPACITY，且大于3*expectedMaxSize/2的值
+    // 如果该值不存在，返回MAXIMUM_CAPACITY
     private static int capacity(int expectedMaxSize) {
         // assert expectedMaxSize >= 0;
         return
@@ -47,15 +58,12 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
             (expectedMaxSize <= 2 * MINIMUM_CAPACITY / 3) ? MINIMUM_CAPACITY :
             Integer.highestOneBit(expectedMaxSize + (expectedMaxSize << 1));
     }
-
+    // 初始化内部存储数组table，table数组大小为参数initCapacity的两倍
+    // 为何是两倍？因为这是包括了键和值，刚好两倍
     private void init(int initCapacity) {
-        // assert (initCapacity & -initCapacity) == initCapacity; // power of 2
-        // assert initCapacity >= MINIMUM_CAPACITY;
-        // assert initCapacity <= MAXIMUM_CAPACITY;
-
         table = new Object[2 * initCapacity];
     }
-
+    // 通过指定map初始化
     public IdentityHashMap(Map<? extends K, ? extends V> m) {
         // Allow for a bit of growth
         this((int) ((1 + m.size()) * 1.1));
@@ -69,17 +77,22 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
     public boolean isEmpty() {
         return size == 0;
     }
-
+    // 采用identityHashCode计算，返回对象x在数组table中的位置
     private static int hash(Object x, int length) {
         int h = System.identityHashCode(x);
         // Multiply by -127, and left-shift to use least bit as part of hash
         return ((h << 1) - (h << 8)) & (length - 1);
     }
-
+    // 逻辑上数组环形遍历
     private static int nextKeyIndex(int i, int len) {
+        // 返回当前键索引的下一个索引，如果越过数组大小，返回数组位置0
+        // 遍历步长为2
         return (i + 2 < len ? i + 2 : 0);
     }
 
+    /**
+     * 获取元素
+     */
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         Object k = maskNull(key);
@@ -89,9 +102,12 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
         while (true) {
             Object item = tab[i];
             if (item == k)
+                // 如果索引i处存储的值就是键k，那么右相邻位置就是键对应的值
                 return (V) tab[i + 1];
+            // 如果索引i处存储的值为null，返回null
             if (item == null)
                 return null;
+            // 轮询遍历下一个键
             i = nextKeyIndex(i, len);
         }
     }
@@ -113,6 +129,8 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
 
     public boolean containsValue(Object value) {
         Object[] tab = table;
+        // table中第一个存储value的位置是1，因此从1开始查找，步长为2。
+        // 引用相等并且该value对应的的key不为null的情况下，返回true
         for (int i = 1; i < tab.length; i += 2)
             if (tab[i] == value && tab[i - 1] != null)
                 return true;
@@ -135,6 +153,9 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
         }
     }
 
+    /**
+     * 添加元素
+     */
     public V put(K key, V value) {
         final Object k = maskNull(key);
 
@@ -145,17 +166,18 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
 
             for (Object item; (item = tab[i]) != null;
                  i = nextKeyIndex(i, len)) {
+                // 用 "==" 判断 key 是否相等
                 if (item == k) {
+                    // 键已经存在，替换并返回老的value
                     @SuppressWarnings("unchecked")
                         V oldValue = (V) tab[i + 1];
                     tab[i + 1] = value;
                     return oldValue;
                 }
             }
-
+            //键值对数量加1
             final int s = size + 1;
-            // Use optimized form of 3 * s.
-            // Next capacity is len, 2 * current capacity.
+            // 如果3*s大于数组的大小，需要扩容
             if (s + (s << 1) > len && resize(len))
                 continue retryAfterResize;
 
@@ -167,8 +189,11 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
         }
     }
 
+    /**
+     * 扩容
+     */
     private boolean resize(int newCapacity) {
-        // assert (newCapacity & -newCapacity) == newCapacity; // power of 2
+        // 新数组的大小为参数的两倍
         int newLength = newCapacity * 2;
 
         Object[] oldTable = table;
@@ -182,16 +207,20 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
             return false;
 
         Object[] newTable = new Object[newLength];
-
+        // 将老数组的元素复制到新的数组
         for (int j = 0; j < oldLength; j += 2) {
             Object key = oldTable[j];
             if (key != null) {
                 Object value = oldTable[j+1];
+                // 老数组方便 gc
                 oldTable[j] = null;
                 oldTable[j+1] = null;
+                // 找到key在新数组的索引
                 int i = hash(key, newLength);
+                // 找到不为空的索引位置
                 while (newTable[i] != null)
                     i = nextKeyIndex(i, newLength);
+                // 存储到新数组的位置
                 newTable[i] = key;
                 newTable[i + 1] = value;
             }
@@ -211,6 +240,10 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
             put(e.getKey(), e.getValue());
     }
 
+    /**
+     * 删除元素
+     *
+     */
     public V remove(Object key) {
         Object k = maskNull(key);
         Object[] tab = table;
@@ -219,11 +252,13 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
 
         while (true) {
             Object item = tab[i];
+            // key 存在
             if (item == k) {
                 modCount++;
                 size--;
                 @SuppressWarnings("unchecked")
                     V oldValue = (V) tab[i + 1];
+                // let gc
                 tab[i + 1] = null;
                 tab[i] = null;
                 closeDeletion(i);
@@ -250,6 +285,7 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
                 size--;
                 tab[i] = null;
                 tab[i + 1] = null;
+                // 删除后需要进行后续处理，把之前由于冲突往后挪的元素移到前面来
                 closeDeletion(i);
                 return true;
             }
@@ -260,23 +296,12 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
     }
 
     private void closeDeletion(int d) {
-        // Adapted from Knuth Section 6.4 Algorithm R
         Object[] tab = table;
         int len = tab.length;
-
-        // Look for items to swap into newly vacated slot
-        // starting at index immediately following deletion,
-        // and continuing until a null slot is seen, indicating
-        // the end of a run of possibly-colliding keys.
         Object item;
-        for (int i = nextKeyIndex(d, len); (item = tab[i]) != null;
-             i = nextKeyIndex(i, len) ) {
-            // The following test triggers if the item at slot i (which
-            // hashes to be at slot r) should take the spot vacated by d.
-            // If so, we swap it in, and then continue with d now at the
-            // newly vacated i.  This process will terminate when we hit
-            // the null slot at the end of this run.
-            // The test is messy because we are using a circular table.
+        // 把该元素后面符合移动规定的元素往前面移动
+        for (int i = nextKeyIndex(d, len); (item = tab[i]) != null; i = nextKeyIndex(i, len) ) {
+
             int r = hash(item, len);
             if ((i < r && (r <= d || d <= i)) || (r <= d && d <= i)) {
                 tab[d] = item;
@@ -288,6 +313,10 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
         }
     }
 
+    /**
+     * 清理map
+     * 遍历table数组并将数组元素值设置为nul
+     */
     public void clear() {
         modCount++;
         Object[] tab = table;
@@ -326,8 +355,7 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
             Object key = tab[i];
             if (key != null) {
                 Object k = unmaskNull(key);
-                result += System.identityHashCode(k) ^
-                          System.identityHashCode(tab[i + 1]);
+                result += System.identityHashCode(k) ^ System.identityHashCode(tab[i + 1]);
             }
         }
         return result;
@@ -346,8 +374,10 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
 
     private abstract class IdentityHashMapIterator<T> implements Iterator<T> {
         int index = (size != 0 ? 0 : table.length); // current slot.
+        // 迭代器的快速失败机制
         int expectedModCount = modCount; // to support fast-fail
         int lastReturnedIndex = -1;      // to allow remove()
+        // 这个参数是为了避免无效计算
         boolean indexValid; // To avoid unnecessary next computation
         Object[] traversalTable = table; // reference to main table or copy
 
@@ -369,7 +399,7 @@ public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, 
                 throw new ConcurrentModificationException();
             if (!indexValid && !hasNext())
                 throw new NoSuchElementException();
-
+            // 调用nextIndex方法后，设置indexValid为不可用，也就是说，不能连续调用nextIndex方法
             indexValid = false;
             lastReturnedIndex = index;
             index += 2;
