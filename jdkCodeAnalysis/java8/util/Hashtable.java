@@ -7,8 +7,13 @@ import java.util.function.Function;
 import java.util.function.BiFunction;
 import sun.misc.SharedSecrets;
 
+/**
+ * 线程安全的Hashmap，基本废弃，推荐使用 ConcurrentHashmap
+ * synchronized版本，性能比较低，对整个哈希表加锁，而ConcurrentHashmap则是对桶加锁，锁粒度更小
+ * Hashtable使用头插法，JDK1.8之后的HashMap使用尾插法
+ */
 public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneable, java.io.Serializable {
-
+    // 哈希表
     private transient Entry<?,?>[] table;
 
     private transient int count;
@@ -23,8 +28,7 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
 
     public Hashtable(int initialCapacity, float loadFactor) {
         if (initialCapacity < 0)
-            throw new IllegalArgumentException("Illegal Capacity: "+
-                                               initialCapacity);
+            throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal Load: "+loadFactor);
 
@@ -38,7 +42,7 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
     public Hashtable(int initialCapacity) {
         this(initialCapacity, 0.75f);
     }
-
+    // 默认容量为 11
     public Hashtable() {
         this(11, 0.75f);
     }
@@ -110,13 +114,14 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
     }
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-
+    // 扩容
     @SuppressWarnings("unchecked")
     protected void rehash() {
         int oldCapacity = table.length;
         Entry<?,?>[] oldMap = table;
 
         // overflow-conscious code
+        // 扩容 2n+1
         int newCapacity = (oldCapacity << 1) + 1;
         if (newCapacity - MAX_ARRAY_SIZE > 0) {
             if (oldCapacity == MAX_ARRAY_SIZE)
@@ -134,14 +139,14 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
             for (Entry<K,V> old = (Entry<K,V>)oldMap[i] ; old != null ; ) {
                 Entry<K,V> e = old;
                 old = old.next;
-
+                // 对newCapacity取余
                 int index = (e.hash & 0x7FFFFFFF) % newCapacity;
                 e.next = (Entry<K,V>)newMap[index];
                 newMap[index] = e;
             }
         }
     }
-
+    // 头插法
     private void addEntry(int hash, K key, V value, int index) {
         modCount++;
 
@@ -158,12 +163,13 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
         // Creates the new entry.
         @SuppressWarnings("unchecked")
         Entry<K,V> e = (Entry<K,V>) tab[index];
+        // 新Entry置于桶头，原桶头是新Entry的 next
         tab[index] = new Entry<>(hash, key, value, e);
         count++;
     }
 
     public synchronized V put(K key, V value) {
-        // Make sure the value is not null
+        // key value 都不支持null
         if (value == null) {
             throw new NullPointerException();
         }
@@ -174,14 +180,16 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
         int index = (hash & 0x7FFFFFFF) % tab.length;
         @SuppressWarnings("unchecked")
         Entry<K,V> entry = (Entry<K,V>)tab[index];
+        // 桶位置不为空，则遍历链表
         for(; entry != null ; entry = entry.next) {
+            // 查找在链表中hash位置相同的情况下，是否有key值相等，有则替换
             if ((entry.hash == hash) && entry.key.equals(key)) {
                 V old = entry.value;
                 entry.value = value;
                 return old;
             }
         }
-
+        // 头插法，放置于桶位置中，即新元素都会放在桶头位置
         addEntry(hash, key, value, index);
         return null;
     }
@@ -435,16 +443,6 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
     }
 
     public synchronized int hashCode() {
-        /*
-         * This code detects the recursion caused by computing the hash code
-         * of a self-referential hash table and prevents the stack overflow
-         * that would otherwise result.  This allows certain 1.1-era
-         * applets with self-referential hash tables to work.  This code
-         * abuses the loadFactor field to do double-duty as a hashCode
-         * in progress flag, so as not to worsen the space performance.
-         * A negative load factor indicates that hash code computation is
-         * in progress.
-         */
         int h = 0;
         if (count == 0 || loadFactor < 0)
             return h;  // Returns zero
@@ -827,7 +825,7 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
         tab[index] = new Entry<>(hash, key, value, e);
         count++;
     }
-
+    // 单向链表
     private static class Entry<K,V> implements Map.Entry<K,V> {
         final int hash;
         final K key;
@@ -843,8 +841,7 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
 
         @SuppressWarnings("unchecked")
         protected Object clone() {
-            return new Entry<>(hash, key, value,
-                                  (next==null ? null : (Entry<K,V>) next.clone()));
+            return new Entry<>(hash, key, value, (next==null ? null : (Entry<K,V>) next.clone()));
         }
 
         // Map.Entry Ops

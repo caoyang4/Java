@@ -13,6 +13,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import sun.misc.SharedSecrets;
 
+/**
+ * JDK1.7及之前：数组+链表
+ * JDK1.8:数组+链表+红黑树
+ * HashMap 允许 null 键和 null 值
+ */
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable {
 
     private static final long serialVersionUID = 362498820763181265L;
@@ -53,7 +58,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         public final K getKey()        { return key; }
         public final V getValue()      { return value; }
         public final String toString() { return key + "=" + value; }
-
+        // k-v的 hashcode 取异或
         public final int hashCode() {
             return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
@@ -203,7 +208,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         Node<K,V> e;
         return (e = getNode(hash(key), key)) == null ? null : e.value;
     }
-
+    // 定位node
     final Node<K,V> getNode(int hash, Object key) {
         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
         // 哈希表不为空
@@ -253,18 +258,21 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
+            // 在红黑树上
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+            // 在链表中
             else {
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
-                        // 加进链表
+                        // 新节点，加进链表
                         p.next = newNode(hash, key, value, null);
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                             // 树化
                             treeifyBin(tab, hash);
                         break;
                     }
+                    // 不是新节点，根据 onlyIfAbsent 是否覆盖
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
                         break;
@@ -506,7 +514,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         return false;
     }
 
-
+    // 键集合
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
@@ -718,8 +726,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
         return v;
     }
 
-    public V computeIfPresent(K key,
-                              BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();
         Node<K,V> e; V oldValue;
@@ -792,8 +799,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     }
 
     @Override
-    public V merge(K key, V value,
-                   BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+    public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         if (value == null)
             throw new NullPointerException();
         if (remappingFunction == null)
@@ -1329,7 +1335,8 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     // Tree bins
 
     /**
-     * TreeNode继承LinkedHashMap.Entry, LinkedHashMap.Entry继承HashMap.Node
+     * TreeNode继承LinkedHashMap.Entry, LinkedHashMap.Entry继承HashMap.Node，这样设计为了 Node 节约空间
+     *
      * 链表转成红黑树后，原链表的顺序仍然会被引用仍被保留了（红黑树的根节点会被移动到链表的第一位），
      * 仍然可以按遍历链表的方式去遍历上面的红黑树
      */
