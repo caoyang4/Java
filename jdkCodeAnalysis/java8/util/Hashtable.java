@@ -35,6 +35,7 @@ public class Hashtable<K,V> extends Dictionary<K,V> implements Map<K,V>, Cloneab
         if (initialCapacity==0)
             initialCapacity = 1;
         this.loadFactor = loadFactor;
+        // 初始化Entry数组
         table = new Entry<?,?>[initialCapacity];
         threshold = (int)Math.min(initialCapacity * loadFactor, MAX_ARRAY_SIZE + 1);
     }

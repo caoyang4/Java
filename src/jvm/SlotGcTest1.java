@@ -3,6 +3,7 @@ package src.jvm;
 /**
  * 局部变量表垃圾回收
  * -verbose:gc -XX:+PrintCommandLineFlags
+ *  -Xloggc:./src/jvm/gcLogs/gc.log 写 gc 日志
  * Java8 中，默认搭配Parallel（young gc）+ Parallel Old (Major gc) 使用，且二者互相激活
  * 支持自适应调节
  * @author caoyang
