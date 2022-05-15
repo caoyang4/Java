@@ -1,6 +1,6 @@
 package java.util;
 
-
+// 配合 Timer 使用的
 public abstract class TimerTask implements Runnable {
     final Object lock = new Object();
 

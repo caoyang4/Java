@@ -16,9 +16,7 @@ import java.util.NoSuchElementException;
 
 
 
-public final class ServiceLoader<S>
-    implements Iterable<S>
-{
+public final class ServiceLoader<S> implements Iterable<S> {
 
     private static final String PREFIX = "META-INF/services/";
 
@@ -100,26 +98,8 @@ public final class ServiceLoader<S>
         return lc + 1;
     }
 
-    // Parse the content of the given URL as a provider-configuration file.
-    //
-    // @param  service
-    //         The service type for which providers are being sought;
-    //         used to construct error detail strings
-    //
-    // @param  u
-    //         The URL naming the configuration file to be parsed
-    //
-    // @return A (possibly empty) iterator that will yield the provider-class
-    //         names in the given configuration file that are not yet members
-    //         of the returned set
-    //
-    // @throws ServiceConfigurationError
-    //         If an I/O error occurs while reading from the given URL, or
-    //         if a configuration-file format error is detected
-    //
-    private Iterator<String> parse(Class<?> service, URL u)
-        throws ServiceConfigurationError
-    {
+
+    private Iterator<String> parse(Class<?> service, URL u) throws ServiceConfigurationError {
         InputStream in = null;
         BufferedReader r = null;
         ArrayList<String> names = new ArrayList<>();
@@ -141,11 +121,8 @@ public final class ServiceLoader<S>
         return names.iterator();
     }
 
-    // Private inner class implementing fully-lazy provider lookup
-    //
-    private class LazyIterator
-        implements Iterator<S>
-    {
+
+    private class LazyIterator implements Iterator<S> {
 
         Class<S> service;
         ClassLoader loader;
@@ -192,21 +169,17 @@ public final class ServiceLoader<S>
             try {
                 c = Class.forName(cn, false, loader);
             } catch (ClassNotFoundException x) {
-                fail(service,
-                     "Provider " + cn + " not found");
+                fail(service, "Provider " + cn + " not found");
             }
             if (!service.isAssignableFrom(c)) {
-                fail(service,
-                     "Provider " + cn  + " not a subtype");
+                fail(service, "Provider " + cn  + " not a subtype");
             }
             try {
                 S p = service.cast(c.newInstance());
                 providers.put(cn, p);
                 return p;
             } catch (Throwable x) {
-                fail(service,
-                     "Provider " + cn + " could not be instantiated",
-                     x);
+                fail(service, "Provider " + cn + " could not be instantiated", x);
             }
             throw new Error();          // This cannot happen
         }
@@ -264,9 +237,7 @@ public final class ServiceLoader<S>
         };
     }
 
-    public static <S> ServiceLoader<S> load(Class<S> service,
-                                            ClassLoader loader)
-    {
+    public static <S> ServiceLoader<S> load(Class<S> service, ClassLoader loader) {
         return new ServiceLoader<>(service, loader);
     }
 

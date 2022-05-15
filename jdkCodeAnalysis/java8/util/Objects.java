@@ -2,6 +2,9 @@ package java.util;
 
 import java.util.function.Supplier;
 
+/**
+ * Object的工具类
+ */
 public final class Objects {
     private Objects() {
         throw new AssertionError("No java.util.Objects instances for you!");

@@ -43,8 +43,7 @@ class Random implements java.io.Serializable {
         }
     }
 
-    private static final AtomicLong seedUniquifier
-        = new AtomicLong(8682522807148012L);
+    private static final AtomicLong seedUniquifier = new AtomicLong(8682522807148012L);
 
     public Random(long seed) {
         if (getClass() == Random.class)

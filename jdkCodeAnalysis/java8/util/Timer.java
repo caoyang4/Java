@@ -2,8 +2,12 @@ package java.util;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
+/**
+ * 定时器，不推荐使用，可以使用ScheduledThreadPoolExecutor
+ * 发生异常，线程结束，不会创建新线程
+ */
 public class Timer {
+    // 任务队列
     private final TaskQueue queue = new TaskQueue();
 
     private final TimerThread thread = new TimerThread(queue);
@@ -32,6 +36,7 @@ public class Timer {
 
     public Timer(String name) {
         thread.setName(name);
+        // 初始化时，机会启动该线程
         thread.start();
     }
 
@@ -95,8 +100,7 @@ public class Timer {
 
             synchronized(task.lock) {
                 if (task.state != TimerTask.VIRGIN)
-                    throw new IllegalStateException(
-                        "Task already scheduled or cancelled");
+                    throw new IllegalStateException("Task already scheduled or cancelled");
                 task.nextExecutionTime = time;
                 task.period = period;
                 task.state = TimerTask.SCHEDULED;
@@ -156,13 +160,16 @@ class TimerThread extends Thread {
         }
     }
 
+    /**
+     * 本质上一个大的死循环，发生异常，整个定时任务就失败了，不会继续
+     */
     private void mainLoop() {
         while (true) {
             try {
                 TimerTask task;
                 boolean taskFired;
                 synchronized(queue) {
-                    // Wait for queue to become non-empty
+                    // 如果queue是空的，会一直等待下去，直到Timer添加任务时notify后被唤醒
                     while (queue.isEmpty() && newTasksMayBeScheduled)
                         queue.wait();
                     if (queue.isEmpty())
@@ -173,6 +180,7 @@ class TimerThread extends Thread {
                     task = queue.getMin();
                     synchronized(task.lock) {
                         if (task.state == TimerTask.CANCELLED) {
+                            // 如果这个任务被取消了，就从queue中移除
                             queue.removeMin();
                             continue;  // No action required, poll queue again
                         }
@@ -201,6 +209,7 @@ class TimerThread extends Thread {
 }
 
 class TaskQueue {
+    // 数组，默认长度128
     private TimerTask[] queue = new TimerTask[128];
 
     private int size = 0;

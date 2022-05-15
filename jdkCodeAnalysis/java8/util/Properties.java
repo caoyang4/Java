@@ -14,8 +14,12 @@ import java.security.PrivilegedAction;
 
 import sun.util.spi.XmlPropertiesProvider;
 
-public
-class Properties extends Hashtable<Object,Object> {
+/**
+ * 相当于 Map<String,String>
+ * 在 spring 配置文件解析中有应用到
+ *
+ */
+public class Properties extends Hashtable<Object,Object> {
      private static final long serialVersionUID = 4112578634029874840L;
 
     protected Properties defaults;
@@ -93,12 +97,6 @@ class Properties extends Hashtable<Object,Object> {
         }
     }
 
-    /* Read in a "logical line" from an InputStream/Reader, skip all comment
-     * and blank lines and filter out those leading whitespace characters
-     * (\u0020, \u0009 and \u000c) from the beginning of a "natural line".
-     * Method returns the char length of the "logical line" and stores
-     * the line in "lineBuf".
-     */
     class LineReader {
         public LineReader(InputStream inStream) {
             this.inStream = inStream;
@@ -231,10 +229,7 @@ class Properties extends Hashtable<Object,Object> {
         }
     }
 
-    /*
-     * Converts encoded &#92;uxxxx to unicode chars
-     * and changes special saved chars to their original forms
-     */
+
     private String loadConvert (char[] in, int off, int len, char[] convtBuf) {
         if (convtBuf.length < len) {
             int newLen = len * 2;
@@ -290,13 +285,7 @@ class Properties extends Hashtable<Object,Object> {
         return new String (out, 0, outLen);
     }
 
-    /*
-     * Converts unicodes to encoded &#92;uxxxx and escapes
-     * special characters with a preceding slash
-     */
-    private String saveConvert(String theString,
-                               boolean escapeSpace,
-                               boolean escapeUnicode) {
+    private String saveConvert(String theString, boolean escapeSpace, boolean escapeUnicode) {
         int len = theString.length();
         int bufLen = len * 2;
         if (bufLen < 0) {
@@ -410,55 +399,14 @@ class Properties extends Hashtable<Object,Object> {
                false);
     }
 
-    /**
-     * Writes this property list (key and element pairs) in this
-     * {@code Properties} table to the output stream in a format suitable
-     * for loading into a {@code Properties} table using the
-     * {@link #load(InputStream) load(InputStream)} method.
-     * <p>
-     * Properties from the defaults table of this {@code Properties}
-     * table (if any) are <i>not</i> written out by this method.
-     * <p>
-     * This method outputs the comments, properties keys and values in
-     * the same format as specified in
-     * {@link #store(java.io.Writer, java.lang.String) store(Writer)},
-     * with the following differences:
-     * <ul>
-     * <li>The stream is written using the ISO 8859-1 character encoding.
-     *
-     * <li>Characters not in Latin-1 in the comments are written as
-     * {@code \u005Cu}<i>xxxx</i> for their appropriate unicode
-     * hexadecimal value <i>xxxx</i>.
-     *
-     * <li>Characters less than {@code \u005Cu0020} and characters greater
-     * than {@code \u005Cu007E} in property keys or values are written
-     * as {@code \u005Cu}<i>xxxx</i> for the appropriate hexadecimal
-     * value <i>xxxx</i>.
-     * </ul>
-     * <p>
-     * After the entries have been written, the output stream is flushed.
-     * The output stream remains open after this method returns.
-     * <p>
-     * @param   out      an output stream.
-     * @param   comments   a description of the property list.
-     * @exception  IOException if writing this property list to the specified
-     *             output stream throws an <tt>IOException</tt>.
-     * @exception  ClassCastException  if this {@code Properties} object
-     *             contains any keys or values that are not {@code Strings}.
-     * @exception  NullPointerException  if {@code out} is null.
-     * @since 1.2
-     */
-    public void store(OutputStream out, String comments)
-        throws IOException
-    {
+
+    public void store(OutputStream out, String comments) throws IOException {
         store0(new BufferedWriter(new OutputStreamWriter(out, "8859_1")),
                comments,
                true);
     }
 
-    private void store0(BufferedWriter bw, String comments, boolean escUnicode)
-        throws IOException
-    {
+    private void store0(BufferedWriter bw, String comments, boolean escUnicode) throws IOException {
         if (comments != null) {
             writeComments(bw, comments);
         }
@@ -480,22 +428,16 @@ class Properties extends Hashtable<Object,Object> {
         bw.flush();
     }
 
-    public synchronized void loadFromXML(InputStream in)
-        throws IOException, InvalidPropertiesFormatException
-    {
+    public synchronized void loadFromXML(InputStream in) throws IOException, InvalidPropertiesFormatException {
         XmlSupport.load(this, Objects.requireNonNull(in));
         in.close();
     }
 
-    public void storeToXML(OutputStream os, String comment)
-        throws IOException
-    {
+    public void storeToXML(OutputStream os, String comment) throws IOException {
         storeToXML(os, comment, "UTF-8");
     }
 
-    public void storeToXML(OutputStream os, String comment, String encoding)
-        throws IOException
-    {
+    public void storeToXML(OutputStream os, String comment, String encoding) throws IOException {
         XmlSupport.save(this, Objects.requireNonNull(os), comment,
                         Objects.requireNonNull(encoding));
     }
@@ -537,11 +479,6 @@ class Properties extends Hashtable<Object,Object> {
         }
     }
 
-    /*
-     * Rather than use an anonymous inner class to share common code, this
-     * method is duplicated in order to ensure that a non-1.1 compiler can
-     * compile this file.
-     */
     public void list(PrintWriter out) {
         out.println("-- listing properties --");
         Hashtable<String,Object> h = new Hashtable<>();
