@@ -3,6 +3,9 @@ package java.util;
 import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
+/**
+ *
+ */
 public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serializable {
 
     private static final long serialVersionUID = -7720805057305804111L;
