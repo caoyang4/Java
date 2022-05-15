@@ -2,25 +2,33 @@ package java.util;
 
 import java.util.function.Consumer;
 
+/**
+ * 无界
+ * 底层是双向链表i结构，增删快，查找慢，允许存储 item 为 null，链表元素可重复
+ * @param <E>
+ */
 public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>, Deque<E>, Cloneable, java.io.Serializable {
+    // 长度，即节点个数
     transient int size = 0;
-
+    // 头节点
     transient Node<E> first;
-
+    // 尾节点
     transient Node<E> last;
-
+    // 空构造方法
     public LinkedList() {
     }
-
+    // 指定集合
     public LinkedList(Collection<? extends E> c) {
         this();
         addAll(c);
     }
-
+    // 在表头添加指定元素e
     private void linkFirst(E e) {
         final Node<E> f = first;
+        // 新建节点，节点的前驱指向null，后继指向原来的头节点
         final Node<E> newNode = new Node<>(null, e, f);
         first = newNode;
+        // 如果原来的头结点为null，更新尾指针，否则使原来的头结点f的前置指针指向newNode
         if (f == null)
             last = newNode;
         else
@@ -28,11 +36,13 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         size++;
         modCount++;
     }
-
+    // 在表尾插入指定元素e
     void linkLast(E e) {
         final Node<E> l = last;
+        // 新建节点newNode，节点的前向指向原尾结点，后继指向null
         final Node<E> newNode = new Node<>(l, e, null);
         last = newNode;
+        // 如果原来的尾结点为null，更新头指针，否则使原来的尾结点l的后继指向newNode
         if (l == null)
             first = newNode;
         else
@@ -40,12 +50,15 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         size++;
         modCount++;
     }
-
+    // 中间插入
+    // 在指定节点succ之前插入指定元素e，指定节点succ不能为null
     void linkBefore(E e, Node<E> succ) {
-        // assert succ != null;
+        // 获得指定节点的前驱
         final Node<E> pred = succ.prev;
+        // 新建节点newNode，前驱指向pred，后继指向succ
         final Node<E> newNode = new Node<>(pred, e, succ);
         succ.prev = newNode;
+        //如果指定节点的前驱为null，将newNode设为头节点；否则更新pred的后置节点
         if (pred == null)
             first = newNode;
         else
@@ -53,13 +66,13 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         size++;
         modCount++;
     }
-
+    // 删除头结点f，并返回头结点的值
     private E unlinkFirst(Node<E> f) {
-        // assert f == first && f != null;
         final E element = f.item;
         final Node<E> next = f.next;
+        // help GC
         f.item = null;
-        f.next = null; // help GC
+        f.next = null;
         first = next;
         if (next == null)
             last = null;
@@ -69,13 +82,14 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         modCount++;
         return element;
     }
-
+    //  删除尾节点并返回尾节点的值
     private E unlinkLast(Node<E> l) {
         // assert l == last && l != null;
         final E element = l.item;
         final Node<E> prev = l.prev;
+        // help GC
         l.item = null;
-        l.prev = null; // help GC
+        l.prev = null;
         last = prev;
         if (prev == null)
             first = null;
@@ -85,21 +99,23 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         modCount++;
         return element;
     }
-
+    // 删除指定节点，返回指定元素的值
     E unlink(Node<E> x) {
         // assert x != null;
         final E element = x.item;
         final Node<E> next = x.next;
         final Node<E> prev = x.prev;
-
+        // 如果删除的节点是头节点,令头节点指向该节点的后继节点
         if (prev == null) {
             first = next;
         } else {
+            // 将前驱节点的后继节点指向删除节点的后继节点
             prev.next = next;
             x.prev = null;
         }
 
         if (next == null) {
+            // 如果删除的节点是尾节点,令尾节点指向该节点的前驱节点
             last = prev;
         } else {
             next.prev = prev;
@@ -111,39 +127,39 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         modCount++;
         return element;
     }
-
+    // 获取头结点
     public E getFirst() {
         final Node<E> f = first;
         if (f == null)
             throw new NoSuchElementException();
         return f.item;
     }
-
+    // 获取尾结点
     public E getLast() {
         final Node<E> l = last;
         if (l == null)
             throw new NoSuchElementException();
         return l.item;
     }
-
+    // 删除头结点
     public E removeFirst() {
         final Node<E> f = first;
         if (f == null)
             throw new NoSuchElementException();
         return unlinkFirst(f);
     }
-
+    // 删除尾结点
     public E removeLast() {
         final Node<E> l = last;
         if (l == null)
             throw new NoSuchElementException();
         return unlinkLast(l);
     }
-
+    // 将元素添加到链表头部
     public void addFirst(E e) {
         linkFirst(e);
     }
-
+    // 将元素添加到链表尾部
     public void addLast(E e) {
         linkLast(e);
     }
@@ -155,12 +171,12 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
     public int size() {
         return size;
     }
-
+    // 将元素添加到链表尾部
     public boolean add(E e) {
         linkLast(e);
         return true;
     }
-
+    // 删除元素
     public boolean remove(Object o) {
         if (o == null) {
             for (Node<E> x = first; x != null; x = x.next) {
@@ -185,13 +201,16 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
     }
 
     public boolean addAll(int index, Collection<? extends E> c) {
+        // 检查索引位置是否合法，必须得 >=0 && <=size 否则抛出IndexOutOfBoundsException异常
         checkPositionIndex(index);
 
         Object[] a = c.toArray();
         int numNew = a.length;
+        // 如果待添加的集合为空，直接返回
         if (numNew == 0)
             return false;
-
+        // pred:指待添加节点的前一个节点；
+        // succ:指待添加节点的位置
         Node<E> pred, succ;
         if (index == size) {
             succ = null;
@@ -200,7 +219,7 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
             succ = node(index);
             pred = succ.prev;
         }
-
+        // 遍历数组中的每个元素。在每次遍历的时候，都新建一个节点，该节点的值存储数组a中遍历的值，该节点的prev用来存储pred节点，next设置为空。
         for (Object o : a) {
             @SuppressWarnings("unchecked") E e = (E) o;
             Node<E> newNode = new Node<>(pred, e, null);
@@ -212,8 +231,10 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         }
 
         if (succ == null) {
+            // 当succ==null,新添加的节点位于LinkedList集合的最后一个元素的后面
             last = pred;
         } else {
+            // 当不为空的时候，表明在LinkedList集合中添加的元素，需要把pred的next指向succ上，succ的prev指向pred
             pred.next = succ;
             succ.prev = pred;
         }
@@ -251,16 +272,17 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         x.item = element;
         return oldVal;
     }
-
+    // 在指定位置添加元素
     public void add(int index, E element) {
         checkPositionIndex(index);
-
         if (index == size)
+            // 尾部插入
             linkLast(element);
         else
+            // 中间插入
             linkBefore(element, node(index));
     }
-
+    // 删除节点
     public E remove(int index) {
         checkElementIndex(index);
         return unlink(node(index));
@@ -289,8 +311,6 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
     }
 
     Node<E> node(int index) {
-        // assert isElementIndex(index);
-
         if (index < (size >> 1)) {
             Node<E> x = first;
             for (int i = 0; i < index; i++)
@@ -342,8 +362,8 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         return -1;
     }
 
-    // Queue operations.
-
+    // 队列操作
+    // 获取头结点
     public E peek() {
         final Node<E> f = first;
         return (f == null) ? null : f.item;
@@ -352,16 +372,16 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
     public E element() {
         return getFirst();
     }
-
+    // 获取头结点，并将其从队列中剔除
     public E poll() {
         final Node<E> f = first;
         return (f == null) ? null : unlinkFirst(f);
     }
-
+    // 删除头结点
     public E remove() {
         return removeFirst();
     }
-
+    // 添加元素到尾部
     public boolean offer(E e) {
         return add(e);
     }
@@ -391,7 +411,7 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
         final Node<E> f = first;
         return (f == null) ? null : unlinkFirst(f);
     }
-
+    // 获取尾结点，并从链表中剔除
     public E pollLast() {
         final Node<E> l = last;
         return (l == null) ? null : unlinkLast(l);
@@ -531,10 +551,12 @@ public class LinkedList<E> extends AbstractSequentialList<E> implements List<E>,
                 throw new ConcurrentModificationException();
         }
     }
-
+    // 双向链表
     private static class Node<E> {
         E item;
+        // 后继节点
         Node<E> next;
+        // 前向节点
         Node<E> prev;
 
         Node(Node<E> prev, E element, Node<E> next) {

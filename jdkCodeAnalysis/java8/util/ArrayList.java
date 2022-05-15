@@ -6,7 +6,8 @@ import java.util.function.UnaryOperator;
 import sun.misc.SharedSecrets;
 
 /**
- * ArrayList底层数组实现，允许元素为 null
+ * ArrayList底层是基于数组实现的，因此具有查找修改快而插入删除慢的特点
+ * 允许元素为 null
  */
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8683452581122892189L;

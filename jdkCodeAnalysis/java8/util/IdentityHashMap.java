@@ -10,7 +10,7 @@ import sun.misc.SharedSecrets;
  * HashMap对4个key执行put操作时，使用hashCode作为hash值，使用equals进行相等判断
  * IdentityHashMap对4个key执行put操作时，使用System.identityHashCode作为hash值，使用==进行相等判断
  *
- * IdentityHashMap是一致性哈希表，使用引用相等，而不是equals方法来比较两个对象的相等性
+ * IdentityHashMap是一致性哈希表，容量为32，加载因子为2/3，使用引用相等，而不是equals方法来比较两个对象的相等性
  *
  * IdentityHashMap将所有的key和value都存储到Object[]数组table中，并且key和value相邻存储，
  * 当出现哈希冲突时，会往下遍历数组，直到找到一个空闲的位置。注意，数组第一个位置存储的是key，第二个位置存储的是value。

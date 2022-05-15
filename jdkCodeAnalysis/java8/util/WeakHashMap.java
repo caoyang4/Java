@@ -7,23 +7,35 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-
+/**
+ * WeakHashMap是一种弱引用map，内部的key会存储为弱引用，当gc的时候，如果这些key没有强引用存在的话，会被gc回收掉，
+ * 下一次当我们操作map的时候会把对应的Entry整个删除掉，基于这种特性，WeakHashMap特别适用于缓存处理。
+ * WeakHashMap没有实现Clone和Serializable接口，所以不具有克隆和序列化的特性
+ * 允许 key，value 为 null
+ * 和 Hashtable 一样采用头插法
+ *
+ * （1）WeakHashMap使用（数组 + 链表）存储结构；
+ * （2）WeakHashMap中的key是弱引用，gc的时候会被清除；
+ * （3）每次对map的操作都会剔除失效key对应的Entry；
+ * （4）使用String作为key时，一定要使用new String()这样的方式声明key，才会失效，其它的基本类型的包装类型是一样的；
+ * （5）WeakHashMap常用来作为缓存使用；
+ */
 public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
-
+    // 默认初始容量为16
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
-
+    // 最大容量为2的30次方
     private static final int MAXIMUM_CAPACITY = 1 << 30;
-
+    // 默认装载因子
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
-
+    // 底层数组结构
     Entry<K,V>[] table;
-
+    // 元素个数
     private int size;
 
     private int threshold;
 
     private final float loadFactor;
-
+    // 引用队列，当弱键失效的时候会把Entry添加到这个队列中
     private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
 
     int modCount;
@@ -44,6 +56,8 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
         int capacity = 1;
         while (capacity < initialCapacity)
             capacity <<= 1;
+        // 初始化数组
+        // 不同于 Hashmap 懒初始化，WeakHashMap是饿汉式初始化，即使没有数组添加，也会开辟空间
         table = newTable(capacity);
         this.loadFactor = loadFactor;
         threshold = (int)(capacity * loadFactor);
@@ -98,7 +112,6 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
                 @SuppressWarnings("unchecked")
                     Entry<K,V> e = (Entry<K,V>) x;
                 int i = indexFor(e.hash, table.length);
-
                 Entry<K,V> prev = table[i];
                 Entry<K,V> p = prev;
                 while (p != null) {
@@ -108,8 +121,6 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
                             table[i] = next;
                         else
                             prev.next = next;
-                        // Must not null out e.next;
-                        // stale entries may be in use by a HashIterator
                         e.value = null; // Help GC
                         size--;
                         break;
@@ -136,13 +147,14 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
     public boolean isEmpty() {
         return size() == 0;
     }
-
+    // 获取元素
     public V get(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
         Entry<K,V>[] tab = getTable();
         int index = indexFor(h, tab.length);
         Entry<K,V> e = tab[index];
+        // 遍历链表，找到了就返回
         while (e != null) {
             if (e.hash == h && eq(k, e.get()))
                 return e.value;
@@ -167,13 +179,17 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
     }
 
     public V put(K key, V value) {
+        // 如果key为空，用空对象代替
         Object k = maskNull(key);
+        // 计算key的hash值
         int h = hash(k);
         Entry<K,V>[] tab = getTable();
+        // 计算元素在哪个桶中，h & (length-1)
         int i = indexFor(h, tab.length);
-
+        // 遍历桶对应的链表
         for (Entry<K,V> e = tab[i]; e != null; e = e.next) {
             if (h == e.hash && eq(k, e.get())) {
+                // 如果key已存在，就使用新值替换旧值，并返回旧值
                 V oldValue = e.value;
                 if (value != oldValue)
                     e.value = value;
@@ -182,13 +198,23 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
         }
 
         modCount++;
+        // 原桶头节点
         Entry<K,V> e = tab[i];
+        // 新节点为桶头，原桶头为新节点的next
         tab[i] = new Entry<>(k, value, queue, h, e);
+        // 如果插入元素后数量达到了扩容门槛就把桶的数量扩容为2倍大小
         if (++size >= threshold)
             resize(tab.length * 2);
         return null;
     }
-
+    /**
+     *  扩容
+     * （1）判断旧容量是否达到最大容量；
+     * （2）新建新桶并把元素全部转移到新桶中；
+     * （3）如果转移后元素个数不到扩容门槛的一半，则把元素再转移回旧桶，继续使用旧桶，说明不需要扩容；
+     * （4）否则使用新桶，并计算新的扩容门槛；
+     * （5）转移元素的过程中会把key为null的元素清除掉，所以size会变小；
+      */
     void resize(int newCapacity) {
         Entry<K,V>[] oldTable = getTable();
         int oldCapacity = oldTable.length;
@@ -196,25 +222,21 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
             threshold = Integer.MAX_VALUE;
             return;
         }
-
+        // newCapacity已经是oldCapacity的两倍了
         Entry<K,V>[] newTable = newTable(newCapacity);
         transfer(oldTable, newTable);
         table = newTable;
 
-        /*
-         * If ignoring null elements and processing ref queue caused massive
-         * shrinkage, then restore old table.  This should be rare, but avoids
-         * unbounded expansion of garbage-filled tables.
-         */
         if (size >= threshold / 2) {
             threshold = (int)(newCapacity * loadFactor);
         } else {
             expungeStaleEntries();
+            // 旧数组迁移到新数组，清除失效的Entry
             transfer(newTable, oldTable);
             table = oldTable;
         }
     }
-
+    // 旧数组迁移到新数组
     private void transfer(Entry<K,V>[] src, Entry<K,V>[] dest) {
         for (int j = 0; j < src.length; ++j) {
             Entry<K,V> e = src[j];
@@ -222,11 +244,13 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
             while (e != null) {
                 Entry<K,V> next = e.next;
                 Object key = e.get();
+                // 清除失效的Entry
                 if (key == null) {
                     e.next = null;  // Help GC
                     e.value = null; //  "   "
                     size--;
                 } else {
+                    // 计算在新桶中的位置并把这个元素放在新桶对应链表的头部
                     int i = indexFor(e.hash, dest.length);
                     e.next = dest[i];
                     dest[i] = e;
@@ -240,16 +264,6 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
         int numKeysToBeAdded = m.size();
         if (numKeysToBeAdded == 0)
             return;
-
-        /*
-         * Expand the map if the map if the number of mappings to be added
-         * is greater than or equal to threshold.  This is conservative; the
-         * obvious condition is (m.size() + size) >= threshold, but this
-         * condition could result in a map with twice the appropriate capacity,
-         * if the keys to be added overlap with the keys already in this map.
-         * By using the conservative calculation, we subject ourself
-         * to at most one extra resize.
-         */
         if (numKeysToBeAdded > threshold) {
             int targetCapacity = (int)(numKeysToBeAdded / loadFactor + 1);
             if (targetCapacity > MAXIMUM_CAPACITY)
@@ -265,20 +279,31 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
             put(e.getKey(), e.getValue());
     }
 
+    /**
+     * 删除元素
+     * （1）计算hash；
+     * （2）找到所在的桶；
+     * （3）遍历桶对应的链表；
+     * （4）如果找到了就删除该节点，并返回该节点的value值；
+     * （5）如果没找到就返回null；
+     */
     public V remove(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
         Entry<K,V>[] tab = getTable();
         int i = indexFor(h, tab.length);
+        // 元素所在的桶的第一个元素
         Entry<K,V> prev = tab[i];
         Entry<K,V> e = prev;
 
         while (e != null) {
             Entry<K,V> next = e.next;
+            // 如果找到了就删除元素
             if (h == e.hash && eq(k, e.get())) {
                 modCount++;
                 size--;
                 if (prev == e)
+                    // 如果是桶头，就把头节点指向下一个节点
                     tab[i] = next;
                 else
                     prev.next = next;
@@ -358,12 +383,23 @@ public class WeakHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
         return false;
     }
 
+    /**
+     * Entry没有key, 因为key是作为弱引用存到Reference类中
+     * 单向链表
+     */
     private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> {
         V value;
         final int hash;
+        // 后继节点
         Entry<K,V> next;
 
+        /**
+         * 从Entry的构造方法我们知道，key和queue最终会传到到Reference的构造方法中，
+         * 这里的key就是Reference的referent属性，它会被gc特殊对待，
+         * 如果没有强引用，下一次gc的时候会被清除。
+         */
         Entry(Object key, V value, ReferenceQueue<Object> queue, int hash, Entry<K,V> next) {
+            // 调用WeakReference的构造方法初始化key和引用队列
             super(key, queue);
             this.value = value;
             this.hash  = hash;
