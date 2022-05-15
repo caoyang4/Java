@@ -1,9 +1,10 @@
 package java.util;
 
-
-public class TreeSet<E> extends AbstractSet<E>
-    implements NavigableSet<E>, Cloneable, java.io.Serializable
-{
+/**
+ * 内部基于TreeMap实现
+ * @param <E>
+ */
+public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
     private transient NavigableMap<E,Object> m;
 
     // Dummy value to associate with an Object in the backing Map

@@ -5,17 +5,20 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-
-public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>, Cloneable, java.io.Serializable
-{
+/**
+ * TreeMap实现了NavigableMap接口，而NavigableMap接口继承着SortedMap接口，致使我们的TreeMap是有序的
+ * TreeMap底层是红黑树，时间复杂度:log(n)，不允许 null 键，但允许 null 值存在
+ * 使用Comparator或者Comparable来比较key是否相等与排序的问题
+ */
+public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>, Cloneable, java.io.Serializable {
     private final Comparator<? super K> comparator;
-
+    // 红黑树根节点
     private transient Entry<K,V> root;
 
     private transient int size = 0;
 
     private transient int modCount = 0;
-
+    // 无参构造函数，默认比较器为空
     public TreeMap() {
         comparator = null;
     }
@@ -90,7 +93,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
         }
         super.putAll(map);
     }
-
+    // 获取 Entry
     final Entry<K,V> getEntry(Object key) {
         // Offload comparator-based version for sake of performance
         if (comparator != null)
@@ -240,31 +243,40 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
 
     public V put(K key, V value) {
         Entry<K,V> t = root;
+        // 如果 root 为 null 说明是添加第一个元素，直接实例化一个 TreeMapEntry 赋值给 root
         if (t == null) {
-            compare(key, key); // type (and possibly null) check
-
+            // 类型检查，是否是Comparable类型
+            compare(key, key);
             root = new Entry<>(key, value, null);
             size = 1;
             modCount++;
             return null;
         }
         int cmp;
+        // 如果 root 不为 null，说明已存在元素
         Entry<K,V> parent;
         // split comparator and comparable paths
         Comparator<? super K> cpr = comparator;
+        // 如果存在比较器
         if (cpr != null) {
             do {
+                // 从根节点开始遍历
                 parent = t;
                 cmp = cpr.compare(key, t.key);
                 if (cmp < 0)
+                    // 当前 key 小于节点 parent 向左子树查找
                     t = t.left;
                 else if (cmp > 0)
+                    // 当前 key 大于节点 parent 向右子树查找
                     t = t.right;
                 else
+                    // 相等的情况下直接更新节点值，并返回
                     return t.setValue(value);
             } while (t != null);
         }
+        // 如果比较器为 null 则使用默认比较器
         else {
+            // key 不允许为null
             if (key == null)
                 throw new NullPointerException();
             @SuppressWarnings("unchecked")
@@ -280,11 +292,14 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
                     return t.setValue(value);
             } while (t != null);
         }
+        // 定义一个新的节点
         Entry<K,V> e = new Entry<>(key, value, parent);
+        // 根据比较结果决定插入到左子树还是右子树
         if (cmp < 0)
             parent.left = e;
         else
             parent.right = e;
+        // 保持红黑树性质，插入后进行修正，旋转+变色
         fixAfterInsertion(e);
         size++;
         modCount++;
@@ -584,14 +599,6 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
             return new EntrySpliterator<K,V>(TreeMap.this, null, null, 0, -1, 0);
         }
     }
-
-    /*
-     * Unlike Values and EntrySet, the KeySet class is static,
-     * delegating to a NavigableMap to allow use by SubMaps, which
-     * outweighs the ugliness of needing type-tests for the following
-     * Iterator methods that are defined appropriately in main versus
-     * submap classes.
-     */
 
     Iterator<K> keyIterator() {
         return new KeyIterator(getFirstEntry());
@@ -1110,8 +1117,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
                 if (!inRange(key))
                     return false;
                 TreeMap.Entry<K,V> node = m.getEntry(key);
-                if (node!=null && valEquals(node.getValue(),
-                                            entry.getValue())) {
+                if (node!=null && valEquals(node.getValue(), entry.getValue())) {
                     m.deleteEntry(node);
                     return true;
                 }
@@ -1125,8 +1131,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
             final Object fenceKey;
             int expectedModCount;
 
-            SubMapIterator(TreeMap.Entry<K,V> first,
-                           TreeMap.Entry<K,V> fence) {
+            SubMapIterator(TreeMap.Entry<K,V> first, TreeMap.Entry<K,V> fence) {
                 expectedModCount = m.modCount;
                 lastReturned = null;
                 next = first;
@@ -1185,8 +1190,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
         }
 
         final class SubMapEntryIterator extends SubMapIterator<Map.Entry<K,V>> {
-            SubMapEntryIterator(TreeMap.Entry<K,V> first,
-                                TreeMap.Entry<K,V> fence) {
+            SubMapEntryIterator(TreeMap.Entry<K,V> first, TreeMap.Entry<K,V> fence) {
                 super(first, fence);
             }
             public Map.Entry<K,V> next() {
@@ -1198,8 +1202,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
         }
 
         final class DescendingSubMapEntryIterator extends SubMapIterator<Map.Entry<K,V>> {
-            DescendingSubMapEntryIterator(TreeMap.Entry<K,V> last,
-                                          TreeMap.Entry<K,V> fence) {
+            DescendingSubMapEntryIterator(TreeMap.Entry<K,V> last, TreeMap.Entry<K,V> fence) {
                 super(last, fence);
             }
 
@@ -1214,8 +1217,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
         // Implement minimal Spliterator as KeySpliterator backup
         final class SubMapKeyIterator extends SubMapIterator<K>
             implements Spliterator<K> {
-            SubMapKeyIterator(TreeMap.Entry<K,V> first,
-                              TreeMap.Entry<K,V> fence) {
+            SubMapKeyIterator(TreeMap.Entry<K,V> first, TreeMap.Entry<K,V> fence) {
                 super(first, fence);
             }
             public K next() {
@@ -1250,10 +1252,8 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
             }
         }
 
-        final class DescendingSubMapKeyIterator extends SubMapIterator<K>
-            implements Spliterator<K> {
-            DescendingSubMapKeyIterator(TreeMap.Entry<K,V> last,
-                                        TreeMap.Entry<K,V> fence) {
+        final class DescendingSubMapKeyIterator extends SubMapIterator<K> implements Spliterator<K> {
+            DescendingSubMapKeyIterator(TreeMap.Entry<K,V> last, TreeMap.Entry<K,V> fence) {
                 super(last, fence);
             }
             public K next() {
@@ -1288,9 +1288,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
     static final class AscendingSubMap<K,V> extends NavigableSubMap<K,V> {
         private static final long serialVersionUID = 912986545866124060L;
 
-        AscendingSubMap(TreeMap<K,V> m,
-                        boolean fromStart, K lo, boolean loInclusive,
-                        boolean toEnd,     K hi, boolean hiInclusive) {
+        AscendingSubMap(TreeMap<K,V> m,boolean fromStart, K lo, boolean loInclusive,boolean toEnd, K hi, boolean hiInclusive) {
             super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive);
         }
 
@@ -1298,40 +1296,31 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
             return m.comparator();
         }
 
-        public NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive,
-                                        K toKey,   boolean toInclusive) {
+        public NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive, K toKey,   boolean toInclusive) {
             if (!inRange(fromKey, fromInclusive))
                 throw new IllegalArgumentException("fromKey out of range");
             if (!inRange(toKey, toInclusive))
                 throw new IllegalArgumentException("toKey out of range");
-            return new AscendingSubMap<>(m,
-                                         false, fromKey, fromInclusive,
-                                         false, toKey,   toInclusive);
+            return new AscendingSubMap<>(m, false, fromKey, fromInclusive, false, toKey,   toInclusive);
         }
 
         public NavigableMap<K,V> headMap(K toKey, boolean inclusive) {
             if (!inRange(toKey, inclusive))
                 throw new IllegalArgumentException("toKey out of range");
-            return new AscendingSubMap<>(m,
-                                         fromStart, lo,    loInclusive,
-                                         false,     toKey, inclusive);
+            return new AscendingSubMap<>(m, fromStart, lo,    loInclusive, false,     toKey, inclusive);
         }
 
         public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
             if (!inRange(fromKey, inclusive))
                 throw new IllegalArgumentException("fromKey out of range");
-            return new AscendingSubMap<>(m,
-                                         false, fromKey, inclusive,
-                                         toEnd, hi,      hiInclusive);
+            return new AscendingSubMap<>(m, false, fromKey, inclusive, toEnd, hi,      hiInclusive);
         }
 
         public NavigableMap<K,V> descendingMap() {
             NavigableMap<K,V> mv = descendingMapView;
             return (mv != null) ? mv :
                 (descendingMapView =
-                 new DescendingSubMap<>(m,
-                                        fromStart, lo, loInclusive,
-                                        toEnd,     hi, hiInclusive));
+                 new DescendingSubMap<>(m, fromStart, lo, loInclusive, toEnd,     hi, hiInclusive));
         }
 
         Iterator<K> keyIterator() {
@@ -1365,9 +1354,7 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
         TreeMap.Entry<K,V> subLower(K key)   { return absLower(key); }
     }
 
-    /**
-     * @serial include
-     */
+
     static final class DescendingSubMap<K,V>  extends NavigableSubMap<K,V> {
         private static final long serialVersionUID = 912986545866120460L;
         DescendingSubMap(TreeMap<K,V> m,
@@ -1376,47 +1363,37 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
             super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive);
         }
 
-        private final Comparator<? super K> reverseComparator =
-            Collections.reverseOrder(m.comparator);
+        private final Comparator<? super K> reverseComparator = Collections.reverseOrder(m.comparator);
 
         public Comparator<? super K> comparator() {
             return reverseComparator;
         }
 
-        public NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive,
-                                        K toKey,   boolean toInclusive) {
+        public NavigableMap<K,V> subMap(K fromKey, boolean fromInclusive, K toKey,   boolean toInclusive) {
             if (!inRange(fromKey, fromInclusive))
                 throw new IllegalArgumentException("fromKey out of range");
             if (!inRange(toKey, toInclusive))
                 throw new IllegalArgumentException("toKey out of range");
-            return new DescendingSubMap<>(m,
-                                          false, toKey,   toInclusive,
-                                          false, fromKey, fromInclusive);
+            return new DescendingSubMap<>(m, false, toKey, toInclusive,false, fromKey, fromInclusive);
         }
 
         public NavigableMap<K,V> headMap(K toKey, boolean inclusive) {
             if (!inRange(toKey, inclusive))
                 throw new IllegalArgumentException("toKey out of range");
-            return new DescendingSubMap<>(m,
-                                          false, toKey, inclusive,
-                                          toEnd, hi,    hiInclusive);
+            return new DescendingSubMap<>(m, false, toKey, inclusive, toEnd, hi, hiInclusive);
         }
 
         public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
             if (!inRange(fromKey, inclusive))
                 throw new IllegalArgumentException("fromKey out of range");
-            return new DescendingSubMap<>(m,
-                                          fromStart, lo, loInclusive,
-                                          false, fromKey, inclusive);
+            return new DescendingSubMap<>(m, fromStart, lo, loInclusive, false, fromKey, inclusive);
         }
 
         public NavigableMap<K,V> descendingMap() {
             NavigableMap<K,V> mv = descendingMapView;
             return (mv != null) ? mv :
                 (descendingMapView =
-                 new AscendingSubMap<>(m,
-                                       fromStart, lo, loInclusive,
-                                       toEnd,     hi, hiInclusive));
+                 new AscendingSubMap<>(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive));
         }
 
         Iterator<K> keyIterator() {
@@ -1475,12 +1452,15 @@ public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>,
     private static final boolean RED   = false;
     private static final boolean BLACK = true;
 
-
+    // 红黑树
     static final class Entry<K,V> implements Map.Entry<K,V> {
         K key;
         V value;
+        // 左子节点
         Entry<K,V> left;
+        // 右子节点
         Entry<K,V> right;
+        // 父节点
         Entry<K,V> parent;
         boolean color = BLACK;
 

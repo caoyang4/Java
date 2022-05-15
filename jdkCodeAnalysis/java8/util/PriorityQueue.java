@@ -4,22 +4,24 @@ import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
 /**
- *
+ * PriorityQueue是一个小顶堆，基于数组来实现，非线程安全的，不是有序的，只有堆顶存储着最小的元素；
+ * 入队就是堆的插入元素的实现，出队就是堆的删除元素的实现；
+ * 不支持添加null
  */
 public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serializable {
 
     private static final long serialVersionUID = -7720805057305804111L;
-
+    // 默认容量
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
-
+    // 底层数组存储
     transient Object[] queue; // non-private to simplify nested class access
-
+    // 元素个数
     private int size = 0;
-
+    // 比较器
     private final Comparator<? super E> comparator;
 
     transient int modCount = 0; // non-private to simplify nested class access
-
+    // 无参构造，默认容量 11
     public PriorityQueue() {
         this(DEFAULT_INITIAL_CAPACITY, null);
     }
@@ -37,10 +39,11 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
         // but continues for 1.5 compatibility
         if (initialCapacity < 1)
             throw new IllegalArgumentException();
+        // 数组饿汉式初始化
         this.queue = new Object[initialCapacity];
         this.comparator = comparator;
     }
-
+    //  指定 map
     @SuppressWarnings("unchecked")
     public PriorityQueue(Collection<? extends E> c) {
         if (c instanceof SortedSet<?>) {
@@ -58,13 +61,13 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
             initFromCollection(c);
         }
     }
-
+    // 指定优先级队列初始化
     @SuppressWarnings("unchecked")
     public PriorityQueue(PriorityQueue<? extends E> c) {
         this.comparator = (Comparator<? super E>) c.comparator();
         initFromPriorityQueue(c);
     }
-
+    // 指定SortedSet初始化
     @SuppressWarnings("unchecked")
     public PriorityQueue(SortedSet<? extends E> c) {
         this.comparator = (Comparator<? super E>) c.comparator();
@@ -100,15 +103,18 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    /**
+     * 扩容
+     */
     private void grow(int minCapacity) {
         int oldCapacity = queue.length;
-        // Double size if small; else grow by 50%
-        int newCapacity = oldCapacity + ((oldCapacity < 64) ?
-                                         (oldCapacity + 2) :
-                                         (oldCapacity >> 1));
-        // overflow-conscious code
+        // 旧容量小于64时，容量翻倍
+        // 旧容量大于等于64，容量只增加旧容量的一半
+        int newCapacity = oldCapacity + ((oldCapacity < 64) ? (oldCapacity + 2) : (oldCapacity >> 1));
+        // 检查是否溢出
         if (newCapacity - MAX_ARRAY_SIZE > 0)
             newCapacity = hugeCapacity(minCapacity);
+        // 创建出一个新容量大小的新数组并把旧数组元素拷贝过去
         queue = Arrays.copyOf(queue, newCapacity);
     }
 
@@ -119,26 +125,41 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
             Integer.MAX_VALUE :
             MAX_ARRAY_SIZE;
     }
-
+    // 添加元素
     public boolean add(E e) {
         return offer(e);
     }
 
+    /**
+     * （1）入队不允许null元素；
+     * （2）如果数组不够用了，先扩容；
+     * （3）如果还没有元素，就插入下标0的位置；
+     * （4）如果有元素了，就插入到最后一个元素往后的一个位置（实际并没有插入哈）；
+     * （5）自下而上堆化，一直往上跟父节点比较；
+     * （6）如果比父节点小，就与父节点交换位置，直到出现比父节点大为止；
+     * （7）由此可见，PriorityQueue是一个小顶堆
+     */
     public boolean offer(E e) {
-        if (e == null)
-            throw new NullPointerException();
+        // 若添加的元素为null，则直接抛出空指针异常
+        if (e == null) throw new NullPointerException();
         modCount++;
         int i = size;
+        // 如果元素个数已大于或等于数组的长度，则执行扩容操作
         if (i >= queue.length)
             grow(i + 1);
         size = i + 1;
+        // 如果是第一个元素
         if (i == 0)
             queue[0] = e;
         else
+            // 插入元素到数组size的位置，也就是最后一个元素的下一位
+            // 注意size不是数组大小，而是元素个数
+            // 然后，再做自下而上的堆化
             siftUp(i, e);
         return true;
     }
 
+    // 返回堆顶元素
     @SuppressWarnings("unchecked")
     public E peek() {
         return (size == 0) ? null : (E) queue[0];
@@ -227,11 +248,13 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
             }
             throw new NoSuchElementException();
         }
-
+        // 在迭代器中删除元素的时候，此时删除的位置是已经访问过的，此时很可能把一个未被访问的元素放到该位置，
+        // 导致被移动的元素没有被访问到，需要记录下来
         public void remove() {
             if (expectedModCount != modCount)
                 throw new ConcurrentModificationException();
             if (lastRet != -1) {
+                // 此处返回的是被移动元素，而不是被删除的元素
                 E moved = PriorityQueue.this.removeAt(lastRet);
                 lastRet = -1;
                 if (moved == null)
@@ -239,6 +262,7 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
                 else {
                     if (forgetMeNot == null)
                         forgetMeNot = new ArrayDeque<>();
+                    // 移动元素加入到遗忘队列，因为移动元素很可能被放到已经访问过的地方，因此需要再次被访问到。
                     forgetMeNot.add(moved);
                 }
             } else if (lastRetElt != null) {
@@ -262,32 +286,46 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
         size = 0;
     }
 
+    /**
+     * 出队，堆顶元素弹出来
+     */
     @SuppressWarnings("unchecked")
     public E poll() {
+        // 如果size为0，说明没有元素
         if (size == 0)
             return null;
         int s = --size;
         modCount++;
+        // 队列首元素
         E result = (E) queue[0];
+        // 将队列末元素删除，便于 gc
         E x = (E) queue[s];
         queue[s] = null;
         if (s != 0)
+            // 将队列末元素移到队列首
+            // 再做自上而下的堆化
             siftDown(0, x);
         return result;
     }
 
+    // 删除元素
     @SuppressWarnings("unchecked")
     private E removeAt(int i) {
         // assert i >= 0 && i < size;
         modCount++;
         int s = --size;
+        // 如果是最后一位直接置null,表示删除
         if (s == i) // removed last element
             queue[i] = null;
         else {
+            // 获取最后一位元素
             E moved = (E) queue[s];
             queue[s] = null;
+            // 第 i 位元素下移，同时最后一位元素要上移
             siftDown(i, moved);
+            // 相等，说明此时删除的是叶子节点，这时候需要看看要不要上升
             if (queue[i] == moved) {
+                // 最后一个元素需要上升
                 siftUp(i, moved);
                 if (queue[i] != moved)
                     return moved;
@@ -331,28 +369,44 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
     }
 
     private void siftDown(int k, E x) {
+        // 根据是否有比较器，选择不同的方法
         if (comparator != null)
             siftDownUsingComparator(k, x);
         else
             siftDownComparable(k, x);
     }
 
+    /**
+     * （1）将队列首元素弹出；
+     * （2）将队列末元素移到队列首；
+     * （3）自上而下堆化，一直往下与最小的子节点比较；
+     * （4）如果比最小的子节点大，就交换位置，再继续与最小的子节点比较；
+     * （5）如果比最小的子节点小，就不用交换位置了，堆化结束；
+     */
     @SuppressWarnings("unchecked")
     private void siftDownComparable(int k, E x) {
         Comparable<? super E> key = (Comparable<? super E>)x;
+        // 只需要比较一半就行了，因为叶子节点占了一半的元素
         int half = size >>> 1;        // loop while a non-leaf
         while (k < half) {
+            // 左子节点
             int child = (k << 1) + 1; // assume left child is least
             Object c = queue[child];
+            // 右子节点
             int right = child + 1;
             if (right < size &&
                 ((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
+                // 左右节点取其小者
                 c = queue[child = right];
+            // 如果比子节点都小，则结束
             if (key.compareTo((E) c) <= 0)
                 break;
+            // 如果比最小的子节点大，则交换位置
             queue[k] = c;
+            // 指针移到最小子节点的位置继续往下比
             k = child;
         }
+        // 找到正确的位置，放入元素
         queue[k] = key;
     }
 
@@ -422,10 +476,6 @@ public class PriorityQueue<E> extends AbstractQueue<E> implements java.io.Serial
     }
 
     static final class PriorityQueueSpliterator<E> implements Spliterator<E> {
-        /*
-         * This is very similar to ArrayList Spliterator, except for
-         * extra null checks.
-         */
         private final PriorityQueue<E> pq;
         private int index;            // current index, modified on advance/split
         private int fence;            // -1 until first use

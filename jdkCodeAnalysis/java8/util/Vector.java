@@ -7,12 +7,17 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable
-{
+/**
+ * 集合的线程安全类，不推荐使用
+ * synchronized 版本
+ * @param <E>
+ */
+public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+    // 底层数组实现
     protected Object[] elementData;
-
+    // 元素个数
     protected int elementCount;
-
+    // 扩容增量
     protected int capacityIncrement;
 
     private static final long serialVersionUID = -2767605614048989439L;
@@ -20,8 +25,7 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
     public Vector(int initialCapacity, int capacityIncrement) {
         super();
         if (initialCapacity < 0)
-            throw new IllegalArgumentException("Illegal Capacity: "+
-                                               initialCapacity);
+            throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
         this.elementData = new Object[initialCapacity];
         this.capacityIncrement = capacityIncrement;
     }
@@ -31,6 +35,7 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
     }
 
     public Vector() {
+        // 默认初始容量为 10
         this(10);
     }
 
@@ -71,11 +76,14 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
 
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    /**
+     * 扩容
+     */
     private void grow(int minCapacity) {
         // overflow-conscious code
         int oldCapacity = elementData.length;
-        int newCapacity = oldCapacity + ((capacityIncrement > 0) ?
-                                         capacityIncrement : oldCapacity);
+        // 如果指定扩容增量，则按照扩容增量设定新数组长度，否则扩容2倍
+        int newCapacity = oldCapacity + ((capacityIncrement > 0) ? capacityIncrement : oldCapacity);
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
         if (newCapacity - MAX_ARRAY_SIZE > 0)
@@ -208,8 +216,7 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
     public synchronized void removeElementAt(int index) {
         modCount++;
         if (index >= elementCount) {
-            throw new ArrayIndexOutOfBoundsException(index + " >= " +
-                                                     elementCount);
+            throw new ArrayIndexOutOfBoundsException(index + " >= " + elementCount);
         }
         else if (index < 0) {
             throw new ArrayIndexOutOfBoundsException(index);
@@ -225,8 +232,7 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
     public synchronized void insertElementAt(E obj, int index) {
         modCount++;
         if (index > elementCount) {
-            throw new ArrayIndexOutOfBoundsException(index
-                                                     + " > " + elementCount);
+            throw new ArrayIndexOutOfBoundsException(index + " > " + elementCount);
         }
         ensureCapacityHelper(elementCount + 1);
         System.arraycopy(elementData, index, elementData, index + 1, elementCount - index);
@@ -335,8 +341,7 @@ public class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess,
 
         int numMoved = elementCount - index - 1;
         if (numMoved > 0)
-            System.arraycopy(elementData, index+1, elementData, index,
-                             numMoved);
+            System.arraycopy(elementData, index+1, elementData, index, numMoved);
         elementData[--elementCount] = null; // Let gc do its work
 
         return oldValue;

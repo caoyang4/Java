@@ -1,16 +1,18 @@
 package java.util;
 
-public
-class Stack<E> extends Vector<E> {
+/**
+ * 栈，继承Vector，不推荐使用
+ * @param <E>
+ */
+public class Stack<E> extends Vector<E> {
     public Stack() {
     }
-
+    // 入队
     public E push(E item) {
         addElement(item);
-
         return item;
     }
-
+    // 弹出数组最后一个元素
     public synchronized E pop() {
         E       obj;
         int     len = size();
@@ -20,7 +22,7 @@ class Stack<E> extends Vector<E> {
 
         return obj;
     }
-
+    // 返回数组最后一个元素
     public synchronized E peek() {
         int     len = size();
 
