@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
+// 数组工具类
 public class Arrays {
 
     private static final int MIN_ARRAY_SORT_GRAN = 1 << 13;

@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import sun.misc.SharedSecrets;
 
-
+// 容器工具类
 public class Collections {
     private Collections() {
     }
