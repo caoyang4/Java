@@ -11,8 +11,12 @@ import java.util.stream.StreamSupport;
 
 import sun.misc.Unsafe;
 
-public
-class Random implements java.io.Serializable {
+/**
+ * Random通过 cas 方式生成新的随机数种子保证线程安全的，多个线程同时使用Random对象可能会遇到竞争，从而导致性能下降
+ * Random 实现随机性的核心 即是 seed，而seed的构造有两种方式
+ *  一种是通过System.nanoTime()实现随机，一种是通过传入自己构造的seed，且这种方式是伪随机的。
+ */
+public class Random implements java.io.Serializable {
     static final long serialVersionUID = 3905348978240129619L;
 
     private final AtomicLong seed;
@@ -29,12 +33,11 @@ class Random implements java.io.Serializable {
     static final String BadSize  = "size must be non-negative";
 
     public Random() {
+        // System.nanoTime()体现随机性
         this(seedUniquifier() ^ System.nanoTime());
     }
 
     private static long seedUniquifier() {
-        // L'Ecuyer, "Tables of Linear Congruential Generators of
-        // Different Sizes and Good Lattice Structure", 1999
         for (;;) {
             long current = seedUniquifier.get();
             long next = current * 181783497276652981L;
@@ -44,7 +47,7 @@ class Random implements java.io.Serializable {
     }
 
     private static final AtomicLong seedUniquifier = new AtomicLong(8682522807148012L);
-
+    // 伪随机
     public Random(long seed) {
         if (getClass() == Random.class)
             this.seed = new AtomicLong(initialScramble(seed));
@@ -63,12 +66,13 @@ class Random implements java.io.Serializable {
         this.seed.set(initialScramble(seed));
         haveNextNextGaussian = false;
     }
-
+    // cas自旋保证线程安全
     protected int next(int bits) {
         long oldseed, nextseed;
         AtomicLong seed = this.seed;
         do {
             oldseed = seed.get();
+            // 根据旧种子生成新种子，由于是可推导的，存在安全风险
             nextseed = (oldseed * multiplier + addend) & mask;
         } while (!seed.compareAndSet(oldseed, nextseed));
         return (int)(nextseed >>> (48 - bits));

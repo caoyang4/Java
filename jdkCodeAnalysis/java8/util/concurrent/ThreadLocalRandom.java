@@ -43,11 +43,11 @@ public class ThreadLocalRandom extends Random {
 
     /**
      * 使用安全性高的种子是无法被预测的，而 Random、ThreadLocalRandom 产生的被称为“伪随机数”，因为是可被预测的
-     * @return
      */
     private static long initialSeed() {
         String sec = VM.getSavedProperty("java.util.secureRandomSeed");
-        // 首先判断java.util.secureRandomSeed的系统属性值是否为 true 来判断是否使用安全性高的种子
+        // 首先判断java.util.secure.RandomSeed的系统属性值是否为 true 来判断是否使用安全性高的种子
+        // RandomSeed会根据多个维度设置随机性，如：键盘输入，鼠标点击等，安全性更好
         if (Boolean.parseBoolean(sec)) {
             // 如果为 true 则使用java.security.SecureRandom.getSeed(8)获取高安全性种子
             byte[] seedBytes = java.security.SecureRandom.getSeed(8);
@@ -56,7 +56,7 @@ public class ThreadLocalRandom extends Random {
                 s = (s << 8) | ((long)(seedBytes[i]) & 0xffL);
             return s;
         }
-        // 如果为 false 则根据当前时间戳来获取初始化种子
+        // 如果为false，则根据当前时间戳来获取初始化种子，随机性通过时间戳体现
         return (mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
     }
 
