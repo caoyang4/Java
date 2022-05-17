@@ -15,7 +15,7 @@ public class Leetcode440 {
         k--;
         while (k > 0){
             long count = trackBack(n, num, num);
-            if (count <= k){ // num节点整个前缀树，数量都不够，则移到下一节点
+            if (count <= k){ // num节点整个前缀树，数量都不够，则移到同层下一节点
                 num++;
                 k -= count;
             } else { // 存在于该前缀树中
