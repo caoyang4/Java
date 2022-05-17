@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
 package java.util.stream;
 
 import java.util.Objects;
@@ -42,31 +18,11 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 
-/**
- * Factory for creating instances of {@code TerminalOp} that implement
- * reductions.
- *
- * @since 1.8
- */
 final class ReduceOps {
 
     private ReduceOps() { }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * reference values.
-     *
-     * @param <T> the type of the input elements
-     * @param <U> the type of the result
-     * @param seed the identity element for the reduction
-     * @param reducer the accumulating function that incorporates an additional
-     *        input element into the result
-     * @param combiner the combining function that combines two intermediate
-     *        results
-     * @return a {@code TerminalOp} implementing the reduction
-     */
-    public static <T, U> TerminalOp<T, U>
-    makeRef(U seed, BiFunction<U, ? super T, U> reducer, BinaryOperator<U> combiner) {
+    public static <T, U> TerminalOp<T, U> makeRef(U seed, BiFunction<U, ? super T, U> reducer, BinaryOperator<U> combiner) {
         Objects.requireNonNull(reducer);
         Objects.requireNonNull(combiner);
         class ReducingSink extends Box<U> implements AccumulatingSink<T, U, ReducingSink> {
@@ -93,14 +49,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * reference values producing an optional reference result.
-     *
-     * @param <T> The type of the input elements, and the type of the result
-     * @param operator The reducing function
-     * @return A {@code TerminalOp} implementing the reduction
-     */
     public static <T> TerminalOp<T, Optional<T>>
     makeRef(BinaryOperator<T> operator) {
         Objects.requireNonNull(operator);
@@ -143,15 +91,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a mutable reduce on
-     * reference values.
-     *
-     * @param <T> the type of the input elements
-     * @param <I> the type of the intermediate reduction result
-     * @param collector a {@code Collector} defining the reduction
-     * @return a {@code ReduceOp} implementing the reduction
-     */
     public static <T, I> TerminalOp<T, I>
     makeRef(Collector<? super T, I, ?> collector) {
         Supplier<I> supplier = Objects.requireNonNull(collector).supplier();
@@ -189,18 +128,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a mutable reduce on
-     * reference values.
-     *
-     * @param <T> the type of the input elements
-     * @param <R> the type of the result
-     * @param seedFactory a factory to produce a new base accumulator
-     * @param accumulator a function to incorporate an element into an
-     *        accumulator
-     * @param reducer a function to combine an accumulator into another
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static <T, R> TerminalOp<T, R>
     makeRef(Supplier<R> seedFactory,
             BiConsumer<R, ? super T> accumulator,
@@ -233,14 +160,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code int} values.
-     *
-     * @param identity the identity for the combining function
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Integer, Integer>
     makeInt(int identity, IntBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -276,13 +195,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code int} values, producing an optional integer result.
-     *
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Integer, OptionalInt>
     makeInt(IntBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -326,17 +238,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a mutable reduce on
-     * {@code int} values.
-     *
-     * @param <R> The type of the result
-     * @param supplier a factory to produce a new accumulator of the result type
-     * @param accumulator a function to incorporate an int into an
-     *        accumulator
-     * @param combiner a function to combine an accumulator into another
-     * @return A {@code ReduceOp} implementing the reduction
-     */
     public static <R> TerminalOp<Integer, R>
     makeInt(Supplier<R> supplier,
             ObjIntConsumer<R> accumulator,
@@ -369,14 +270,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code long} values.
-     *
-     * @param identity the identity for the combining function
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Long, Long>
     makeLong(long identity, LongBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -412,13 +305,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code long} values, producing an optional long result.
-     *
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Long, OptionalLong>
     makeLong(LongBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -462,17 +348,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a mutable reduce on
-     * {@code long} values.
-     *
-     * @param <R> the type of the result
-     * @param supplier a factory to produce a new accumulator of the result type
-     * @param accumulator a function to incorporate an int into an
-     *        accumulator
-     * @param combiner a function to combine an accumulator into another
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static <R> TerminalOp<Long, R>
     makeLong(Supplier<R> supplier,
              ObjLongConsumer<R> accumulator,
@@ -505,14 +380,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code double} values.
-     *
-     * @param identity the identity for the combining function
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Double, Double>
     makeDouble(double identity, DoubleBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -548,13 +415,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a functional reduce on
-     * {@code double} values, producing an optional double result.
-     *
-     * @param operator the combining function
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static TerminalOp<Double, OptionalDouble>
     makeDouble(DoubleBinaryOperator operator) {
         Objects.requireNonNull(operator);
@@ -598,17 +458,6 @@ final class ReduceOps {
         };
     }
 
-    /**
-     * Constructs a {@code TerminalOp} that implements a mutable reduce on
-     * {@code double} values.
-     *
-     * @param <R> the type of the result
-     * @param supplier a factory to produce a new accumulator of the result type
-     * @param accumulator a function to incorporate an int into an
-     *        accumulator
-     * @param combiner a function to combine an accumulator into another
-     * @return a {@code TerminalOp} implementing the reduction
-     */
     public static <R> TerminalOp<Double, R>
     makeDouble(Supplier<R> supplier,
                ObjDoubleConsumer<R> accumulator,
@@ -650,17 +499,10 @@ final class ReduceOps {
      * @param <R> the result type
      * @param <K> the type of the {@code AccumulatingSink}.
      */
-    private interface AccumulatingSink<T, R, K extends AccumulatingSink<T, R, K>>
-            extends TerminalSink<T, R> {
+    private interface AccumulatingSink<T, R, K extends AccumulatingSink<T, R, K>> extends TerminalSink<T, R> {
         public void combine(K other);
     }
 
-    /**
-     * State box for a single state element, used as a base class for
-     * {@code AccumulatingSink} instances
-     *
-     * @param <U> The type of the state element
-     */
     private static abstract class Box<U> {
         U state;
 
@@ -671,26 +513,9 @@ final class ReduceOps {
         }
     }
 
-    /**
-     * A {@code TerminalOp} that evaluates a stream pipeline and sends the
-     * output into an {@code AccumulatingSink}, which performs a reduce
-     * operation. The {@code AccumulatingSink} must represent an associative
-     * reducing operation.
-     *
-     * @param <T> the output type of the stream pipeline
-     * @param <R> the result type of the reducing operation
-     * @param <S> the type of the {@code AccumulatingSink}
-     */
-    private static abstract class ReduceOp<T, R, S extends AccumulatingSink<T, R, S>>
-            implements TerminalOp<T, R> {
+    private static abstract class ReduceOp<T, R, S extends AccumulatingSink<T, R, S>> implements TerminalOp<T, R> {
         private final StreamShape inputShape;
 
-        /**
-         * Create a {@code ReduceOp} of the specified stream shape which uses
-         * the specified {@code Supplier} to create accumulating sinks.
-         *
-         * @param shape The shape of the stream pipeline
-         */
         ReduceOp(StreamShape shape) {
             inputShape = shape;
         }
@@ -703,30 +528,23 @@ final class ReduceOps {
         }
 
         @Override
-        public <P_IN> R evaluateSequential(PipelineHelper<T> helper,
-                                           Spliterator<P_IN> spliterator) {
+        public <P_IN> R evaluateSequential(PipelineHelper<T> helper, Spliterator<P_IN> spliterator) {
             return helper.wrapAndCopyInto(makeSink(), spliterator).get();
         }
-
+        // 并行
+        // 并行流的实现本质上就是在ForkJoin上进行了一层封装，将Stream 不断尝试分解成更小的split，然后使用fork/join 框架分而治之
         @Override
-        public <P_IN> R evaluateParallel(PipelineHelper<T> helper,
-                                         Spliterator<P_IN> spliterator) {
+        public <P_IN> R evaluateParallel(PipelineHelper<T> helper, Spliterator<P_IN> spliterator) {
+            // ReduceTask是ForkJoinTask的子类，其实Stream的并行处理都是基于Fork/Join框架
             return new ReduceTask<>(this, helper, spliterator).invoke().get();
         }
     }
 
-    /**
-     * A {@code ForkJoinTask} for performing a parallel reduce operation.
-     */
     @SuppressWarnings("serial")
-    private static final class ReduceTask<P_IN, P_OUT, R,
-                                          S extends AccumulatingSink<P_OUT, R, S>>
-            extends AbstractTask<P_IN, P_OUT, S, ReduceTask<P_IN, P_OUT, R, S>> {
+    private static final class ReduceTask<P_IN, P_OUT, R, S extends AccumulatingSink<P_OUT, R, S>> extends AbstractTask<P_IN, P_OUT, S, ReduceTask<P_IN, P_OUT, R, S>> {
         private final ReduceOp<P_OUT, R, S> op;
 
-        ReduceTask(ReduceOp<P_OUT, R, S> op,
-                   PipelineHelper<P_OUT> helper,
-                   Spliterator<P_IN> spliterator) {
+        ReduceTask(ReduceOp<P_OUT, R, S> op, PipelineHelper<P_OUT> helper, Spliterator<P_IN> spliterator) {
             super(helper, spliterator);
             this.op = op;
         }

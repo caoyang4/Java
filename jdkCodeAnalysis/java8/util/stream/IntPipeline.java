@@ -26,8 +26,7 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         super(source, sourceFlags, parallel);
     }
 
-    IntPipeline(Spliterator<Integer> source,
-                int sourceFlags, boolean parallel) {
+    IntPipeline(Spliterator<Integer> source, int sourceFlags, boolean parallel) {
         super(source, sourceFlags, parallel);
     }
 
@@ -41,8 +40,7 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         }
         else {
             if (Tripwire.ENABLED)
-                Tripwire.trip(AbstractPipeline.class,
-                              "using IntStream.adapt(Sink<Integer> s)");
+                Tripwire.trip(AbstractPipeline.class, "using IntStream.adapt(Sink<Integer> s)");
             return sink::accept;
         }
     }
@@ -53,8 +51,7 @@ abstract class IntPipeline<E_IN> extends AbstractPipeline<E_IN, Integer, IntStre
         }
         else {
             if (Tripwire.ENABLED)
-                Tripwire.trip(AbstractPipeline.class,
-                              "using IntStream.adapt(Spliterator<Integer> s)");
+                Tripwire.trip(AbstractPipeline.class, "using IntStream.adapt(Spliterator<Integer> s)");
             throw new UnsupportedOperationException("IntStream.adapt(Spliterator<Integer> s)");
         }
     }

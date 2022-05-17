@@ -41,26 +41,14 @@ import java.util.function.IntFunction;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 
-/**
- * Factory methods for constructing implementations of {@link Node} and
- * {@link Node.Builder} and their primitive specializations.  Fork/Join tasks
- * for collecting output from a {@link PipelineHelper} to a {@link Node} and
- * flattening {@link Node}s.
- *
- * @since 1.8
- */
 final class Nodes {
 
     private Nodes() {
         throw new Error("no instances");
     }
 
-    /**
-     * The maximum size of an array that can be allocated.
-     */
     static final long MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
-    // IllegalArgumentException messages
     static final String BAD_SIZE = "Stream size exceeds max array size";
 
     @SuppressWarnings("rawtypes")
@@ -71,13 +59,6 @@ final class Nodes {
 
     // General shape-based node creation methods
 
-    /**
-     * Produces an empty node whose count is zero, has no children and no content.
-     *
-     * @param <T> the type of elements of the created node
-     * @param shape the shape of the node to be created
-     * @return an empty node.
-     */
     @SuppressWarnings("unchecked")
     static <T> Node<T> emptyNode(StreamShape shape) {
         switch (shape) {
@@ -90,25 +71,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Produces a concatenated {@link Node} that has two or more children.
-     * <p>The count of the concatenated node is equal to the sum of the count
-     * of each child. Traversal of the concatenated node traverses the content
-     * of each child in encounter order of the list of children. Splitting a
-     * spliterator obtained from the concatenated node preserves the encounter
-     * order of the list of children.
-     *
-     * <p>The result may be a concatenated node, the input sole node if the size
-     * of the list is 1, or an empty node.
-     *
-     * @param <T> the type of elements of the concatenated node
-     * @param shape the shape of the concatenated node to be created
-     * @param left the left input node
-     * @param right the right input node
-     * @return a {@code Node} covering the elements of the input nodes
-     * @throws IllegalStateException if all {@link Node} elements of the list
-     * are an not instance of type supported by this factory.
-     */
     @SuppressWarnings("unchecked")
     static <T> Node<T> conc(StreamShape shape, Node<T> left, Node<T> right) {
         switch (shape) {
@@ -127,192 +89,74 @@ final class Nodes {
 
     // Reference-based node methods
 
-    /**
-     * Produces a {@link Node} describing an array.
-     *
-     * <p>The node will hold a reference to the array and will not make a copy.
-     *
-     * @param <T> the type of elements held by the node
-     * @param array the array
-     * @return a node holding an array
-     */
     static <T> Node<T> node(T[] array) {
         return new ArrayNode<>(array);
     }
 
-    /**
-     * Produces a {@link Node} describing a {@link Collection}.
-     * <p>
-     * The node will hold a reference to the collection and will not make a copy.
-     *
-     * @param <T> the type of elements held by the node
-     * @param c the collection
-     * @return a node holding a collection
-     */
     static <T> Node<T> node(Collection<T> c) {
         return new CollectionNode<>(c);
     }
 
-    /**
-     * Produces a {@link Node.Builder}.
-     *
-     * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     * otherwise the exact capacity desired.  A fixed capacity builder will
-     * fail if the wrong number of elements are added to the builder.
-     * @param generator the array factory
-     * @param <T> the type of elements of the node builder
-     * @return a {@code Node.Builder}
-     */
     static <T> Node.Builder<T> builder(long exactSizeIfKnown, IntFunction<T[]> generator) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
                ? new FixedNodeBuilder<>(exactSizeIfKnown, generator)
                : builder();
     }
 
-    /**
-     * Produces a variable size @{link Node.Builder}.
-     *
-     * @param <T> the type of elements of the node builder
-     * @return a {@code Node.Builder}
-     */
     static <T> Node.Builder<T> builder() {
         return new SpinedNodeBuilder<>();
     }
 
     // Int nodes
 
-    /**
-     * Produces a {@link Node.OfInt} describing an int[] array.
-     *
-     * <p>The node will hold a reference to the array and will not make a copy.
-     *
-     * @param array the array
-     * @return a node holding an array
-     */
     static Node.OfInt node(int[] array) {
         return new IntArrayNode(array);
     }
 
-    /**
-     * Produces a {@link Node.Builder.OfInt}.
-     *
-     * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     * otherwise the exact capacity desired.  A fixed capacity builder will
-     * fail if the wrong number of elements are added to the builder.
-     * @return a {@code Node.Builder.OfInt}
-     */
     static Node.Builder.OfInt intBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
                ? new IntFixedNodeBuilder(exactSizeIfKnown)
                : intBuilder();
     }
 
-    /**
-     * Produces a variable size @{link Node.Builder.OfInt}.
-     *
-     * @return a {@code Node.Builder.OfInt}
-     */
     static Node.Builder.OfInt intBuilder() {
         return new IntSpinedNodeBuilder();
     }
 
     // Long nodes
 
-    /**
-     * Produces a {@link Node.OfLong} describing a long[] array.
-     * <p>
-     * The node will hold a reference to the array and will not make a copy.
-     *
-     * @param array the array
-     * @return a node holding an array
-     */
     static Node.OfLong node(final long[] array) {
         return new LongArrayNode(array);
     }
 
-    /**
-     * Produces a {@link Node.Builder.OfLong}.
-     *
-     * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     * otherwise the exact capacity desired.  A fixed capacity builder will
-     * fail if the wrong number of elements are added to the builder.
-     * @return a {@code Node.Builder.OfLong}
-     */
     static Node.Builder.OfLong longBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
                ? new LongFixedNodeBuilder(exactSizeIfKnown)
                : longBuilder();
     }
 
-    /**
-     * Produces a variable size @{link Node.Builder.OfLong}.
-     *
-     * @return a {@code Node.Builder.OfLong}
-     */
     static Node.Builder.OfLong longBuilder() {
         return new LongSpinedNodeBuilder();
     }
 
     // Double nodes
 
-    /**
-     * Produces a {@link Node.OfDouble} describing a double[] array.
-     *
-     * <p>The node will hold a reference to the array and will not make a copy.
-     *
-     * @param array the array
-     * @return a node holding an array
-     */
     static Node.OfDouble node(final double[] array) {
         return new DoubleArrayNode(array);
     }
 
-    /**
-     * Produces a {@link Node.Builder.OfDouble}.
-     *
-     * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     * otherwise the exact capacity desired.  A fixed capacity builder will
-     * fail if the wrong number of elements are added to the builder.
-     * @return a {@code Node.Builder.OfDouble}
-     */
     static Node.Builder.OfDouble doubleBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
                ? new DoubleFixedNodeBuilder(exactSizeIfKnown)
                : doubleBuilder();
     }
 
-    /**
-     * Produces a variable size @{link Node.Builder.OfDouble}.
-     *
-     * @return a {@code Node.Builder.OfDouble}
-     */
     static Node.Builder.OfDouble doubleBuilder() {
         return new DoubleSpinedNodeBuilder();
     }
 
     // Parallel evaluation of pipelines to nodes
 
-    /**
-     * Collect, in parallel, elements output from a pipeline and describe those
-     * elements with a {@link Node}.
-     *
-     * @implSpec
-     * If the exact size of the output from the pipeline is known and the source
-     * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
-     * then a flat {@link Node} will be returned whose content is an array,
-     * since the size is known the array can be constructed in advance and
-     * output elements can be placed into the array concurrently by leaf
-     * tasks at the correct offsets.  If the exact size is not known, output
-     * elements are collected into a conc-node whose shape mirrors that
-     * of the computation. This conc-node can then be flattened in
-     * parallel to produce a flat {@code Node} if desired.
-     *
-     * @param helper the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @param generator the array generator
-     * @return a {@link Node} describing the output elements
-     */
     public static <P_IN, P_OUT> Node<P_OUT> collect(PipelineHelper<P_OUT> helper,
                                                     Spliterator<P_IN> spliterator,
                                                     boolean flattenTree,
@@ -330,27 +174,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Collect, in parallel, elements output from an int-valued pipeline and
-     * describe those elements with a {@link Node.OfInt}.
-     *
-     * @implSpec
-     * If the exact size of the output from the pipeline is known and the source
-     * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
-     * then a flat {@link Node} will be returned whose content is an array,
-     * since the size is known the array can be constructed in advance and
-     * output elements can be placed into the array concurrently by leaf
-     * tasks at the correct offsets.  If the exact size is not known, output
-     * elements are collected into a conc-node whose shape mirrors that
-     * of the computation. This conc-node can then be flattened in
-     * parallel to produce a flat {@code Node.OfInt} if desired.
-     *
-     * @param <P_IN> the type of elements from the source Spliterator
-     * @param helper the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfInt} describing the output elements
-     */
     public static <P_IN> Node.OfInt collectInt(PipelineHelper<Integer> helper,
                                                Spliterator<P_IN> spliterator,
                                                boolean flattenTree) {
@@ -368,27 +191,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Collect, in parallel, elements output from a long-valued pipeline and
-     * describe those elements with a {@link Node.OfLong}.
-     *
-     * @implSpec
-     * If the exact size of the output from the pipeline is known and the source
-     * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
-     * then a flat {@link Node} will be returned whose content is an array,
-     * since the size is known the array can be constructed in advance and
-     * output elements can be placed into the array concurrently by leaf
-     * tasks at the correct offsets.  If the exact size is not known, output
-     * elements are collected into a conc-node whose shape mirrors that
-     * of the computation. This conc-node can then be flattened in
-     * parallel to produce a flat {@code Node.OfLong} if desired.
-     *
-     * @param <P_IN> the type of elements from the source Spliterator
-     * @param helper the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfLong} describing the output elements
-     */
     public static <P_IN> Node.OfLong collectLong(PipelineHelper<Long> helper,
                                                  Spliterator<P_IN> spliterator,
                                                  boolean flattenTree) {
@@ -406,27 +208,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Collect, in parallel, elements output from n double-valued pipeline and
-     * describe those elements with a {@link Node.OfDouble}.
-     *
-     * @implSpec
-     * If the exact size of the output from the pipeline is known and the source
-     * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
-     * then a flat {@link Node} will be returned whose content is an array,
-     * since the size is known the array can be constructed in advance and
-     * output elements can be placed into the array concurrently by leaf
-     * tasks at the correct offsets.  If the exact size is not known, output
-     * elements are collected into a conc-node whose shape mirrors that
-     * of the computation. This conc-node can then be flattened in
-     * parallel to produce a flat {@code Node.OfDouble} if desired.
-     *
-     * @param <P_IN> the type of elements from the source Spliterator
-     * @param helper the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfDouble} describing the output elements
-     */
     public static <P_IN> Node.OfDouble collectDouble(PipelineHelper<Double> helper,
                                                      Spliterator<P_IN> spliterator,
                                                      boolean flattenTree) {
@@ -446,21 +227,6 @@ final class Nodes {
 
     // Parallel flattening of nodes
 
-    /**
-     * Flatten, in parallel, a {@link Node}.  A flattened node is one that has
-     * no children.  If the node is already flat, it is simply returned.
-     *
-     * @implSpec
-     * If a new node is to be created, the generator is used to create an array
-     * whose length is {@link Node#count()}.  Then the node tree is traversed
-     * and leaf node elements are placed in the array concurrently by leaf tasks
-     * at the correct offsets.
-     *
-     * @param <T> type of elements contained by the node
-     * @param node the node to flatten
-     * @param generator the array factory used to create array instances
-     * @return a flat {@code Node}
-     */
     public static <T> Node<T> flatten(Node<T> node, IntFunction<T[]> generator) {
         if (node.getChildCount() > 0) {
             long size = node.count();
@@ -474,19 +240,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Flatten, in parallel, a {@link Node.OfInt}.  A flattened node is one that
-     * has no children.  If the node is already flat, it is simply returned.
-     *
-     * @implSpec
-     * If a new node is to be created, a new int[] array is created whose length
-     * is {@link Node#count()}.  Then the node tree is traversed and leaf node
-     * elements are placed in the array concurrently by leaf tasks at the
-     * correct offsets.
-     *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfInt}
-     */
     public static Node.OfInt flattenInt(Node.OfInt node) {
         if (node.getChildCount() > 0) {
             long size = node.count();
@@ -500,19 +253,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Flatten, in parallel, a {@link Node.OfLong}.  A flattened node is one that
-     * has no children.  If the node is already flat, it is simply returned.
-     *
-     * @implSpec
-     * If a new node is to be created, a new long[] array is created whose length
-     * is {@link Node#count()}.  Then the node tree is traversed and leaf node
-     * elements are placed in the array concurrently by leaf tasks at the
-     * correct offsets.
-     *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfLong}
-     */
     public static Node.OfLong flattenLong(Node.OfLong node) {
         if (node.getChildCount() > 0) {
             long size = node.count();
@@ -526,19 +266,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Flatten, in parallel, a {@link Node.OfDouble}.  A flattened node is one that
-     * has no children.  If the node is already flat, it is simply returned.
-     *
-     * @implSpec
-     * If a new node is to be created, a new double[] array is created whose length
-     * is {@link Node#count()}.  Then the node tree is traversed and leaf node
-     * elements are placed in the array concurrently by leaf tasks at the
-     * correct offsets.
-     *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfDouble}
-     */
     public static Node.OfDouble flattenDouble(Node.OfDouble node) {
         if (node.getChildCount() > 0) {
             long size = node.count();
@@ -634,7 +361,6 @@ final class Nodes {
         }
     }
 
-    /** Node class for a reference array */
     private static class ArrayNode<T> implements Node<T> {
         final T[] array;
         int curSize;
@@ -689,12 +415,10 @@ final class Nodes {
 
         @Override
         public String toString() {
-            return String.format("ArrayNode[%d][%s]",
-                                 array.length - curSize, Arrays.toString(array));
+            return String.format("ArrayNode[%d][%s]", array.length - curSize, Arrays.toString(array));
         }
     }
 
-    /** Node class for a Collection */
     private static final class CollectionNode<T> implements Node<T> {
         private final Collection<T> c;
 
@@ -739,9 +463,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Node class for an internal node with two or more children
-     */
     private static abstract class AbstractConcNode<T, T_NODE extends Node<T>> implements Node<T> {
         protected final T_NODE left;
         protected final T_NODE right;
@@ -923,10 +644,7 @@ final class Nodes {
         }
     }
 
-    /** Abstract class for spliterator for all internal node classes */
-    private static abstract class InternalNodeSpliterator<T,
-                                                          S extends Spliterator<T>,
-                                                          N extends Node<T>>
+    private static abstract class InternalNodeSpliterator<T, S extends Spliterator<T>, N extends Node<T>>
             implements Spliterator<T> {
         // Node we are pointing to
         // null if full traversal has occurred
@@ -952,10 +670,6 @@ final class Nodes {
             this.curNode = curNode;
         }
 
-        /**
-         * Initiate a stack containing, in left-to-right order, the child nodes
-         * covered by this spliterator
-         */
         @SuppressWarnings("unchecked")
         protected final Deque<N> initStack() {
             // Bias size to the case where leaf nodes are close to this node
@@ -966,10 +680,6 @@ final class Nodes {
             return stack;
         }
 
-        /**
-         * Depth first search, in left-to-right order, of the node tree, using
-         * an explicit stack, to find the next non-empty leaf node.
-         */
         @SuppressWarnings("unchecked")
         protected final N findNextLeafNode(Deque<N> stack) {
             N n = null;
@@ -1188,9 +898,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Fixed-sized builder class for reference nodes
-     */
     private static final class FixedNodeBuilder<T>
             extends ArrayNode<T>
             implements Node.Builder<T> {
@@ -1240,9 +947,6 @@ final class Nodes {
         }
     }
 
-    /**
-     * Variable-sized builder class for reference nodes
-     */
     private static final class SpinedNodeBuilder<T>
             extends SpinedBuffer<T>
             implements Node<T>, Node.Builder<T> {

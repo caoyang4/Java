@@ -1,4 +1,3 @@
-
 package java.util.stream;
 
 import java.util.Objects;
@@ -6,22 +5,29 @@ import java.util.Spliterator;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
-        extends PipelineHelper<E_OUT> implements BaseStream<E_OUT, S> {
+/**
+ * AbstractPipeline有4个子类，分别表示流处理元素为double、int，long和reference类型的管道。
+ * 这4个子类都是抽象类，每个子类下都有3个静态内部类的实现类，Head、StatefulOp、StatelessOp，
+ * 其中Head用于创建一个全新的流，StatefulOp表示有状态的一类操作，StatelessOp表示无状态的一类操作，
+ * 这里的有状态是指前面流元素的处理会直接影响后面流元素的处理，多线程并行处理下每次运行的结果都不相同
+ *
+ * 当前节点同时持有前一个节点与后一个节点的指针，并且保留了头结点的引用，双向链表
+ */
+abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>> extends PipelineHelper<E_OUT> implements BaseStream<E_OUT, S> {
     private static final String MSG_STREAM_LINKED = "stream has already been operated upon or closed";
     private static final String MSG_CONSUMED = "source already consumed or closed";
-
+    // 初始的包含待处理的流，相当于头结点
     @SuppressWarnings("rawtypes")
     private final AbstractPipeline sourceStage;
-
+    // 上一个流处理动作，相当于前驱结点
     @SuppressWarnings("rawtypes")
     private final AbstractPipeline previousStage;
-
+    // 当前流处理动作的标识
     protected final int sourceOrOpFlags;
-
+    // 下一个流处理动作，相当于后继节点
     @SuppressWarnings("rawtypes")
     private AbstractPipeline nextStage;
-
+    // 非终止类型的操作标识个数
     private int depth;
 
     private int combinedFlags;
@@ -35,7 +41,7 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
     private boolean sourceAnyStateful;
 
     private Runnable sourceCloseAction;
-
+    //是否并行流处理
     private boolean parallel;
 
     AbstractPipeline(Supplier<? extends Spliterator<?>> source, int sourceFlags, boolean parallel) {
@@ -66,11 +72,13 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
         if (previousStage.linkedOrConsumed)
             throw new IllegalStateException(MSG_STREAM_LINKED);
         previousStage.linkedOrConsumed = true;
+        // 前一个stage指向自己
         previousStage.nextStage = this;
-
+        // 自己指向前一个stage
         this.previousStage = previousStage;
         this.sourceOrOpFlags = opFlags & StreamOpFlag.OP_MASK;
         this.combinedFlags = StreamOpFlag.combineOpFlags(opFlags, previousStage.combinedFlags);
+        // 也保留了头结点的引用
         this.sourceStage = previousStage.sourceStage;
         if (opIsStateful())
             sourceStage.sourceAnyStateful = true;
@@ -97,13 +105,9 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
             throw new IllegalStateException(MSG_STREAM_LINKED);
         linkedOrConsumed = true;
 
-        // If the last intermediate operation is stateful then
-        // evaluate directly to avoid an extra collection step
+
         if (isParallel() && previousStage != null && opIsStateful()) {
-            // Set the depth of this, last, pipeline stage to zero to slice the
-            // pipeline such that this operation will not be included in the
-            // upstream slice and upstream operations will not be included
-            // in this slice
+
             depth = 0;
             return opEvaluateParallel(previousStage, previousStage.sourceSpliterator(0), generator);
         }
@@ -300,16 +304,23 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
         return sink;
     }
 
+    /**
+     * 该方法从数据源Spliterator获取的元素，推入Sink 进行处理，
+     * 如果有短路操作，在每个元素处理后会通过Sink.cancellationRequested()判断是否立即返回
+     */
     @Override
     final <P_IN> void copyInto(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator) {
         Objects.requireNonNull(wrappedSink);
-
+        // 无短路操作
         if (!StreamOpFlag.SHORT_CIRCUIT.isKnown(getStreamAndOpFlags())) {
+            // 通知开始遍历
             wrappedSink.begin(spliterator.getExactSizeIfKnown());
+            // 依次处理每个元素
             spliterator.forEachRemaining(wrappedSink);
+            // 通知结束遍历
             wrappedSink.end();
-        }
-        else {
+        } else {
+            // 有短路操作
             copyIntoWithCancel(wrappedSink, spliterator);
         }
     }
@@ -340,8 +351,8 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
     @SuppressWarnings("unchecked")
     final <P_IN> Sink<P_IN> wrapSink(Sink<E_OUT> sink) {
         Objects.requireNonNull(sink);
-
         for ( @SuppressWarnings("rawtypes") AbstractPipeline p=AbstractPipeline.this; p.depth > 0; p=p.previousStage) {
+            // 从自身stage开始，不断调用前一个stage的opWrapSink，直到头节点
             sink = p.opWrapSink(p.previousStage.combinedFlags, sink);
         }
         return (Sink<P_IN>) sink;
@@ -377,155 +388,35 @@ abstract class AbstractPipeline<E_IN, E_OUT, S extends BaseStream<E_OUT, S>>
 
     // Shape-specific abstract methods, implemented by XxxPipeline classes
 
-    /**
-     * Get the output shape of the pipeline.  If the pipeline is the head,
-     * then it's output shape corresponds to the shape of the source.
-     * Otherwise, it's output shape corresponds to the output shape of the
-     * associated operation.
-     *
-     * @return the output shape
-     */
     abstract StreamShape getOutputShape();
 
-    /**
-     * Collect elements output from a pipeline into a Node that holds elements
-     * of this shape.
-     *
-     * @param helper the pipeline helper describing the pipeline stages
-     * @param spliterator the source spliterator
-     * @param flattenTree true if the returned node should be flattened
-     * @param generator the array generator
-     * @return a Node holding the output of the pipeline
-     */
     abstract <P_IN> Node<E_OUT> evaluateToNode(PipelineHelper<E_OUT> helper,
                                                Spliterator<P_IN> spliterator,
                                                boolean flattenTree,
                                                IntFunction<E_OUT[]> generator);
 
-    /**
-     * Create a spliterator that wraps a source spliterator, compatible with
-     * this stream shape, and operations associated with a {@link
-     * PipelineHelper}.
-     *
-     * @param ph the pipeline helper describing the pipeline stages
-     * @param supplier the supplier of a spliterator
-     * @return a wrapping spliterator compatible with this shape
-     */
     abstract <P_IN> Spliterator<E_OUT> wrap(PipelineHelper<E_OUT> ph,
                                             Supplier<Spliterator<P_IN>> supplier,
                                             boolean isParallel);
 
-    /**
-     * Create a lazy spliterator that wraps and obtains the supplied the
-     * spliterator when a method is invoked on the lazy spliterator.
-     * @param supplier the supplier of a spliterator
-     */
     abstract Spliterator<E_OUT> lazySpliterator(Supplier<? extends Spliterator<E_OUT>> supplier);
 
-    /**
-     * Traverse the elements of a spliterator compatible with this stream shape,
-     * pushing those elements into a sink.   If the sink requests cancellation,
-     * no further elements will be pulled or pushed.
-     *
-     * @param spliterator the spliterator to pull elements from
-     * @param sink the sink to push elements to
-     */
     abstract void forEachWithCancel(Spliterator<E_OUT> spliterator, Sink<E_OUT> sink);
 
-    /**
-     * Make a node builder compatible with this stream shape.
-     *
-     * @param exactSizeIfKnown if {@literal >=0}, then a node builder will be
-     * created that has a fixed capacity of at most sizeIfKnown elements. If
-     * {@literal < 0}, then the node builder has an unfixed capacity. A fixed
-     * capacity node builder will throw exceptions if an element is added after
-     * builder has reached capacity, or is built before the builder has reached
-     * capacity.
-     *
-     * @param generator the array generator to be used to create instances of a
-     * T[] array. For implementations supporting primitive nodes, this parameter
-     * may be ignored.
-     * @return a node builder
-     */
     @Override
-    abstract Node.Builder<E_OUT> makeNodeBuilder(long exactSizeIfKnown,
-                                                 IntFunction<E_OUT[]> generator);
+    abstract Node.Builder<E_OUT> makeNodeBuilder(long exactSizeIfKnown, IntFunction<E_OUT[]> generator);
 
 
-    // Op-specific abstract methods, implemented by the operation class
-
-    /**
-     * Returns whether this operation is stateful or not.  If it is stateful,
-     * then the method
-     * {@link #opEvaluateParallel(PipelineHelper, java.util.Spliterator, java.util.function.IntFunction)}
-     * must be overridden.
-     *
-     * @return {@code true} if this operation is stateful
-     */
     abstract boolean opIsStateful();
-
-    /**
-     * Accepts a {@code Sink} which will receive the results of this operation,
-     * and return a {@code Sink} which accepts elements of the input type of
-     * this operation and which performs the operation, passing the results to
-     * the provided {@code Sink}.
-     *
-     * @apiNote
-     * The implementation may use the {@code flags} parameter to optimize the
-     * sink wrapping.  For example, if the input is already {@code DISTINCT},
-     * the implementation for the {@code Stream#distinct()} method could just
-     * return the sink it was passed.
-     *
-     * @param flags The combined stream and operation flags up to, but not
-     *        including, this operation
-     * @param sink sink to which elements should be sent after processing
-     * @return a sink which accepts elements, perform the operation upon
-     *         each element, and passes the results (if any) to the provided
-     *         {@code Sink}.
-     */
+    // opWrapSink()方法的作用是将当前操作与下游 Sink 结合成新 Sink
     abstract Sink<E_IN> opWrapSink(int flags, Sink<E_OUT> sink);
 
-    /**
-     * Performs a parallel evaluation of the operation using the specified
-     * {@code PipelineHelper} which describes the upstream intermediate
-     * operations.  Only called on stateful operations.  If {@link
-     * #opIsStateful()} returns true then implementations must override the
-     * default implementation.
-     *
-     * @implSpec The default implementation always throw
-     * {@code UnsupportedOperationException}.
-     *
-     * @param helper the pipeline helper describing the pipeline stages
-     * @param spliterator the source {@code Spliterator}
-     * @param generator the array generator
-     * @return a {@code Node} describing the result of the evaluation
-     */
     <P_IN> Node<E_OUT> opEvaluateParallel(PipelineHelper<E_OUT> helper,
                                           Spliterator<P_IN> spliterator,
                                           IntFunction<E_OUT[]> generator) {
         throw new UnsupportedOperationException("Parallel evaluation is not supported");
     }
 
-    /**
-     * Returns a {@code Spliterator} describing a parallel evaluation of the
-     * operation, using the specified {@code PipelineHelper} which describes the
-     * upstream intermediate operations.  Only called on stateful operations.
-     * It is not necessary (though acceptable) to do a full computation of the
-     * result here; it is preferable, if possible, to describe the result via a
-     * lazily evaluated spliterator.
-     *
-     * @implSpec The default implementation behaves as if:
-     * <pre>{@code
-     *     return evaluateParallel(helper, i -> (E_OUT[]) new
-     * Object[i]).spliterator();
-     * }</pre>
-     * and is suitable for implementations that cannot do better than a full
-     * synchronous evaluation.
-     *
-     * @param helper the pipeline helper
-     * @param spliterator the source {@code Spliterator}
-     * @return a {@code Spliterator} describing the result of the evaluation
-     */
     @SuppressWarnings("unchecked")
     <P_IN> Spliterator<E_OUT> opEvaluateParallelLazy(PipelineHelper<E_OUT> helper,
                                                      Spliterator<P_IN> spliterator) {

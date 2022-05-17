@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2012, 2017, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
 package java.util.stream;
 
 import java.util.Comparator;
@@ -40,24 +16,8 @@ import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-/**
- * Spliterator implementations for wrapping and delegating spliterators, used
- * in the implementation of the {@link Stream#spliterator()} method.
- *
- * @since 1.8
- */
 class StreamSpliterators {
 
-    /**
-     * Abstract wrapping spliterator that binds to the spliterator of a
-     * pipeline helper on first operation.
-     *
-     * <p>This spliterator is not late-binding and will bind to the source
-     * spliterator when first operated on.
-     *
-     * <p>A wrapping spliterator produced from a sequential stream
-     * cannot be split if there are stateful operations present.
-     */
     private static abstract class AbstractWrappingSpliterator<P_IN, P_OUT,
                                                               T_BUFFER extends AbstractSpinedBuffer>
             implements Spliterator<P_OUT> {
@@ -65,54 +25,24 @@ class StreamSpliterators {
         // @@@ Detect if stateful operations are present or not
         //     If not then can split otherwise cannot
 
-        /**
-         * True if this spliterator supports splitting
-         */
         final boolean isParallel;
 
         final PipelineHelper<P_OUT> ph;
 
-        /**
-         * Supplier for the source spliterator.  Client provides either a
-         * spliterator or a supplier.
-         */
         private Supplier<Spliterator<P_IN>> spliteratorSupplier;
 
-        /**
-         * Source spliterator.  Either provided from client or obtained from
-         * supplier.
-         */
         Spliterator<P_IN> spliterator;
 
-        /**
-         * Sink chain for the downstream stages of the pipeline, ultimately
-         * leading to the buffer. Used during partial traversal.
-         */
         Sink<P_IN> bufferSink;
 
-        /**
-         * A function that advances one element of the spliterator, pushing
-         * it to bufferSink.  Returns whether any elements were processed.
-         * Used during partial traversal.
-         */
         BooleanSupplier pusher;
 
-        /** Next element to consume from the buffer, used during partial traversal */
         long nextToConsume;
 
-        /** Buffer into which elements are pushed.  Used during partial traversal. */
         T_BUFFER buffer;
 
-        /**
-         * True if full traversal has occurred (with possible cancelation).
-         * If doing a partial traversal, there may be still elements in buffer.
-         */
         boolean finished;
 
-        /**
-         * Construct an AbstractWrappingSpliterator from a
-         * {@code Supplier<Spliterator>}.
-         */
         AbstractWrappingSpliterator(PipelineHelper<P_OUT> ph,
                                     Supplier<Spliterator<P_IN>> spliteratorSupplier,
                                     boolean parallel) {
@@ -122,10 +52,6 @@ class StreamSpliterators {
             this.isParallel = parallel;
         }
 
-        /**
-         * Construct an AbstractWrappingSpliterator from a
-         * {@code Spliterator}.
-         */
         AbstractWrappingSpliterator(PipelineHelper<P_OUT> ph,
                                     Spliterator<P_IN> spliterator,
                                     boolean parallel) {
@@ -135,9 +61,6 @@ class StreamSpliterators {
             this.isParallel = parallel;
         }
 
-        /**
-         * Called before advancing to set up spliterator, if needed.
-         */
         final void init() {
             if (spliterator == null) {
                 spliterator = spliteratorSupplier.get();
@@ -145,11 +68,6 @@ class StreamSpliterators {
             }
         }
 
-        /**
-         * Get an element from the source, pushing it into the sink chain,
-         * setting up the buffer if needed
-         * @return whether there are elements to consume from the buffer
-         */
         final boolean doAdvance() {
             if (buffer == null) {
                 if (finished)
@@ -173,16 +91,8 @@ class StreamSpliterators {
             }
         }
 
-        /**
-         * Invokes the shape-specific constructor with the provided arguments
-         * and returns the result.
-         */
         abstract AbstractWrappingSpliterator<P_IN, P_OUT, ?> wrap(Spliterator<P_IN> s);
 
-        /**
-         * Initializes buffer, sink chain, and pusher for a shape-specific
-         * implementation.
-         */
         abstract void initPartialTraversalState();
 
         @Override
@@ -197,11 +107,6 @@ class StreamSpliterators {
                 return null;
         }
 
-        /**
-         * If the buffer is empty, push elements into the sink chain until
-         * the source is empty or cancellation is requested.
-         * @return whether there are elements to consume from the buffer
-         */
         private boolean fillBuffer() {
             while (buffer.count() == 0) {
                 if (bufferSink.cancellationRequested() || !pusher.getAsBoolean()) {
@@ -493,12 +398,6 @@ class StreamSpliterators {
         }
     }
 
-    /**
-     * Spliterator implementation that delegates to an underlying spliterator,
-     * acquiring the spliterator from a {@code Supplier<Spliterator>} on the
-     * first call to any spliterator method.
-     * @param <T>
-     */
     static class DelegatingSpliterator<T, T_SPLITR extends Spliterator<T>>
             implements Spliterator<T> {
         private final Supplier<? extends T_SPLITR> supplier;
@@ -603,11 +502,6 @@ class StreamSpliterators {
         }
     }
 
-    /**
-     * A slice Spliterator from a source Spliterator that reports
-     * {@code SUBSIZED}.
-     *
-     */
     static abstract class SliceSpliterator<T, T_SPLITR extends Spliterator<T>> {
         // The start index of the slice
         final long sliceOrigin;
@@ -891,15 +785,6 @@ class StreamSpliterators {
         }
     }
 
-    /**
-     * A slice Spliterator that does not preserve order, if any, of a source
-     * Spliterator.
-     *
-     * Note: The source spliterator may report {@code ORDERED} since that
-     * spliterator be the result of a previous pipeline stage that was
-     * collected to a {@code Node}. It is the order of the pipeline stage
-     * that governs whether this slice spliterator is to be used or not.
-     */
     static abstract class UnorderedSliceSpliterator<T, T_SPLITR extends Spliterator<T>> {
         static final int CHUNK_SIZE = 1 << 7;
 
@@ -928,20 +813,6 @@ class StreamSpliterators {
             this.chunkSize = parent.chunkSize;
         }
 
-        /**
-         * Acquire permission to skip or process elements.  The caller must
-         * first acquire the elements, then consult this method for guidance
-         * as to what to do with the data.
-         *
-         * <p>We use an {@code AtomicLong} to atomically maintain a counter,
-         * which is initialized as skip+limit if we are limiting, or skip only
-         * if we are not limiting.  The user should consult the method
-         * {@code checkPermits()} before acquiring data elements.
-         *
-         * @param numElements the number of elements the caller has in hand
-         * @return the number of elements that should be processed; any
-         * remaining elements should be discarded.
-         */
         protected final long acquirePermits(long numElements) {
             long remainingPermits;
             long grabbing;
@@ -965,7 +836,6 @@ class StreamSpliterators {
 
         enum PermitStatus { NO_MORE, MAYBE_MORE, UNLIMITED }
 
-        /** Call to check if permits might be available before acquiring data */
         protected final PermitStatus permitStatus() {
             if (permits.get() > 0)
                 return PermitStatus.MAYBE_MORE;
@@ -1059,12 +929,6 @@ class StreamSpliterators {
             }
         }
 
-        /**
-         * Concrete sub-types must also be an instance of type {@code T_CONS}.
-         *
-         * @param <T_BUFF> the type of the spined buffer. Must also be a type of
-         *        {@code T_CONS}.
-         */
         static abstract class OfPrimitive<
                 T,
                 T_CONS,
@@ -1237,10 +1101,6 @@ class StreamSpliterators {
         }
     }
 
-    /**
-     * A wrapping spliterator that only reports distinct elements of the
-     * underlying spliterator. Does not preserve size and encounter order.
-     */
     static final class DistinctSpliterator<T> implements Spliterator<T>, Consumer<T> {
 
         // The value to represent null in the ConcurrentHashMap
@@ -1319,16 +1179,6 @@ class StreamSpliterators {
         }
     }
 
-    /**
-     * A Spliterator that infinitely supplies elements in no particular order.
-     *
-     * <p>Splitting divides the estimated size in two and stops when the
-     * estimate size is 0.
-     *
-     * <p>The {@code forEachRemaining} method if invoked will never terminate.
-     * The {@code tryAdvance} method always returns true.
-     *
-     */
     static abstract class InfiniteSupplyingSpliterator<T> implements Spliterator<T> {
         long estimate;
 
