@@ -86,7 +86,7 @@ public class IntegerTest {
     }
 
     @Test
-    public void divSero(){
+    public void divZero(){
         // Infinity
         System.out.println((1.0)/(0.0));
     }
