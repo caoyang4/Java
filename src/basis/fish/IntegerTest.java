@@ -85,4 +85,10 @@ public class IntegerTest {
         System.out.println("interest: "+i);
     }
 
+    @Test
+    public void divSero(){
+        // Infinity
+        System.out.println((1.0)/(0.0));
+    }
+
 }
