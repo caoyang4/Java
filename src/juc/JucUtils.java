@@ -5,10 +5,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author caoyang
  */
-public class JucUtils {
+public final class JucUtils {
     private JucUtils() {
-
     }
+
     public static void threadSleep(long time){
         try {
             Thread.sleep(time);
