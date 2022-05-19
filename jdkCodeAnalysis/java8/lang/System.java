@@ -285,13 +285,8 @@ public final class System {
         Thread current = Thread.currentThread();
         current.getThreadGroup().add(current);
 
-        // register shared ecrets
         setJavaLangAccess();
 
-        // Subsystems that are invoked during initialization can invoke
-        // sun.misc.VM.isBooted() in order to avoid doing things that should
-        // wait until the application class loader has been set up.
-        // IMPORTANT: Ensure that this remains the last initialization action!
         sun.misc.VM.booted();
     }
 

@@ -24,8 +24,7 @@ import sun.net.www.ParseUtil;
 public class Launcher {
     private static URLStreamHandlerFactory factory = new Factory();
     private static Launcher launcher = new Launcher();
-    private static String bootClassPath =
-        System.getProperty("sun.boot.class.path");
+    private static String bootClassPath = System.getProperty("sun.boot.class.path");
 
     public static Launcher getLauncher() {
         return launcher;
@@ -37,21 +36,21 @@ public class Launcher {
         // Create the extension class loader
         ClassLoader extcl;
         try {
+            // 扩展类加载器
             extcl = ExtClassLoader.getExtClassLoader();
         } catch (IOException e) {
-            throw new InternalError(
-                "Could not create extension class loader", e);
+            throw new InternalError("Could not create extension class loader", e);
         }
 
         // Now create the class loader to use to launch the application
         try {
+            // 系统类加载器
             loader = AppClassLoader.getAppClassLoader(extcl);
         } catch (IOException e) {
-            throw new InternalError(
-                "Could not create application class loader", e);
+            throw new InternalError("Could not create application class loader", e);
         }
 
-        // Also set the context class loader for the primordial thread.
+        // 设置ClassLoader为线程上下文类加载器，这个文章后面部分讲解
         Thread.currentThread().setContextClassLoader(loader);
 
         // Finally, install a security manager if requested
@@ -75,8 +74,7 @@ public class Launcher {
             if (sm != null) {
                 System.setSecurityManager(sm);
             } else {
-                throw new InternalError(
-                    "Could not create SecurityManager: " + s);
+                throw new InternalError("Could not create SecurityManager: " + s);
             }
         }
     }
@@ -89,17 +87,17 @@ public class Launcher {
     }
 
     /*
-     * The class loader used for loading installed extensions.
+     * 扩展类加载器
      */
     static class ExtClassLoader extends URLClassLoader {
 
         static {
             ClassLoader.registerAsParallelCapable();
         }
+        // DCL+volatile 创建单例
         private static volatile ExtClassLoader instance = null;
 
-        public static ExtClassLoader getExtClassLoader() throws IOException
-        {
+        public static ExtClassLoader getExtClassLoader() throws IOException {
             if (instance == null) {
                 synchronized(ExtClassLoader.class) {
                     if (instance == null) {
@@ -112,10 +110,6 @@ public class Launcher {
 
         private static ExtClassLoader createExtClassLoader() throws IOException {
             try {
-                // Prior implementations of this doPrivileged() block supplied
-                // aa synthesized ACC via a call to the private method
-                // ExtClassLoader.getContext().
-
                 return AccessController.doPrivileged(
                     new PrivilegedExceptionAction<ExtClassLoader>() {
                         public ExtClassLoader run() throws IOException {
@@ -144,7 +138,7 @@ public class Launcher {
             SharedSecrets.getJavaNetAccess().
                 getURLClassPath(this).initLookupCache(this);
         }
-
+        // 指定-D java.ext.dirs参数来添加和改变ExtClassLoader的加载路径
         private static File[] getExtDirs() {
             String s = System.getProperty("java.ext.dirs");
             File[] dirs;
@@ -180,13 +174,7 @@ public class Launcher {
             return ua;
         }
 
-        /*
-         * Searches the installed extension directories for the specified
-         * library name. For each extension directory, we first look for
-         * the native library in the subdirectory whose name is the value
-         * of the system property <code>os.arch</code>. Failing that, we
-         * look in the extension directory itself.
-         */
+
         public String findLibrary(String name) {
             name = System.mapLibraryName(name);
             URL[] urls = super.getURLs();
@@ -249,19 +237,10 @@ public class Launcher {
             ClassLoader.registerAsParallelCapable();
         }
 
-        public static ClassLoader getAppClassLoader(final ClassLoader extcl)
-            throws IOException
-        {
+        public static ClassLoader getAppClassLoader(final ClassLoader extcl) throws IOException {
             final String s = System.getProperty("java.class.path");
             final File[] path = (s == null) ? new File[0] : getClassPath(s);
 
-            // Note: on bugid 4256530
-            // Prior implementations of this doPrivileged() block supplied
-            // a rather restrictive ACC via a call to the private method
-            // AppClassLoader.getContext(). This proved overly restrictive
-            // when loading  classes. Specifically it prevent
-            // accessClassInPackage.sun.* grants from being honored.
-            //
             return AccessController.doPrivileged(
                 new PrivilegedAction<AppClassLoader>() {
                     public AppClassLoader run() {

@@ -138,24 +138,30 @@ public abstract class ClassLoader {
         this(checkCreateClassLoader(), getSystemClassLoader());
     }
 
-    // -- Class --
 
+    /**
+     * loadClass()方法是ClassLoader类自己实现的，该方法中的逻辑就是双亲委派模式的实现
+     * resolve参数代表是否生成class对象的同时进行解析相关操作
+     *
+     * 1、系统类防止内存中出现多份同样的字节码
+     * 2、保证Java程序安全稳定运行
+     */
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         return loadClass(name, false);
     }
 
-    protected Class<?> loadClass(String name, boolean resolve)
-        throws ClassNotFoundException
-    {
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         synchronized (getClassLoadingLock(name)) {
-            // First, check if the class has already been loaded
+            // 先从缓存查找该class对象，找到就不用重新加载
             Class<?> c = findLoadedClass(name);
             if (c == null) {
                 long t0 = System.nanoTime();
                 try {
                     if (parent != null) {
+                        // 如果找不到，则委托给父类加载器去加载
                         c = parent.loadClass(name, false);
                     } else {
+                        // 如果没有父类，则委托给启动加载器去加载
                         c = findBootstrapClassOrNull(name);
                     }
                 } catch (ClassNotFoundException e) {
@@ -164,9 +170,8 @@ public abstract class ClassLoader {
                 }
 
                 if (c == null) {
-                    // If still not found, then invoke findClass in order
-                    // to find the class.
                     long t1 = System.nanoTime();
+                    // 如果都没有找到，则通过自定义实现的findClass去查找并加载
                     c = findClass(name);
 
                     // this is the defining class loader; record the stats
@@ -175,6 +180,7 @@ public abstract class ClassLoader {
                     sun.misc.PerfCounter.getFindClasses().increment();
                 }
             }
+            // 是否需要在加载时进行解析
             if (resolve) {
                 resolveClass(c);
             }
@@ -195,9 +201,7 @@ public abstract class ClassLoader {
     }
 
     // This method is invoked by the virtual machine to load a class.
-    private Class<?> loadClassInternal(String name)
-        throws ClassNotFoundException
-    {
+    private Class<?> loadClassInternal(String name) throws ClassNotFoundException {
         // For backward compatibility, explicitly lock on 'this' when
         // the current class loader is not parallel capable.
         if (parallelLockMap == null) {
@@ -238,15 +242,11 @@ public abstract class ClassLoader {
     }
 
     @Deprecated
-    protected final Class<?> defineClass(byte[] b, int off, int len)
-        throws ClassFormatError
-    {
+    protected final Class<?> defineClass(byte[] b, int off, int len) throws ClassFormatError {
         return defineClass(null, b, off, len, null);
     }
 
-    protected final Class<?> defineClass(String name, byte[] b, int off, int len)
-        throws ClassFormatError
-    {
+    protected final Class<?> defineClass(String name, byte[] b, int off, int len) throws ClassFormatError {
         return defineClass(name, b, off, len, null);
     }
 
@@ -255,9 +255,7 @@ public abstract class ClassLoader {
         - signer of this class matches signers for the rest of the classes in
           package.
     */
-    private ProtectionDomain preDefineClass(String name,
-                                            ProtectionDomain pd)
-    {
+    private ProtectionDomain preDefineClass(String name, ProtectionDomain pd) {
         if (!checkName(name))
             throw new NoClassDefFoundError("IllegalName: " + name);
 
@@ -309,9 +307,7 @@ public abstract class ClassLoader {
         // Use byte[] if not a direct ByteBufer:
         if (!b.isDirect()) {
             if (b.hasArray()) {
-                return defineClass(name, b.array(),
-                                   b.position() + b.arrayOffset(), len,
-                                   protectionDomain);
+                return defineClass(name, b.array(), b.position() + b.arrayOffset(), len, protectionDomain);
             } else {
                 // no array, or read-only array
                 byte[] tb = new byte[len];
@@ -406,7 +402,7 @@ public abstract class ClassLoader {
 
         return true;
     }
-
+    // 解析class
     protected final void resolveClass(Class<?> c) {
         resolveClass0(c);
     }

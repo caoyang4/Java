@@ -87,6 +87,7 @@ public class GC {
                          tgn != null;
                          tg = tgn, tgn = tg.getParent());
                     Daemon d = new Daemon(tg);
+                    // 守护线程
                     d.setDaemon(true);
                     d.setPriority(Thread.MIN_PRIORITY + 1);
                     d.start();
@@ -184,8 +185,7 @@ public class GC {
         }
 
         public String toString() {
-            return (LatencyRequest.class.getName()
-                    + "[" + latency + "," + id + "]");
+            return (LatencyRequest.class.getName() + "[" + latency + "," + id + "]");
         }
 
     }
