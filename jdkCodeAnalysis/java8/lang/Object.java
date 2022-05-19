@@ -1,12 +1,12 @@
 package java.lang;
-
+// java 祖宗类
 public class Object {
 
     private static native void registerNatives();
     static {
         registerNatives();
     }
-
+    // Class 对象
     public final native Class<?> getClass();
 
     public native int hashCode();
@@ -14,13 +14,13 @@ public class Object {
     public boolean equals(Object obj) {
         return (this == obj);
     }
-
+    // clone，需实现 Clonable 接口
     protected native Object clone() throws CloneNotSupportedException;
 
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
-
+    // 唤醒线程
     public final native void notify();
 
     public final native void notifyAll();
@@ -42,10 +42,10 @@ public class Object {
 
         wait(timeout);
     }
-
+    // 线程阻塞，释放锁
     public final void wait() throws InterruptedException {
         wait(0);
     }
-
+    // gc会调用该方法
     protected void finalize() throws Throwable { }
 }

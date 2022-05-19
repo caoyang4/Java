@@ -2,7 +2,7 @@ package java.lang;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
-
+// 创建进程
 public abstract class Process {
     public abstract OutputStream getOutputStream();
 

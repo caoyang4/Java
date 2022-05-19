@@ -4,12 +4,12 @@ import sun.misc.FloatingDecimal;
 import java.util.Arrays;
 
 /**
- *
+ * StringBuilder和StringBuffer的父类
  */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
     // 内部数组实现
     char[] value;
-
+    // 字符长度
     int count;
 
     AbstractStringBuilder() {}

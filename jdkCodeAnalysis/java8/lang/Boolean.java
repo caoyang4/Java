@@ -1,5 +1,5 @@
 package java.lang;
-
+// bool类型包装类
 public final class Boolean implements java.io.Serializable, Comparable<Boolean> {
     public static final Boolean TRUE = new Boolean(true);
 

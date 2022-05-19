@@ -1,5 +1,9 @@
 package java.lang;
 
+/**
+ * short包装类
+ * ShortCache会缓存[-128,127]
+ */
 public final class Short extends Number implements Comparable<Short> {
 
     public static final short   MIN_VALUE = -32768;

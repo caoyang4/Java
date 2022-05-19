@@ -5,14 +5,14 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
-
+// 枚举类会继承该类
 public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable {
     private final String name;
 
     public final String name() {
         return name;
     }
-
+    // 枚举的索引
     private final int ordinal;
 
     public final int ordinal() {
@@ -56,8 +56,7 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
         return (zuper == Enum.class) ? (Class<E>)clazz : (Class<E>)zuper;
     }
 
-    public static <T extends Enum<T>> T valueOf(Class<T> enumType,
-                                                String name) {
+    public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
         T result = enumType.enumConstantDirectory().get(name);
         if (result != null)
             return result;
@@ -68,6 +67,7 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
 
     protected final void finalize() { }
 
+    // 此处不允许序列化创建枚举类型，单例的最安全实现
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         throw new InvalidObjectException("can't deserialize enum");
     }

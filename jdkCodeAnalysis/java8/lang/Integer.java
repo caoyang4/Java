@@ -4,6 +4,7 @@ import java.lang.annotation.Native;
 
 /**
  * int包装类
+ * [-128,127]通过内部类 IntegerCache 会缓存到常量池中
  */
 public final class Integer extends Number implements Comparable<Integer> {
     @Native public static final int   MIN_VALUE = 0x80000000;

@@ -3,7 +3,7 @@ package java.lang;
 import sun.misc.FloatingDecimal;
 import sun.misc.FpUtils;
 import sun.misc.DoubleConsts;
-
+// double类型包装类
 public final class Double extends Number implements Comparable<Double> {
     public static final double POSITIVE_INFINITY = 1.0 / 0.0;
 

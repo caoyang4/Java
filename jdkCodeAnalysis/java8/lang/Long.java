@@ -2,7 +2,7 @@ package java.lang;
 
 import java.lang.annotation.Native;
 import java.math.*;
-
+// long 包装类
 public final class Long extends Number implements Comparable<Long> {
     @Native public static final long MIN_VALUE = 0x8000000000000000L;
 
@@ -52,14 +52,6 @@ public final class Long extends Number implements Comparable<Long> {
                 return toOctalString(i);
 
             case 10:
-                /*
-                 * We can get the effect of an unsigned division by 10
-                 * on a long value by first shifting right, yielding a
-                 * positive value, and then dividing by 5.  This
-                 * allows the last digit and preceding digits to be
-                 * isolated more quickly than by an initial conversion
-                 * to BigInteger.
-                 */
                 long quot = (i >>> 1) / 5;
                 long rem = i - quot * 10;
                 return toString(quot) + rem;

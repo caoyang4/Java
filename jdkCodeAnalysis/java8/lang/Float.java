@@ -3,7 +3,7 @@ package java.lang;
 import sun.misc.FloatingDecimal;
 import sun.misc.FloatConsts;
 import sun.misc.DoubleConsts;
-
+// float包装类
 public final class Float extends Number implements Comparable<Float> {
     public static final float POSITIVE_INFINITY = 1.0f / 0.0f;
 
