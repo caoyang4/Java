@@ -35,25 +35,30 @@ import sun.reflect.Reflection;
 import sun.reflect.misc.ReflectUtil;
 import sun.security.util.SecurityConstants;
 
+/**
+ * 类的加载、连接、与初始化过程都是在程序运行期间完成的（类从磁盘加载到内存中经历的三个阶段）
+ * 连接分为：验证、准备、解析
+ *
+ * 1、类加载器并不需要等到某个类被 “首次主动使用” 时再加载，
+ * 2、JVM规范允许类加载器在预料某个类将要被使用时就预先加载它，
+ * 3、如果在预先加载的过程中遇到了.class文件缺失或存在错误，类加载器必须在程序首次主动使用该类时才报告错误（LinkageError错误）
+ *   如果这个类一直没有被程序主动使用，那么类加载器就不会报告错误
+ */
 public abstract class ClassLoader {
 
     private static native void registerNatives();
     static {
-        registerNatives();
+        registerNatives();Launcher
     }
 
-    // The parent class loader for delegation
-    // Note: VM hardcoded the offset of this field, thus all new fields
-    // must be added *after* it.
+    // 父加载器
     private final ClassLoader parent;
 
     private static class ParallelLoaders {
         private ParallelLoaders() {}
 
         // the set of parallel capable loader types
-        private static final Set<Class<? extends ClassLoader>> loaderTypes =
-            Collections.newSetFromMap(
-                new WeakHashMap<Class<? extends ClassLoader>, Boolean>());
+        private static final Set<Class<? extends ClassLoader>> loaderTypes = Collections.newSetFromMap(new WeakHashMap<Class<? extends ClassLoader>, Boolean>());
         static {
             synchronized (loaderTypes) { loaderTypes.add(ClassLoader.class); }
         }
@@ -61,11 +66,6 @@ public abstract class ClassLoader {
         static boolean register(Class<? extends ClassLoader> c) {
             synchronized (loaderTypes) {
                 if (loaderTypes.contains(c.getSuperclass())) {
-                    // register the class loader as parallel capable
-                    // if and only if all of its super classes are.
-                    // Note: given current classloading sequence, if
-                    // the immediate super class is parallel capable,
-                    // all the super classes higher up must be too.
                     loaderTypes.add(c);
                     return true;
                 } else {
@@ -81,10 +81,7 @@ public abstract class ClassLoader {
         }
     }
 
-    // Maps class name to the corresponding lock object when the current
-    // class loader is parallel capable.
-    // Note: VM also uses this field to decide if the current class loader
-    // is parallel capable and the appropriate lock object for class loading.
+
     private final ConcurrentHashMap<String, Object> parallelLockMap;
 
     // Hashtable that maps packages to certs
@@ -99,9 +96,7 @@ public abstract class ClassLoader {
 
     // The "default" domain. Set as the default ProtectionDomain on newly
     // created classes.
-    private final ProtectionDomain defaultDomain =
-        new ProtectionDomain(new CodeSource(null, (Certificate[]) null),
-                             null, this, null);
+    private final ProtectionDomain defaultDomain = new ProtectionDomain(new CodeSource(null, (Certificate[]) null), null, this, null);
 
     // Invoked by the VM to record every loaded class with this loader.
     void addClass(Class<?> c) {
@@ -308,68 +303,6 @@ public abstract class ClassLoader {
         return c;
     }
 
-    /**
-     * Converts a {@link java.nio.ByteBuffer <tt>ByteBuffer</tt>}
-     * into an instance of class <tt>Class</tt>,
-     * with an optional <tt>ProtectionDomain</tt>.  If the domain is
-     * <tt>null</tt>, then a default domain will be assigned to the class as
-     * specified in the documentation for {@link #defineClass(String, byte[],
-     * int, int)}.  Before the class can be used it must be resolved.
-     *
-     * <p>The rules about the first class defined in a package determining the
-     * set of certificates for the package, and the restrictions on class names
-     * are identical to those specified in the documentation for {@link
-     * #defineClass(String, byte[], int, int, ProtectionDomain)}.
-     *
-     * <p> An invocation of this method of the form
-     * <i>cl</i><tt>.defineClass(</tt><i>name</i><tt>,</tt>
-     * <i>bBuffer</i><tt>,</tt> <i>pd</i><tt>)</tt> yields exactly the same
-     * result as the statements
-     *
-     *<p> <tt>
-     * ...<br>
-     * byte[] temp = new byte[bBuffer.{@link
-     * java.nio.ByteBuffer#remaining remaining}()];<br>
-     *     bBuffer.{@link java.nio.ByteBuffer#get(byte[])
-     * get}(temp);<br>
-     *     return {@link #defineClass(String, byte[], int, int, ProtectionDomain)
-     * cl.defineClass}(name, temp, 0,
-     * temp.length, pd);<br>
-     * </tt></p>
-     *
-     * @param  name
-     *         The expected <a href="#name">binary name</a>. of the class, or
-     *         <tt>null</tt> if not known
-     *
-     * @param  b
-     *         The bytes that make up the class data. The bytes from positions
-     *         <tt>b.position()</tt> through <tt>b.position() + b.limit() -1
-     *         </tt> should have the format of a valid class file as defined by
-     *         <cite>The Java&trade; Virtual Machine Specification</cite>.
-     *
-     * @param  protectionDomain
-     *         The ProtectionDomain of the class, or <tt>null</tt>.
-     *
-     * @return  The <tt>Class</tt> object created from the data,
-     *          and optional <tt>ProtectionDomain</tt>.
-     *
-     * @throws  ClassFormatError
-     *          If the data did not contain a valid class.
-     *
-     * @throws  NoClassDefFoundError
-     *          If <tt>name</tt> is not equal to the <a href="#name">binary
-     *          name</a> of the class specified by <tt>b</tt>
-     *
-     * @throws  SecurityException
-     *          If an attempt is made to add this class to a package that
-     *          contains classes that were signed by a different set of
-     *          certificates than this class, or if <tt>name</tt> begins with
-     *          "<tt>java.</tt>".
-     *
-     * @see      #defineClass(String, byte[], int, int, ProtectionDomain)
-     *
-     * @since  1.5
-     */
     protected final Class<?> defineClass(String name, java.nio.ByteBuffer b, ProtectionDomain protectionDomain) throws ClassFormatError {
         int len = b.remaining();
 
@@ -1071,23 +1004,11 @@ public abstract class ClassLoader {
 
     final Object assertionLock;
 
-    // The default toggle for assertion checking.
-    // @GuardedBy("assertionLock")
     private boolean defaultAssertionStatus = false;
 
-    // Maps String packageName to Boolean package default assertion status Note
-    // that the default package is placed under a null map key.  If this field
-    // is null then we are delegating assertion status queries to the VM, i.e.,
-    // none of this ClassLoader's assertion status modification methods have
-    // been invoked.
-    // @GuardedBy("assertionLock")
+
     private Map<String, Boolean> packageAssertionStatus = null;
 
-    // Maps String fullyQualifiedClassName to Boolean assertionStatus If this
-    // field is null then we are delegating assertion status queries to the VM,
-    // i.e., none of this ClassLoader's assertion status modification methods
-    // have been invoked.
-    // @GuardedBy("assertionLock")
     Map<String, Boolean> classAssertionStatus = null;
 
     public void setDefaultAssertionStatus(boolean enabled) {
@@ -1170,12 +1091,10 @@ public abstract class ClassLoader {
         AssertionStatusDirectives directives = retrieveDirectives();
 
         for(int i = 0; i < directives.classes.length; i++)
-            classAssertionStatus.put(directives.classes[i],
-                                     directives.classEnabled[i]);
+            classAssertionStatus.put(directives.classes[i], directives.classEnabled[i]);
 
         for(int i = 0; i < directives.packages.length; i++)
-            packageAssertionStatus.put(directives.packages[i],
-                                       directives.packageEnabled[i]);
+            packageAssertionStatus.put(directives.packages[i], directives.packageEnabled[i]);
 
         defaultAssertionStatus = directives.deflt;
     }
@@ -1185,8 +1104,7 @@ public abstract class ClassLoader {
 }
 
 
-class SystemClassLoaderAction
-    implements PrivilegedExceptionAction<ClassLoader> {
+class SystemClassLoaderAction implements PrivilegedExceptionAction<ClassLoader> {
     private ClassLoader parent;
 
     SystemClassLoaderAction(ClassLoader parent) {
