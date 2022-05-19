@@ -3,13 +3,16 @@ package java.lang;
 import sun.misc.FloatingDecimal;
 import java.util.Arrays;
 
+/**
+ *
+ */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
+    // 内部数组实现
     char[] value;
 
     int count;
 
-    AbstractStringBuilder() {
-    }
+    AbstractStringBuilder() {}
 
     AbstractStringBuilder(int capacity) {
         value = new char[capacity];
@@ -32,8 +35,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     private void ensureCapacityInternal(int minimumCapacity) {
         // overflow-conscious code
         if (minimumCapacity - value.length > 0) {
-            value = Arrays.copyOf(value,
-                    newCapacity(minimumCapacity));
+            value = Arrays.copyOf(value, newCapacity(minimumCapacity));
         }
     }
 
@@ -109,12 +111,10 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
         if (index < 0 || index > count) {
             throw new IndexOutOfBoundsException();
         }
-        return Character.offsetByCodePointsImpl(value, 0, count,
-                                                index, codePointOffset);
+        return Character.offsetByCodePointsImpl(value, 0, count, index, codePointOffset);
     }
 
-    public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)
-    {
+    public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
         if (srcBegin < 0)
             throw new StringIndexOutOfBoundsException(srcBegin);
         if ((srcEnd < 0) || (srcEnd > count))
@@ -255,8 +255,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
             append("-2147483648");
             return this;
         }
-        int appendedLength = (i < 0) ? Integer.stringSize(-i) + 1
-                                     : Integer.stringSize(i);
+        int appendedLength = (i < 0) ? Integer.stringSize(-i) + 1 : Integer.stringSize(i);
         int spaceNeeded = count + appendedLength;
         ensureCapacityInternal(spaceNeeded);
         Integer.getChars(i, spaceNeeded, value);
@@ -269,8 +268,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
             append("-9223372036854775808");
             return this;
         }
-        int appendedLength = (l < 0) ? Long.stringSize(-l) + 1
-                                     : Long.stringSize(l);
+        int appendedLength = (l < 0) ? Long.stringSize(-l) + 1 : Long.stringSize(l);
         int spaceNeeded = count + appendedLength;
         ensureCapacityInternal(spaceNeeded);
         Long.getChars(l, spaceNeeded, value);
@@ -367,15 +365,11 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
         return new String(value, start, end - start);
     }
 
-    public AbstractStringBuilder insert(int index, char[] str, int offset,
-                                        int len)
-    {
+    public AbstractStringBuilder insert(int index, char[] str, int offset, int len) {
         if ((index < 0) || (index > length()))
             throw new StringIndexOutOfBoundsException(index);
         if ((offset < 0) || (len < 0) || (offset > str.length - len))
-            throw new StringIndexOutOfBoundsException(
-                "offset " + offset + ", len " + len + ", str.length "
-                + str.length);
+            throw new StringIndexOutOfBoundsException("offset " + offset + ", len " + len + ", str.length " + str.length);
         ensureCapacityInternal(count + len);
         System.arraycopy(value, index, value, index + len, count - index);
         System.arraycopy(str, offset, value, index, len);

@@ -1,5 +1,10 @@
 package java.lang;
 
+/**
+ * 继承AbstractStringBuilder，重写了AbstractStringBuilder的一系列方法
+ * "+" 字符串拼接通过 StringBuilder#append 实现
+ * 通过返回this，实现链式编程
+ */
 public final class StringBuilder extends AbstractStringBuilder implements java.io.Serializable, CharSequence {
 
     static final long serialVersionUID = 4383685877147921099L;
@@ -11,7 +16,7 @@ public final class StringBuilder extends AbstractStringBuilder implements java.i
     public StringBuilder(int capacity) {
         super(capacity);
     }
-
+    // 对于指定字符串，容量额外加 16
     public StringBuilder(String str) {
         super(str.length() + 16);
         append(str);

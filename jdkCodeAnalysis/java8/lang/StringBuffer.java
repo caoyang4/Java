@@ -294,9 +294,8 @@ import java.util.Arrays;
 
     @Override
     public StringBuffer insert(int offset, int i) {
-        // Note, synchronization achieved via invocation of StringBuffer insert(int, String)
-        // after conversion of i to String by super class method
-        // Ditto for toStringCache clearing
+        // 最终还是会调用本类重写的 public synchronized StringBuffer insert(int offset, String str)
+        // 仍然是线程安全的
         super.insert(offset, i);
         return this;
     }
