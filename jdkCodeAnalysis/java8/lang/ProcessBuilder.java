@@ -10,15 +10,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 创建进程
+ * ProcessBuilder用于创建操作系统进程。
+ * 每个ProcessBuilder实例管理一个进程的属性。
+ * start()方法使用这些属性创建一个新的Process实例。 可以从同一实例重复调用start()方法以创建具有相同或相关属性的新子进程。
  */
 public final class ProcessBuilder {
+    // 命令
     private List<String> command;
+    // 工作目录，默认值是当前进程的当前工作目录，通常是系统属性user.dir命名的目录
     private File directory;
+    // 环境，依赖于系统的映射（从变量到值的）。初始值是当前进程环境的副本（可以System.getenv()获取操作系统的环境变量 ）
     private Map<String,String> environment;
     private boolean redirectErrorStream;
     private Redirect[] redirects;
-
+    // 使用指定的操作系统程序和参数构造进程构建器。
+    // 此构造不会使副本command列表。 对列表的后续更新将反映在流程构建器的状态中。
+    // 不检查command是否对应于有效的操作系统命令。
+    // 形参：command – 包含程序及其参数的列表
     public ProcessBuilder(List<String> command) {
         if (command == null)
             throw new NullPointerException();
@@ -48,7 +56,7 @@ public final class ProcessBuilder {
     public List<String> command() {
         return command;
     }
-
+    //  返回进程构建器的环境
     public Map<String,String> environment() {
         SecurityManager security = System.getSecurityManager();
         if (security != null)
@@ -82,7 +90,9 @@ public final class ProcessBuilder {
         }
         return this;
     }
-
+    // 返回此流程构建器的工作目录。
+    // 随后由该对象的start()方法start()子进程将使用它作为它们的工作目录。
+    // 返回值可能为null ——这意味着使用当前 Java 进程的工作目录，通常是系统属性user.dir命名的目录，作为子进程的工作目录。
     public File directory() {
         return directory;
     }
@@ -108,7 +118,7 @@ public final class ProcessBuilder {
             throw new IOException("Stream closed");
         }
     }
-
+    // 重定向方式
     public static abstract class Redirect {
         public enum Type {
             PIPE,
@@ -266,7 +276,8 @@ public final class ProcessBuilder {
         this.redirectErrorStream = redirectErrorStream;
         return this;
     }
-
+    // 使用此进程构建器的属性启动一个新进程。
+    // 新进程将调用command()给出的命令和参数，在directory()给出的工作目录中，以及environment()给出的进程环境。
     public Process start() throws IOException {
         // Must convert to array first -- a malicious user-supplied
         // list might try to circumvent the security check.
@@ -292,6 +303,7 @@ public final class ProcessBuilder {
         }
 
         try {
+            // 创建进程
             return ProcessImpl.start(cmdarray, environment, dir, redirects, redirectErrorStream);
         } catch (IOException | IllegalArgumentException e) {
             String exceptionInfo = ": " + e.getMessage();
