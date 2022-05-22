@@ -15,6 +15,8 @@ import sun.misc.SharedSecrets;
  * IdentityHashMap将所有的key和value都存储到Object[]数组table中，并且key和value相邻存储，
  * 当出现哈希冲突时，会往下遍历数组，直到找到一个空闲的位置。注意，数组第一个位置存储的是key，第二个位置存储的是value。
  * 因此索引偶数位存储 key，key 右相邻位置存储 value
+ *
+ * jdk动态代理有应用
  */
 public class IdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, java.io.Serializable, Cloneable {
     // 哈希表的默认容量

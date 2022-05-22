@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
 package java.lang.reflect;
 
 import java.lang.ref.ReferenceQueue;
@@ -32,98 +8,47 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-/**
- * Cache mapping pairs of {@code (key, sub-key) -> value}. Keys and values are
- * weakly but sub-keys are strongly referenced.  Keys are passed directly to
- * {@link #get} method which also takes a {@code parameter}. Sub-keys are
- * calculated from keys and parameters using the {@code subKeyFactory} function
- * passed to the constructor. Values are calculated from keys and parameters
- * using the {@code valueFactory} function passed to the constructor.
- * Keys can be {@code null} and are compared by identity while sub-keys returned by
- * {@code subKeyFactory} or values returned by {@code valueFactory}
- * can not be null. Sub-keys are compared using their {@link #equals} method.
- * Entries are expunged from cache lazily on each invocation to {@link #get},
- * {@link #containsValue} or {@link #size} methods when the WeakReferences to
- * keys are cleared. Cleared WeakReferences to individual values don't cause
- * expunging, but such entries are logically treated as non-existent and
- * trigger re-evaluation of {@code valueFactory} on request for their
- * key/subKey.
- *
- * @author Peter Levart
- * @param <K> type of keys
- * @param <P> type of parameters
- * @param <V> type of values
- */
 final class WeakCache<K, P, V> {
 
-    private final ReferenceQueue<K> refQueue
-        = new ReferenceQueue<>();
+    private final ReferenceQueue<K> refQueue = new ReferenceQueue<>();
     // the key type is Object for supporting null key
-    private final ConcurrentMap<Object, ConcurrentMap<Object, Supplier<V>>> map
-        = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Supplier<V>, Boolean> reverseMap
-        = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Object, ConcurrentMap<Object, Supplier<V>>> map = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Supplier<V>, Boolean> reverseMap = new ConcurrentHashMap<>();
     private final BiFunction<K, P, ?> subKeyFactory;
     private final BiFunction<K, P, V> valueFactory;
 
-    /**
-     * Construct an instance of {@code WeakCache}
-     *
-     * @param subKeyFactory a function mapping a pair of
-     *                      {@code (key, parameter) -> sub-key}
-     * @param valueFactory  a function mapping a pair of
-     *                      {@code (key, parameter) -> value}
-     * @throws NullPointerException if {@code subKeyFactory} or
-     *                              {@code valueFactory} is null.
-     */
-    public WeakCache(BiFunction<K, P, ?> subKeyFactory,
-                     BiFunction<K, P, V> valueFactory) {
+    public WeakCache(BiFunction<K, P, ?> subKeyFactory, BiFunction<K, P, V> valueFactory) {
         this.subKeyFactory = Objects.requireNonNull(subKeyFactory);
+        // ProxyClassFactory
         this.valueFactory = Objects.requireNonNull(valueFactory);
     }
 
-    /**
-     * Look-up the value through the cache. This always evaluates the
-     * {@code subKeyFactory} function and optionally evaluates
-     * {@code valueFactory} function if there is no entry in the cache for given
-     * pair of (key, subKey) or the entry has already been cleared.
-     *
-     * @param key       possibly null key
-     * @param parameter parameter used together with key to create sub-key and
-     *                  value (should not be null)
-     * @return the cached value (never null)
-     * @throws NullPointerException if {@code parameter} passed in or
-     *                              {@code sub-key} calculated by
-     *                              {@code subKeyFactory} or {@code value}
-     *                              calculated by {@code valueFactory} is null.
-     */
     public V get(K key, P parameter) {
         Objects.requireNonNull(parameter);
-
         expungeStaleEntries();
-
         Object cacheKey = CacheKey.valueOf(key, refQueue);
 
-        // lazily install the 2nd level valuesMap for the particular cacheKey
+        // 从缓存中查找
         ConcurrentMap<Object, Supplier<V>> valuesMap = map.get(cacheKey);
         if (valuesMap == null) {
-            ConcurrentMap<Object, Supplier<V>> oldValuesMap
-                = map.putIfAbsent(cacheKey,
-                                  valuesMap = new ConcurrentHashMap<>());
+            ConcurrentMap<Object, Supplier<V>> oldValuesMap = map.putIfAbsent(cacheKey, valuesMap = new ConcurrentHashMap<>());
             if (oldValuesMap != null) {
                 valuesMap = oldValuesMap;
             }
         }
 
-        // create subKey and retrieve the possible Supplier<V> stored by that
-        // subKey from valuesMap
+        // Supplier生产者接口，生产代理类
         Object subKey = Objects.requireNonNull(subKeyFactory.apply(key, parameter));
         Supplier<V> supplier = valuesMap.get(subKey);
         Factory factory = null;
 
         while (true) {
             if (supplier != null) {
-                // supplier might be a Factory or a CacheValue<V> instance
+                /**
+                 * 非空即可获得代理类
+                 * 第一次进入valuesMap是空的，map.get()获取不到
+                 * 后面会将一个Factory赋值给supplier，然后通过factory.get()来获取
+                 */
                 V value = supplier.get();
                 if (value != null) {
                     return value;
@@ -159,15 +84,6 @@ final class WeakCache<K, P, V> {
         }
     }
 
-    /**
-     * Checks whether the specified non-null value is already present in this
-     * {@code WeakCache}. The check is made using identity comparison regardless
-     * of whether value's class overrides {@link Object#equals} or not.
-     *
-     * @param value the non-null value to check
-     * @return true if given {@code value} is already cached
-     * @throws NullPointerException if value is null
-     */
     public boolean containsValue(V value) {
         Objects.requireNonNull(value);
 
@@ -175,10 +91,6 @@ final class WeakCache<K, P, V> {
         return reverseMap.containsKey(new LookupValue<>(value));
     }
 
-    /**
-     * Returns the current number of cached entries that
-     * can decrease over time when keys/values are GC-ed.
-     */
     public int size() {
         expungeStaleEntries();
         return reverseMap.size();
@@ -191,10 +103,6 @@ final class WeakCache<K, P, V> {
         }
     }
 
-    /**
-     * A factory {@link Supplier} that implements the lazy synchronized
-     * construction of the value and installment of it into the cache.
-     */
     private final class Factory implements Supplier<V> {
 
         private final K key;
@@ -202,8 +110,7 @@ final class WeakCache<K, P, V> {
         private final Object subKey;
         private final ConcurrentMap<Object, Supplier<V>> valuesMap;
 
-        Factory(K key, P parameter, Object subKey,
-                ConcurrentMap<Object, Supplier<V>> valuesMap) {
+        Factory(K key, P parameter, Object subKey, ConcurrentMap<Object, Supplier<V>> valuesMap) {
             this.key = key;
             this.parameter = parameter;
             this.subKey = subKey;
@@ -215,11 +122,6 @@ final class WeakCache<K, P, V> {
             // re-check
             Supplier<V> supplier = valuesMap.get(subKey);
             if (supplier != this) {
-                // something changed while we were waiting:
-                // might be that we were replaced by a CacheValue
-                // or were removed because of failure ->
-                // return null to signal WeakCache.get() to retry
-                // the loop
                 return null;
             }
             // else still us (supplier == this)
@@ -227,6 +129,7 @@ final class WeakCache<K, P, V> {
             // create new value
             V value = null;
             try {
+                // ProxyClassFactory#apply()，获取代理类
                 value = Objects.requireNonNull(valueFactory.apply(key, parameter));
             } finally {
                 if (value == null) { // remove us on failure
@@ -239,7 +142,7 @@ final class WeakCache<K, P, V> {
             // wrap value with CacheValue (WeakReference)
             CacheValue<V> cacheValue = new CacheValue<>(value);
 
-            // put into reverseMap
+            // 将代理类存入reverseMap，避免重复
             reverseMap.put(cacheValue, Boolean.TRUE);
 
             // try replacing us with CacheValue (this should always succeed)
@@ -253,18 +156,8 @@ final class WeakCache<K, P, V> {
         }
     }
 
-    /**
-     * Common type of value suppliers that are holding a referent.
-     * The {@link #equals} and {@link #hashCode} of implementations is defined
-     * to compare the referent by identity.
-     */
     private interface Value<V> extends Supplier<V> {}
 
-    /**
-     * An optimized {@link Value} used to look-up the value in
-     * {@link WeakCache#containsValue} method so that we are not
-     * constructing the whole {@link CacheValue} just to look-up the referent.
-     */
     private static final class LookupValue<V> implements Value<V> {
         private final V value;
 
@@ -290,12 +183,7 @@ final class WeakCache<K, P, V> {
         }
     }
 
-    /**
-     * A {@link Value} that weakly references the referent.
-     */
-    private static final class CacheValue<V>
-        extends WeakReference<V> implements Value<V>
-    {
+    private static final class CacheValue<V> extends WeakReference<V> implements Value<V> {
         private final int hash;
 
         CacheValue(V value) {
@@ -319,11 +207,6 @@ final class WeakCache<K, P, V> {
         }
     }
 
-    /**
-     * CacheKey containing a weakly referenced {@code key}. It registers
-     * itself with the {@code refQueue} so that it can be used to expunge
-     * the entry when the {@link WeakReference} is cleared.
-     */
     private static final class CacheKey<K> extends WeakReference<K> {
 
         // a replacement for null keys
@@ -362,8 +245,7 @@ final class WeakCache<K, P, V> {
                    key == ((CacheKey<K>) obj).get();
         }
 
-        void expungeFrom(ConcurrentMap<?, ? extends ConcurrentMap<?, ?>> map,
-                         ConcurrentMap<?, Boolean> reverseMap) {
+        void expungeFrom(ConcurrentMap<?, ? extends ConcurrentMap<?, ?>> map, ConcurrentMap<?, Boolean> reverseMap) {
             // removing just by key is always safe here because after a CacheKey
             // is cleared and enqueue-ed it is only equal to itself
             // (see equals method)...

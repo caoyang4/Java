@@ -24,15 +24,35 @@ import sun.security.util.SecurityConstants;
  *   ②：通过代理业务对原有业务进行增强
  * java当中有三种方式来创建代理对象：静态代理，jdk(基于接口)动态代理， cglib(基于父类)动态代理。
  *   静态代理违反了开闭原则
+ *
+ * 静态代理：代理对象和实际对象都继承了同一个接口，在代理对象中指向的是实际对象的实例，
+ *   优点：可以很好的保护实际对象的业务逻辑对外暴露，从而提高安全性。
+ *   缺点：不同的接口要有不同的代理类实现，会很冗余
+ * JDK 动态代理：
+ *   为了解决静态代理中，生成大量的代理类造成的冗余；
+ *   只需要实现 InvocationHandler 接口，重写 invoke 方法便可以完成代理的实现，
+ *   利用反射生成代理类 Proxyxx.class 代理类字节码，并生成对象
+ *   jdk动态代理之所以只能代理接口是因为代理类本身已经extends了Proxy，而java是不允许多重继承的，但是允许实现多个接口
+ *   优点：解决了静态代理中冗余的代理实现类问题。
+ *   缺点：JDK 动态代理是基于接口设计实现的，如果没有接口，会抛异常。
+ *
+ * CGLIB 代理：
+ *   由于 JDK 动态代理限制了只能基于接口设计，而对于没有接口的情况，JDK方式解决不了；
+ *   CGLib 采用了非常底层的字节码技术，其原理是通过字节码技术为一个类创建子类，并在子类中采用方法拦截的技术拦截所有父类方法的调用，顺势织入横切逻辑，来完成动态代理的实现。
+ *   实现方式实现 MethodInterceptor 接口，重写 intercept 方法，通过 Enhancer 类的回调方法来实现。
+ *   但是CGLib在创建代理对象时所花费的时间却比JDK多得多，所以对于单例的对象，因为无需频繁创建对象，用CGLib合适，反之，使用JDK方式要更为合适一些。
+ *   同时，由于CGLib由于是采用动态创建子类的方法，对于final方法，无法进行代理。
+ *   优点：没有接口也能实现动态代理，而且采用字节码增强技术，性能也不错。
+ *   缺点：技术实现较高
  */
 public class Proxy implements java.io.Serializable {
 
     private static final long serialVersionUID = -2222568056686623797L;
 
     private static final Class<?>[] constructorParams = { InvocationHandler.class };
-
+    // Proxy类通过一个WeakCache类的实例来缓存代理类
     private static final WeakCache<ClassLoader, Class<?>[], Class<?>> proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory());
-
+    // 事件处理器
     protected InvocationHandler h;
 
     private Proxy() {
@@ -65,8 +85,7 @@ public class Proxy implements java.io.Serializable {
         }
     }
 
-    private static Class<?> getProxyClass0(ClassLoader loader,
-                                           Class<?>... interfaces) {
+    private static Class<?> getProxyClass0(ClassLoader loader, Class<?>... interfaces) {
         if (interfaces.length > 65535) {
             throw new IllegalArgumentException("interface limit exceeded");
         }
@@ -156,8 +175,7 @@ public class Proxy implements java.io.Serializable {
                    equals(refs, ((KeyX) obj).refs);
         }
 
-        private static boolean equals(WeakReference<Class<?>>[] refs1,
-                                      WeakReference<Class<?>>[] refs2) {
+        private static boolean equals(WeakReference<Class<?>>[] refs1, WeakReference<Class<?>>[] refs2) {
             if (refs1.length != refs2.length) {
                 return false;
             }
@@ -190,6 +208,10 @@ public class Proxy implements java.io.Serializable {
         // 名字的自增标识
         private static final AtomicLong nextUniqueNumber = new AtomicLong();
 
+        /**
+         * @param loader  类加载器
+         * @param interfaces 接口
+         */
         @Override
         public Class<?> apply(ClassLoader loader, Class<?>[] interfaces) {
             // IdentityHashMap以对象地址为 key
@@ -214,19 +236,23 @@ public class Proxy implements java.io.Serializable {
                     throw new IllegalArgumentException("repeated interface: " + interfaceClass.getName());
                 }
             }
-
-            String proxyPkg = null;     // package to define proxy class in
+            // 代理类的包名
+            String proxyPkg = null;
+            // 代理类访问标志，默认是public final
             int accessFlags = Modifier.PUBLIC | Modifier.FINAL;
 
-            // 产生 proxyPkg 包名
+            // 如果接口有一个是非public的，就设置代理类包名与接口包名相同
             for (Class<?> intf : interfaces) {
                 int flags = intf.getModifiers();
                 if (!Modifier.isPublic(flags)) {
+                    // 更改代理类访问标志为final
                     accessFlags = Modifier.FINAL;
+                    // 获取接口的全限定名
                     String name = intf.getName();
                     int n = name.lastIndexOf('.');
                     String pkg = ((n == -1) ? "" : name.substring(0, n + 1));
                     if (proxyPkg == null) {
+                        // 首次遇到非public的接口，将代理类包名设置与接口包名相同
                         proxyPkg = pkg;
                     } else if (!pkg.equals(proxyPkg)) {
                         throw new IllegalArgumentException("non-public interfaces from different packages");
@@ -235,7 +261,7 @@ public class Proxy implements java.io.Serializable {
             }
 
             if (proxyPkg == null) {
-                // if no non-public proxy interfaces, use com.sun.proxy package
+                // 如果接口全是public的，代理类放在默认包下：com.sun.proxy
                 proxyPkg = ReflectUtil.PROXY_PACKAGE + ".";
             }
 
@@ -247,35 +273,39 @@ public class Proxy implements java.io.Serializable {
             // sun.misc.ProxyGenerator工具生成代理类的字节流
             byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);
             try {
-                return defineClass0(loader, proxyName,
-                                    proxyClassFile, 0, proxyClassFile.length);
+                // 根据字节流生成Class对象即代理类
+                return defineClass0(loader, proxyName, proxyClassFile, 0, proxyClassFile.length);
             } catch (ClassFormatError e) {
-                /*
-                 * A ClassFormatError here means that (barring bugs in the
-                 * proxy class generation code) there was some other
-                 * invalid aspect of the arguments supplied to the proxy
-                 * class creation (such as virtual machine limitations
-                 * exceeded).
-                 */
                 throw new IllegalArgumentException(e.toString());
             }
         }
     }
 
+    /**
+     * 创建代理类的静态方法
+     * @param loader     类加载器
+     * @param interfaces 接口
+     * @param h          事件处理,执行target对象的方法时，会触发事件处理器的方法，会把当前执行target对象的方法作为参数传入
+     *                   InvocationHandler就像一个中介，代理对象中关联了InvocationHandler对象，InvocationHandler对象中关联了被代理对象。
+     *                   代理对象调用方法时直接调用InvocationHandler对象的invoke()方法，在InvocationHandler的invoke()方法中再调用被代理对象的方法，
+     *                   同时在invoke()中可以做一些额外的工作
+     */
     @CallerSensitive
     public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h) throws IllegalArgumentException {
+        // 传入的代理类非空
         Objects.requireNonNull(h);
-
+        // 使用克隆的方式拿到接口
         final Class<?>[] intfs = interfaces.clone();
+        // 系统安全性检查
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             checkProxyAccess(Reflection.getCallerClass(), loader, intfs);
         }
 
-
+        // 查找或者生成一个代理类
         Class<?> cl = getProxyClass0(loader, intfs);
 
-
+        // 使用构造方法创建代理对象
         try {
             if (sm != null) {
                 checkNewProxyPermission(Reflection.getCallerClass(), cl);
@@ -283,6 +313,7 @@ public class Proxy implements java.io.Serializable {
 
             final Constructor<?> cons = cl.getConstructor(constructorParams);
             final InvocationHandler ih = h;
+            // 如果不是 public，则赋权
             if (!Modifier.isPublic(cl.getModifiers())) {
                 AccessController.doPrivileged(new PrivilegedAction<Void>() {
                     public Void run() {
@@ -291,6 +322,7 @@ public class Proxy implements java.io.Serializable {
                     }
                 });
             }
+            // 使用构造器，返回new的对象
             return cons.newInstance(new Object[]{h});
         } catch (IllegalAccessException|InstantiationException e) {
             throw new InternalError(e.toString(), e);
@@ -327,15 +359,13 @@ public class Proxy implements java.io.Serializable {
             }
         }
     }
-
+    // 是否是代理对象
     public static boolean isProxyClass(Class<?> cl) {
         return Proxy.class.isAssignableFrom(cl) && proxyClassCache.containsValue(cl);
     }
 
     @CallerSensitive
-    public static InvocationHandler getInvocationHandler(Object proxy)
-        throws IllegalArgumentException
-    {
+    public static InvocationHandler getInvocationHandler(Object proxy) throws IllegalArgumentException {
         /*
          * Verify that the object is actually a proxy instance.
          */
@@ -348,9 +378,7 @@ public class Proxy implements java.io.Serializable {
         if (System.getSecurityManager() != null) {
             Class<?> ihClass = ih.getClass();
             Class<?> caller = Reflection.getCallerClass();
-            if (ReflectUtil.needsPackageAccessCheck(caller.getClassLoader(),
-                                                    ihClass.getClassLoader()))
-            {
+            if (ReflectUtil.needsPackageAccessCheck(caller.getClassLoader(), ihClass.getClassLoader())) {
                 ReflectUtil.checkPackageAccess(ihClass);
             }
         }

@@ -26,9 +26,9 @@ public class Bird implements Flyable{
                 new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        System.out.println("jdkDynamicProxy start to" + method.getName());
+                        System.out.println("jdkDynamicProxy start to " + method.getName());
                         Object o = method.invoke(bird, args);
-                        System.out.println("jdkDynamicProxy end to" + method.getName());
+                        System.out.println("jdkDynamicProxy end to " + method.getName());
                         return o;
                     }
                 }

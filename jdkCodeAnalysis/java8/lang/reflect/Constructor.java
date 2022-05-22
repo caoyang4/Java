@@ -194,10 +194,7 @@ public final class Constructor<T> extends Executable {
     }
 
     @CallerSensitive
-    public T newInstance(Object ... initargs)
-        throws InstantiationException, IllegalAccessException,
-               IllegalArgumentException, InvocationTargetException
-    {
+    public T newInstance(Object ... initargs)throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (!override) {
             if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
                 Class<?> caller = Reflection.getCallerClass();
