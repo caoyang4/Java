@@ -16,6 +16,15 @@ import sun.reflect.Reflection;
 import sun.reflect.misc.ReflectUtil;
 import sun.security.util.SecurityConstants;
 
+/**
+ * java中的代理模式：
+ * 定义：给目标对象提供一个代理对象，并且由代理对象控制对目标对象的引用
+ * 目的：
+ *   ①：通过代理对象的方式间接的访问目标对象，防止直接访问目标对象给系统带来不必要的复杂性
+ *   ②：通过代理业务对原有业务进行增强
+ * java当中有三种方式来创建代理对象：静态代理，jdk(基于接口)动态代理， cglib(基于父类)动态代理。
+ *   静态代理违反了开闭原则
+ */
 public class Proxy implements java.io.Serializable {
 
     private static final long serialVersionUID = -2222568056686623797L;
@@ -175,39 +184,32 @@ public class Proxy implements java.io.Serializable {
     }
 
     private static final class ProxyClassFactory implements BiFunction<ClassLoader, Class<?>[], Class<?>> {
-        // prefix for all proxy class names
+        // 生成的class名称前缀
         private static final String proxyClassNamePrefix = "$Proxy";
 
-        // next number to use for generation of unique proxy class names
+        // 名字的自增标识
         private static final AtomicLong nextUniqueNumber = new AtomicLong();
 
         @Override
         public Class<?> apply(ClassLoader loader, Class<?>[] interfaces) {
-
+            // IdentityHashMap以对象地址为 key
             Map<Class<?>, Boolean> interfaceSet = new IdentityHashMap<>(interfaces.length);
             for (Class<?> intf : interfaces) {
-                /*
-                 * Verify that the class loader resolves the name of this
-                 * interface to the same Class object.
-                 */
+                // Verify that the class loader resolves the name of this interface to the same Class object.
                 Class<?> interfaceClass = null;
                 try {
+                    // 加载传入的接口
                     interfaceClass = Class.forName(intf.getName(), false, loader);
                 } catch (ClassNotFoundException e) {
                 }
                 if (interfaceClass != intf) {
                     throw new IllegalArgumentException(intf + " is not visible from class loader");
                 }
-                /*
-                 * Verify that the Class object actually represents an
-                 * interface.
-                 */
+                // 不是接口抛出异常，JDK动态代理只能代理接口
                 if (!interfaceClass.isInterface()) {
                     throw new IllegalArgumentException(interfaceClass.getName() + " is not an interface");
                 }
-                /*
-                 * Verify that this interface is not a duplicate.
-                 */
+                // 接口不能重复
                 if (interfaceSet.put(interfaceClass, Boolean.TRUE) != null) {
                     throw new IllegalArgumentException("repeated interface: " + interfaceClass.getName());
                 }
@@ -216,11 +218,7 @@ public class Proxy implements java.io.Serializable {
             String proxyPkg = null;     // package to define proxy class in
             int accessFlags = Modifier.PUBLIC | Modifier.FINAL;
 
-            /*
-             * Record the package of a non-public proxy interface so that the
-             * proxy class will be defined in the same package.  Verify that
-             * all non-public proxy interfaces are in the same package.
-             */
+            // 产生 proxyPkg 包名
             for (Class<?> intf : interfaces) {
                 int flags = intf.getModifiers();
                 if (!Modifier.isPublic(flags)) {
@@ -241,17 +239,13 @@ public class Proxy implements java.io.Serializable {
                 proxyPkg = ReflectUtil.PROXY_PACKAGE + ".";
             }
 
-            /*
-             * Choose a name for the proxy class to generate.
-             */
+            // num自增
             long num = nextUniqueNumber.getAndIncrement();
+            // 生成的代理类名称 包名.$Proxy0
             String proxyName = proxyPkg + proxyClassNamePrefix + num;
 
-            /*
-             * Generate the specified proxy class.
-             */
-            byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
-                proxyName, interfaces, accessFlags);
+            // sun.misc.ProxyGenerator工具生成代理类的字节流
+            byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);
             try {
                 return defineClass0(loader, proxyName,
                                     proxyClassFile, 0, proxyClassFile.length);
@@ -269,9 +263,7 @@ public class Proxy implements java.io.Serializable {
     }
 
     @CallerSensitive
-    public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
-        throws IllegalArgumentException
-    {
+    public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h) throws IllegalArgumentException {
         Objects.requireNonNull(h);
 
         final Class<?>[] intfs = interfaces.clone();

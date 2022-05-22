@@ -48,11 +48,27 @@ import sun.reflect.misc.ReflectUtil;
 
 /**
  * Class类是Java反射机制的基础，是一个特殊类，它用于表示JVM运行时类或接口的信息。
+ * Java反射（Reflection）允许应用程序在运行时借助于反射API，来获取所有类或接口的内部信息，并且能直接操作任意对象的内部属性及方法。
+ * 反射机制的核心类为java.lang.Class，类加载完后，会在堆内存的方法区中产生一个Class类型的对象。
+ * Class类没有 public 构造函数，是由类加载器的defineClass方法构造而成。所以Class对象不是“new”出来的，而是通过方法来获取的。
+ * 这个Class对象具有类的完整结构信息，并且一个类只有一个Class对象。
  * Class类提供很多方法用于获取类的各种信息，比如获取类名、判断该类是否是一个接口还是普通类等。
  *
  * 在Java中枚举类是一种类，而注解是一个接口，数组也是一个类；
  * Java原始类型(boolean, byte, char, short, int, long, float, and double)和关键字void也被表示为Class的对象。
  * Class类是java中的一个类和其他非继承类一样，默认的父类也是Object
+ *
+ * 获取Class对象有以下四种方式：
+ *   通过类对象获取；x.getClass()
+ *   通过类直接调用class获取；X.class
+ *   通过Class.forName获取；
+ *   通过类加载器获取
+ *
+ * 反射虽是强大的，但不可随意使用。如果可以在不使用反射的情况下执行操作，则应避免使用它
+ *   性能开销: 反射包括了一些动态类型，所以JVM无法对这些代码进行优化。因此，反射操作的效率要比那些非反射操作低得多
+ *   安全限制: 使用反射技术要求程序必须在一个没有安全限制的环境中运行
+ *   内部暴露: 由于反射允许代码执行一些在正常情况下不被允许的操作，比如访问私有的属性和方法。所以使用反射可能会导致意料之外的副作用：
+ *            代码有功能上的错误，降低可移植性。反射代码破坏了抽象性，因此当平台发生改变的时候，代码的行为就有可能也随着变化
  */
 public final class Class<T> implements java.io.Serializable, GenericDeclaration, Type, AnnotatedElement {
     private static final int ANNOTATION= 0x00002000;
