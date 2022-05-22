@@ -71,13 +71,12 @@ public class IntegerTest {
     @Test
     public void integerTest4(){
         /**
-         *     iconst_0
-         *     istore 0     0赋值给i
-         *     iload 0      压栈
-         *     iinc 0,1     i自增
-         *     istore 0     弹栈 0
-         *     getstatic 'java/lang/System.out','Ljava/io/PrintStream;'
-         *     iload 0      0 赋值给i，自增白忙活
+         *  iconst_0       取常量 0
+         *  istore_1       0 存入局部变量表
+         *  iload_1        0 压栈
+         *  iinc 1 by 1    取 0 自增，存入局部变量表
+         *  istore_1       0 存入局部变量表，自增白忙活
+         *  getstatic #5
          */
         int i = 0;
         // i++ 更改的值不会被使用
