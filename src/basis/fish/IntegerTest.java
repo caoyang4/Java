@@ -70,18 +70,26 @@ public class IntegerTest {
 
     @Test
     public void integerTest4(){
-        /**
-         *  iconst_0       取常量 0
-         *  istore_1       0 存入局部变量表
-         *  iload_1        0 压栈
-         *  iinc 1 by 1    取 0 自增，存入局部变量表
-         *  istore_1       0 存入局部变量表，自增白忙活
-         *  getstatic #5
-         */
+        //  iconst_0       取常量 0
+        //  store_1       0 存入局部变量表
+        //  iload_1        0 压栈
+        //  iinc 1 by 1    取 0 自增，存入局部变量表索引为 1 的位置
+        //  istore_1       0 存入局部变量表，自增白忙活
+        //  getstatic #5
         int i = 0;
         // i++ 更改的值不会被使用
-        i = i++;
-        System.out.println("interest: "+i);
+        i = i++; // 先压栈，再+1
+        // 打印 i = 0；
+        System.out.println("interest i: "+i);
+        int j = 0;
+        j = ++j; // 先+1，在压栈
+        // 32 iconst_0
+        // 33 istore_2
+        // 34 iinc 2 by 1 直接存入局部变量表索引为 2 的位置
+        // 37 iload_2
+        // 38 istore_2
+        // 打印 j = 1
+        System.out.println("interest j: "+j);
     }
 
     @Test
@@ -89,5 +97,6 @@ public class IntegerTest {
         // Infinity
         System.out.println((1.0)/(0.0));
     }
+
 
 }
