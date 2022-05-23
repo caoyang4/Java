@@ -11,7 +11,7 @@ import sun.reflect.generics.factory.GenericsFactory;
 import sun.reflect.generics.scope.ConstructorScope;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.AnnotationFormatError;
-
+// 构造器
 public final class Constructor<T> extends Executable {
     private Class<T>            clazz;
     private int                 slot;
@@ -25,8 +25,7 @@ public final class Constructor<T> extends Executable {
     private byte[]              annotations;
     private byte[]              parameterAnnotations;
 
-    // Generics infrastructure
-    // Accessor for factory
+    // 泛型工厂
     private GenericsFactory getFactory() {
         // create scope and factory
         return CoreReflectionFactory.make(this, ConstructorScope.make(this));
@@ -46,12 +45,7 @@ public final class Constructor<T> extends Executable {
     }
 
     private volatile ConstructorAccessor constructorAccessor;
-    // For sharing of ConstructorAccessors. This branching structure
-    // is currently only two levels deep (i.e., one root Constructor
-    // and potentially many Constructor objects pointing to it.)
-    //
-    // If this branching structure would ever contain cycles, deadlocks can
-    // occur in annotation code.
+
     private Constructor<T>      root;
 
     @Override
@@ -78,33 +72,21 @@ public final class Constructor<T> extends Executable {
     }
 
     Constructor<T> copy() {
-        // This routine enables sharing of ConstructorAccessor objects
-        // among Constructor objects which refer to the same underlying
-        // method in the VM. (All of this contortion is only necessary
-        // because of the "accessibility" bit in AccessibleObject,
-        // which implicitly requires that new java.lang.reflect
-        // objects be fabricated for each reflective call on Class
-        // objects.)
         if (this.root != null)
             throw new IllegalArgumentException("Can not copy a non-root Constructor");
 
-        Constructor<T> res = new Constructor<>(clazz,
-                                               parameterTypes,
-                                               exceptionTypes, modifiers, slot,
-                                               signature,
-                                               annotations,
-                                               parameterAnnotations);
+        Constructor<T> res = new Constructor<>(clazz, parameterTypes, exceptionTypes, modifiers, slot, signature, annotations, parameterAnnotations);
         res.root = this;
         // Might as well eagerly propagate this if already present
         res.constructorAccessor = constructorAccessor;
         return res;
     }
-
+    // 泛型信息
     @Override
     boolean hasGenericInformation() {
         return (getSignature() != null);
     }
-
+    // 注解信息
     @Override
     byte[] getAnnotationBytes() {
         return annotations;
@@ -119,7 +101,7 @@ public final class Constructor<T> extends Executable {
     public String getName() {
         return getDeclaringClass().getName();
     }
-
+    // 修饰符
     @Override
     public int getModifiers() {
         return modifiers;
@@ -172,10 +154,7 @@ public final class Constructor<T> extends Executable {
     }
 
     public String toString() {
-        return sharedToString(Modifier.constructorModifiers(),
-                              false,
-                              parameterTypes,
-                              exceptionTypes);
+        return sharedToString(Modifier.constructorModifiers(), false, parameterTypes, exceptionTypes);
     }
 
     @Override
@@ -193,6 +172,7 @@ public final class Constructor<T> extends Executable {
         specificToStringHeader(sb);
     }
 
+    // 创建对象
     @CallerSensitive
     public T newInstance(Object ... initargs)throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (!override) {
