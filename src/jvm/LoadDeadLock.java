@@ -13,7 +13,7 @@ public class LoadDeadLock {
         static {
             System.out.println("begin to init A");
             JucUtils.sleepSeconds(1);
-            // 加载 B，需要获取 B 的 clinit 锁
+            // 加载 B，需要执行 B 的 clinit，需要先获取锁
             new B();
             System.out.println("end to init A");
         }
