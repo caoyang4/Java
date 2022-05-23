@@ -149,7 +149,7 @@ public abstract class ClassLoader {
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         return loadClass(name, false);
     }
-
+    // 类加载加锁保证安全性
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         synchronized (getClassLoadingLock(name)) {
             // 先从缓存查找该class对象，找到就不用重新加载
