@@ -55,12 +55,8 @@ public class ThreadInfo {
                 String className = lock.getClass().getName();
                 int identityHashCode = System.identityHashCode(lock);
                 int depth = stackDepths[i];
-                StackTraceElement ste = (depth >= 0 ? stackTrace[depth]
-                                                    : null);
-                lockedMonitors[i] = new MonitorInfo(className,
-                                                    identityHashCode,
-                                                    depth,
-                                                    ste);
+                StackTraceElement ste = (depth >= 0 ? stackTrace[depth] : null);
+                lockedMonitors[i] = new MonitorInfo(className, identityHashCode, depth, ste);
             }
         }
 
