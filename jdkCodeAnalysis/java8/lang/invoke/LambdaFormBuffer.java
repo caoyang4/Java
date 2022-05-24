@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
 package java.lang.invoke;
 
 import java.util.ArrayList;
@@ -30,9 +5,6 @@ import java.util.Arrays;
 import static java.lang.invoke.LambdaForm.*;
 import static java.lang.invoke.LambdaForm.BasicType.*;
 
-/** Working storage for an LF that is being transformed.
- *  Similarly to a StringBuffer, the editing can take place in multiple steps.
- */
 final class LambdaFormBuffer {
     private int arity, length;
     private Name[] names;
@@ -56,7 +28,7 @@ final class LambdaFormBuffer {
         assert(lf.nameRefsAreLegal());
     }
 
-    private LambdaForm lambdaForm() {
+    private  lambdaForm() {
         assert(!inTrans());  // need endEdit call to tidy things up
         return new LambdaForm(debugName, arity, nameArray(), resultIndex());
     }
@@ -179,9 +151,6 @@ final class LambdaFormBuffer {
         return result;
     }
 
-    /** We have just overwritten the name at pos1 with the name at pos2.
-     *  This means that there are two copies of the name, which we will have to fix later.
-     */
     private void noteDuplicate(int pos1, int pos2) {
         Name n = names[pos1];
         assert(n == names[pos2]);
@@ -193,7 +162,6 @@ final class LambdaFormBuffer {
         dups.add(n);
     }
 
-    /** Replace duplicate names by nulls, and remove all nulls. */
     private void clearDuplicatesAndNulls() {
         if (dups != null) {
             // Remove duplicates.
@@ -223,9 +191,6 @@ final class LambdaFormBuffer {
         assert(!Arrays.asList(names).subList(0, length).contains(null));
     }
 
-    /** Create a private, writable copy of names.
-     *  Preserve the original copy, for reference.
-     */
     void startEdit() {
         assert(verifyArity());
         int oc = ownedCount();
@@ -266,13 +231,11 @@ final class LambdaFormBuffer {
         }
     }
 
-    /** Change the result name.  Null means a void result. */
     void setResult(Name name) {
         assert(name == null || lastIndexOf(name) >= 0);
         resultName = name;
     }
 
-    /** Finish a transaction. */
     LambdaForm endEdit() {
         assert(verifyFirstChange());
         // Assuming names have been changed pairwise from originalNames[i] to names[i],
@@ -322,10 +285,6 @@ final class LambdaFormBuffer {
         return buffer;
     }
 
-    /** Replace any Name whose function is in oldFns with a copy
-     *  whose function is in the corresponding position in newFns.
-     *  Only do this if the arguments are exactly equal to the given.
-     */
     LambdaFormBuffer replaceFunctions(NamedFunction[] oldFns, NamedFunction[] newFns,
                                       Object... forArguments) {
         assert(inTrans());
@@ -350,14 +309,12 @@ final class LambdaFormBuffer {
         changeName(pos, binding);
     }
 
-    /** Replace a parameter by a fresh parameter. */
     LambdaFormBuffer renameParameter(int pos, Name newParam) {
         assert(newParam.isParam());
         replaceName(pos, newParam);
         return this;
     }
 
-    /** Replace a parameter by a fresh expression. */
     LambdaFormBuffer replaceParameterByNewExpression(int pos, Name binding) {
         assert(!binding.isParam());
         assert(lastIndexOf(binding) < 0);  // else use replaceParameterByCopy
@@ -365,7 +322,6 @@ final class LambdaFormBuffer {
         return this;
     }
 
-    /** Replace a parameter by another parameter or expression already in the form. */
     LambdaFormBuffer replaceParameterByCopy(int pos, int valuePos) {
         assert(pos != valuePos);
         replaceName(pos, names[valuePos]);
@@ -382,14 +338,12 @@ final class LambdaFormBuffer {
         changeName(pos, expr);
     }
 
-    /** Insert a fresh expression. */
     LambdaFormBuffer insertExpression(int pos, Name expr) {
         assert(!expr.isParam());
         insertName(pos, expr, false);
         return this;
     }
 
-    /** Insert a fresh parameter. */
     LambdaFormBuffer insertParameter(int pos, Name param) {
         assert(param.isParam());
         insertName(pos, param, true);

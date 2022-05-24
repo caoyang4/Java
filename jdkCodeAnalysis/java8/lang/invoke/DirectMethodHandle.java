@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 2008, 2017, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
 package java.lang.invoke;
 
 import sun.misc.Unsafe;
@@ -39,11 +14,6 @@ import sun.invoke.util.ValueConversions;
 import sun.invoke.util.VerifyType;
 import sun.invoke.util.Wrapper;
 
-/**
- * The flavor of method handle which implements a constant reference
- * to a class member.
- * @author jrose
- */
 class DirectMethodHandle extends MethodHandle {
     final MemberName member;
 
@@ -157,11 +127,6 @@ class DirectMethodHandle extends MethodHandle {
 
     private static final MemberName.Factory IMPL_NAMES = MemberName.getFactory();
 
-    /**
-     * Create a LF which can invoke the given method.
-     * Cache and share this structure among all methods with
-     * the same basicType and refKind.
-     */
     private static LambdaForm preparedLambdaForm(MemberName m) {
         assert(m.isInvocable()) : m;  // call preparedFieldLambdaForm instead
         MethodType mtype = m.getInvocationType().basicType();
@@ -277,23 +242,18 @@ class DirectMethodHandle extends MethodHandle {
             lform.compileToBytecode();
     }
 
-    /** Static wrapper for DirectMethodHandle.internalMemberName. */
     @ForceInline
-    /*non-public*/ static Object internalMemberName(Object mh) {
+    static Object internalMemberName(Object mh) {
         return ((DirectMethodHandle)mh).member;
     }
 
-    /** Static wrapper for DirectMethodHandle.internalMemberName.
-     * This one also forces initialization.
-     */
-    /*non-public*/ static Object internalMemberNameEnsureInit(Object mh) {
+    static Object internalMemberNameEnsureInit(Object mh) {
         DirectMethodHandle dmh = (DirectMethodHandle)mh;
         dmh.ensureInitialized();
         return dmh.member;
     }
 
-    /*non-public*/ static
-    boolean shouldBeInitialized(MemberName member) {
+    static boolean shouldBeInitialized(MemberName member) {
         switch (member.getReferenceKind()) {
         case REF_invokeStatic:
         case REF_getStatic:
@@ -373,7 +333,6 @@ class DirectMethodHandle extends MethodHandle {
         ((DirectMethodHandle)mh).ensureInitialized();
     }
 
-    /** This subclass represents invokespecial instructions. */
     static class Special extends DirectMethodHandle {
         private Special(MethodType mtype, LambdaForm form, MemberName member) {
             super(mtype, form, member);
@@ -388,7 +347,6 @@ class DirectMethodHandle extends MethodHandle {
         }
     }
 
-    /** This subclass represents invokeinterface instructions. */
     static class Interface extends DirectMethodHandle {
         private final Class<?> refc;
         private Interface(MethodType mtype, LambdaForm form, MemberName member, Class<?> refc) {
@@ -411,7 +369,6 @@ class DirectMethodHandle extends MethodHandle {
         }
     }
 
-    /** This subclass handles constructor references. */
     static class Constructor extends DirectMethodHandle {
         final MemberName initMethod;
         final Class<?>   instanceClass;
@@ -439,7 +396,6 @@ class DirectMethodHandle extends MethodHandle {
         return UNSAFE.allocateInstance(dmh.instanceClass);
     }
 
-    /** This subclass handles non-static field references. */
     static class Accessor extends DirectMethodHandle {
         final Class<?> fieldType;
         final int      fieldOffset;
@@ -479,7 +435,6 @@ class DirectMethodHandle extends MethodHandle {
         return obj;
     }
 
-    /** This subclass handles static field references. */
     static class StaticAccessor extends DirectMethodHandle {
         final private Class<?> fieldType;
         final private Object   staticBase;
@@ -559,11 +514,6 @@ class DirectMethodHandle extends MethodHandle {
             return FT_CHECKED_REF;
     }
 
-    /**
-     * Create a LF which can access the given field.
-     * Cache and share this structure among all fields with
-     * the same basicType and refKind.
-     */
     private static LambdaForm preparedFieldLambdaForm(MemberName m) {
         Class<?> ftype = m.getFieldType();
         boolean isVolatile = m.isVolatile();
@@ -678,10 +628,6 @@ class DirectMethodHandle extends MethodHandle {
         return new LambdaForm(lambdaName, ARG_LIMIT, names, RESULT);
     }
 
-    /**
-     * Pre-initialized NamedFunctions for bootstrapping purposes.
-     * Factored in an inner class to delay initialization until first usage.
-     */
     private static class Lazy {
         static final NamedFunction
                 NF_internalMemberName,
