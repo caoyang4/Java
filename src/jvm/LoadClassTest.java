@@ -130,4 +130,10 @@ public class LoadClassTest {
         System.out.println(B.a);
     }
 
+    @Test
+    public void test9(){
+        // 类数组定义，不会导致该类初始化，即不会执行 clinit()
+        B[] list = new B[10];
+    }
+
 }
