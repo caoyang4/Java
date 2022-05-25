@@ -44,7 +44,7 @@ public class Launcher {
 
         // Now create the class loader to use to launch the application
         try {
-            // 系统类加载器
+            // 系统类加载器，将扩展类加载器作为父加载器传入
             loader = AppClassLoader.getAppClassLoader(extcl);
         } catch (IOException e) {
             throw new InternalError("Could not create application class loader", e);
@@ -87,7 +87,7 @@ public class Launcher {
     }
 
     /*
-     * 扩展类加载器
+     * 扩展类加载器，是系统类的父加载器，但两者没有继承关系
      */
     static class ExtClassLoader extends URLClassLoader {
 
@@ -231,6 +231,9 @@ public class Launcher {
         }
     }
 
+    /**
+     * 系统类加载器
+     */
     static class AppClassLoader extends URLClassLoader {
 
         static {
@@ -244,8 +247,7 @@ public class Launcher {
             return AccessController.doPrivileged(
                 new PrivilegedAction<AppClassLoader>() {
                     public AppClassLoader run() {
-                    URL[] urls =
-                        (s == null) ? new URL[0] : pathToURLs(path);
+                    URL[] urls = (s == null) ? new URL[0] : pathToURLs(path);
                     return new AppClassLoader(urls, extcl);
                 }
             });
@@ -253,18 +255,13 @@ public class Launcher {
 
         final URLClassPath ucp;
 
-        /*
-         * Creates a new AppClassLoader
-         */
         AppClassLoader(URL[] urls, ClassLoader parent) {
             super(urls, parent, factory);
             ucp = SharedSecrets.getJavaNetAccess().getURLClassPath(this);
             ucp.initLookupCache(this);
         }
 
-        public Class<?> loadClass(String name, boolean resolve)
-            throws ClassNotFoundException
-        {
+        public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             int i = name.lastIndexOf('.');
             if (i != -1) {
                 SecurityManager sm = System.getSecurityManager();

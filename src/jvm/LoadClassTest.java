@@ -136,4 +136,19 @@ public class LoadClassTest {
         B[] list = new B[10];
     }
 
+    @Test
+    public void test10(){
+        // 数组类加载器类型由数组元素加载器决定
+        // null
+        System.out.println(String[].class.getClassLoader());
+        // sun.misc.Launcher$AppClassLoader
+        System.out.println(A[].class.getClassLoader());
+        // 基本数据类型不需要加载
+        System.out.println(int[].class.getClassLoader());
+    }
+
+    public static void main(String[] args) {
+
+    }
+
 }
