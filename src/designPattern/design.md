@@ -30,4 +30,8 @@
 
 15、门面模式
 
+16、桥接模式
+![bridge.png](bridge.png)
+
+
 
