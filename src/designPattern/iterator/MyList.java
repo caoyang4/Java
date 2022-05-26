@@ -17,7 +17,7 @@ public class MyList implements MyCollection{
             list = newList;
         }
         list[index] = o;
-        index ++;
+        index++;
     }
 
     @Override

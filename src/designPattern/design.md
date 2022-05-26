@@ -7,11 +7,11 @@
 3、工厂模式
 
 4、装饰器模式
-
+![decorator.png](decorator.png)
 5、代理模式
 
 6、责任链模式
-
+![chainOfResponsibility.png](chainOfResponsibility.png)
 7、迭代器模式
 ![iterator.png](iterator.png)
 8、访问者模式
@@ -32,6 +32,8 @@
 
 16、桥接模式
 ![bridge.png](bridge.png)
+17、观察者模式
+![observer.png](observer.png)
 
 
 
