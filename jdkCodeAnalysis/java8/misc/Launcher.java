@@ -50,7 +50,7 @@ public class Launcher {
             throw new InternalError("Could not create application class loader", e);
         }
 
-        // 设置ClassLoader为线程上下文类加载器，这个文章后面部分讲解
+        // 默认设置AppClassLoader为线程上下文类加载器
         Thread.currentThread().setContextClassLoader(loader);
 
         // Finally, install a security manager if requested
@@ -134,6 +134,7 @@ public class Launcher {
          * Creates a new ExtClassLoader for the specified directories.
          */
         public ExtClassLoader(File[] dirs) throws IOException {
+            // ExtClassLoader的父类加载器置为 null，
             super(getExtURLs(dirs), null, factory);
             SharedSecrets.getJavaNetAccess().
                 getURLClassPath(this).initLookupCache(this);
@@ -260,7 +261,7 @@ public class Launcher {
             ucp = SharedSecrets.getJavaNetAccess().getURLClassPath(this);
             ucp.initLookupCache(this);
         }
-
+        // 重写了父类ClassLoader的loadClass()方法
         public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             int i = name.lastIndexOf('.');
             if (i != -1) {

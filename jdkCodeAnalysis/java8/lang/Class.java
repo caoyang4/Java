@@ -255,7 +255,7 @@ public final class Class<T> implements java.io.Serializable, GenericDeclaration,
     private transient String name;
     private native String getName0();
 
-    // 获取类加载器
+    // 获取类加载器，对于基本数据类型会返回 null，基本数据类型，基本数据类型的数组都不需要类加载器加载
     @CallerSensitive
     public ClassLoader getClassLoader() {
         ClassLoader cl = getClassLoader0();

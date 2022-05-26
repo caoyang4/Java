@@ -145,9 +145,13 @@ public abstract class ClassLoader {
      * 2、保证Java程序安全稳定运行
      */
     public Class<?> loadClass(String name) throws ClassNotFoundException {
+        // 只加载，不会执行类初始化
+        // Class.forName()既加载，也会进行类初始化
         return loadClass(name, false);
     }
+    // 双亲委派机制
     // 类加载加锁保证安全性
+    // @resolve 表示是否解析
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         synchronized (getClassLoadingLock(name)) {
             // 先从缓存查找该class对象，找到就不用重新加载
@@ -159,17 +163,19 @@ public abstract class ClassLoader {
                         // 如果找不到，则委托给父类加载器去加载
                         c = parent.loadClass(name, false);
                     } else {
-                        // 如果没有父类，则委托给启动加载器去加载
+                        // 如果没有父加载器，则委托给启动类加载器去加载
                         c = findBootstrapClassOrNull(name);
                     }
                 } catch (ClassNotFoundException e) {
                     // ClassNotFoundException thrown if class not found
                     // from the non-null parent class loader
                 }
-
+                // 当前类加载器，及其父类加载器未加载该类
                 if (c == null) {
                     long t1 = System.nanoTime();
-                    // 如果都没有找到，则通过自定义实现的findClass去查找并加载
+                    // 调用当前ClassLoader进行加载
+                    // AppClassLoader和ExtClassLoader的父类URLClassLoader对findClass进行了重写，
+                    // 但二者自身未重写findClass()，但系统类加载器AppClassLoader重写了loadClass()
                     c = findClass(name);
 
                     // this is the defining class loader; record the stats
@@ -234,7 +240,8 @@ public abstract class ClassLoader {
             }
         }
     }
-
+    // URLClassLoader对findClass进行了重写，用于编写加载规则，将字节码转化为字节流，
+    // 然后调用 defineClass() 生成类的 Class 对象
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         throw new ClassNotFoundException(name);
     }
@@ -248,11 +255,7 @@ public abstract class ClassLoader {
         return defineClass(name, b, off, len, null);
     }
 
-    /* Determine protection domain, and check that:
-        - not define java.* class,
-        - signer of this class matches signers for the rest of the classes in
-          package.
-    */
+    // 保护 JDK 核心类库，避免被篡改，保证安全性
     private ProtectionDomain preDefineClass(String name, ProtectionDomain pd) {
         if (!checkName(name))
             throw new NoClassDefFoundError("IllegalName: " + name);
@@ -290,7 +293,7 @@ public abstract class ClassLoader {
                 setSigners(c, certs);
         }
     }
-
+    // 根据字节流生成Class对象，一般与 findClass搭配使用
     protected final Class<?> defineClass(String name, byte[] b, int off, int len, ProtectionDomain protectionDomain) throws ClassFormatError {
         protectionDomain = preDefineClass(name, protectionDomain);
         String source = defineClassSourceLocation(protectionDomain);
@@ -327,8 +330,9 @@ public abstract class ClassLoader {
 
     private native Class<?> defineClass2(String name, java.nio.ByteBuffer b, int off, int len, ProtectionDomain pd, String source);
 
-    // true if the name is null or has the potential to be a valid binary name
+    // 检查类名是否有效
     private boolean checkName(String name) {
+        // 空串或 null 返回 true
         if ((name == null) || (name.length() == 0))
             return true;
         if ((name.indexOf('/') != -1)
@@ -423,8 +427,8 @@ public abstract class ClassLoader {
         return system.loadClass(name);
     }
 
-    private Class<?> findBootstrapClassOrNull(String name)
-    {
+    private Class<?> findBootstrapClassOrNull(String name) {
+
         if (!checkName(name)) return null;
 
         return findBootstrapClass(name);
