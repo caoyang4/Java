@@ -3,8 +3,18 @@ package sun.misc;
 
 /**
  * Java中的Unsafe类为我们提供了管理内存的能力
- * Unsafe类是final的，不允许继承，而且构造函数是私有的，无法通过new的方式创建对象
- * 但可以通过反射创建
+ * Unsafe类是final的，不允许继承，而且构造函数是私有的，无法通过new的方式创建对象，但可以通过反射创建
+ * 主要功能：
+ *  内存管理：普通读写、volatile读写、有序写入、直接操作内存等分配内存与释放内存的功能
+ *  非常规对象实例化：Unsafe类提供的 allocateInstance 方法，可以直接生成对象实例，且无需调用构造方法和其他初始化方法
+ *  类加载：
+ *  偏移量相关: 通过对象指针进行偏移，不仅可以直接修改指针指向的数据（即使是私有的），甚至可以找到JVM已经认定为垃圾、可以进行回收的对象
+ *  数组操作: Java的数组最大值为Integer.MAX_VALUE，使用Unsafe类的内存分配方法可以实现超大数组
+ *  线程调度: 整个并发框架中对线程的挂起操作被封装在LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法
+ *  CAS操作: 为Java的锁机制提供了一种新的解决办法，比如AtomicInteger等类都是通过该方法来实现的。compareAndSwap方法是原子的，可以避免繁重的锁机制，提高代码效率
+ *  内存屏障: JDK8新引入了用于定义内存屏障、避免代码重排的方法
+ *
+ *
  */
 
 import java.security.*;
@@ -218,7 +228,7 @@ public final class Unsafe {
     public native boolean shouldBeInitialized(Class<?> c);
     // 保证一个类已经被初始化
     public native void ensureClassInitialized(Class<?> c);
-    // 定义一个类，用于动态创建类
+    // 定义一个类，用于动态创建Class对象
     public native Class<?> defineClass(String name, byte[] b, int off, int len, ClassLoader loader, ProtectionDomain protectionDomain);
     // 用于动态创建一个匿名内部类
     public native Class<?> defineAnonymousClass(Class<?> hostClass, byte[] data, Object[] cpPatches);
