@@ -22,16 +22,14 @@ import java.util.regex.PatternSyntaxException;
  *    因此，在字符数组中存储密码可以明显降低窃取密码的安全风险
  * 2、使用 String 时，总是存在在日志文件或控制台中打印纯文本的风险，但如果使用char数组，则不会打印数组的内容而是打印其内存地址
  */
-public final class String
-    implements java.io.Serializable, Comparable<String>, CharSequence {
+public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
     private final char value[];
 
     private int hash; // Default to 0
 
     private static final long serialVersionUID = -6849794470754667710L;
 
-    private static final ObjectStreamField[] serialPersistentFields =
-        new ObjectStreamField[0];
+    private static final ObjectStreamField[] serialPersistentFields = new ObjectStreamField[0];
 
     public String() {
         this.value = "".value;
