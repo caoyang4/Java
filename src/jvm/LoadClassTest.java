@@ -147,6 +147,15 @@ public class LoadClassTest {
         System.out.println(int[].class.getClassLoader());
     }
 
+    static class D{
+        final int i;
+        public D(){
+            // 可能发生 this 逃逸
+            i = 1;
+            System.out.println("D constructor");
+        }
+    }
+
     public static void main(String[] args) {
 
     }

@@ -17,6 +17,7 @@ public class TestThisEscape2 {
 
     public void reader() {
         if (thisObj != null) {
+            // thisObj.a 可能为 0
             int temp = thisObj.a;
         }
     }
