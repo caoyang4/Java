@@ -54,5 +54,8 @@
     <orderEntry type="library" name="google.auto.service" level="project" />
     <orderEntry type="library" name="net.sf.ehcache.internal.core" level="project" />
     <orderEntry type="library" name="googlecode.junit.toolbox" level="project" />
+    <orderEntry type="library" name="fasterxml.jackson.core" level="project" />
+    <orderEntry type="library" name="apache.groovy" level="project" />
+    <orderEntry type="library" name="software.amazon.awssdk.netty.nio.client" level="project" />
   </component>
 </module>
