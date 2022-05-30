@@ -57,5 +57,6 @@
     <orderEntry type="library" name="fasterxml.jackson.core" level="project" />
     <orderEntry type="library" name="apache.groovy" level="project" />
     <orderEntry type="library" name="software.amazon.awssdk.netty.nio.client" level="project" />
+    <orderEntry type="library" name="io.netty.all" level="project" />
   </component>
 </module>
