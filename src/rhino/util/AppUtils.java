@@ -1,6 +1,6 @@
 package src.rhino.util;
 
-import src.lion.Environment;
+//import src.lion.Environment;
 import com.mysql.cj.util.StringUtils;
 
 import java.io.BufferedReader;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class AppUtils {
 
-    private static String originalAppName = Environment.getAppName();
+    private static String originalAppName = "rhino";
     private static String forceAppName = null;
     private static String defaultAppName = null;
     private static String ip = getFirstLocalIp();
@@ -27,11 +27,11 @@ public class AppUtils {
     private static String defaultAppNamePath = "/data/webapps/appkeys";
 
     static {
-        try {
+        /*try {
             setName = Environment.getCell();
         } catch (Exception e) {
             //ignore exception
-        }
+        }*/
 
         if (StringUtils.isNullOrEmpty(setName)) {
             setName = DEFAULT_CELL;

@@ -10,7 +10,7 @@ import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
 import src.rhino.onelimiter.alarm.OneLimiterAlarmEntity;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhanjun on 2018/4/17.
@@ -47,13 +47,13 @@ public class OneLimiterAlarmTask implements Runnable {
         }
         builder.append("&type=" + entity.getType());
         builder.append("&count=" + entity.getCount());
-        if (!CollectionUtils.isEmpty(entity.getQpsEntityList())) {
+       /* if (!CollectionUtils.isEmpty(entity.getQpsEntityList())) {
             try {
                 builder.append("&qpsEntityList=" + SerializerUtils.write(entity.getQpsEntityList()));
             } catch (IOException e) {
                 //ignore exception
             }
-        }
+        }*/
 
         for (int i = 1; i <= 3; i++) {
             try {

@@ -1,6 +1,5 @@
 package src.rhino.threadpool.alarm;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,7 +9,6 @@ import src.rhino.timewindow.threadpool.ThreadPoolTimeWindow;
 import src.rhino.util.CommonUtils;
 import com.mysql.cj.util.StringUtils;
 
-import src.cat.Cat;
 import src.rhino.RhinoConfigProperties;
 import src.rhino.config.ConfigChangedListener;
 import src.rhino.log.Logger;
@@ -18,8 +16,6 @@ import src.rhino.log.LoggerFactory;
 import src.rhino.timewindow.threadpool.ThreadPoolProfilingData;
 import src.rhino.timewindow.TimeWindowBucket;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * 线程池告警监控
@@ -55,15 +51,8 @@ public class ThreadPoolAlarmManager extends RhinoConfigProperties {
     }
 
     private void updateAlarmRules(String value) {
-        try {
-            if (StringUtils.isNullOrEmpty(value)) {
-                rules.clear();
-                return;
-            }
-            rules = SerializerUtils.custom().readValue(value, new TypeReference<Map<String, ThreadPoolAlarmRule>>() {});
-        } catch (IOException e) {
-            logger.error("updateAlarmRules exception",e);
-            Cat.logError(e);
+        if (StringUtils.isNullOrEmpty(value)) {
+            rules.clear();
         }
     }
 
@@ -71,7 +60,6 @@ public class ThreadPoolAlarmManager extends RhinoConfigProperties {
         addPropertiesChangedListener(alarmRulesKey, new ConfigChangedListener() {
             @Override
             public void invoke(String key, String oldValue, String newValue) {
-                Cat.logEvent("Rhino.Update", "ThreadPoolAlarmRules");
                 logger.info("RhinoThreadPool alarm rules changed: " + oldValue + "[before], " + newValue + "[after]");
                 updateAlarmRules(newValue);
             }

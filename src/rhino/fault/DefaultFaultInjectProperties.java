@@ -21,7 +21,7 @@ import src.rhino.dispatcher.RhinoEvent;
 import src.rhino.dispatcher.RhinoEventDispatcher;
 import src.rhino.util.AppUtils;
 import src.rhino.util.MtraceUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * @author zhanjun on 2017/4/25.
@@ -58,7 +58,7 @@ public class DefaultFaultInjectProperties extends RhinoConfigProperties implemen
 
     public DefaultFaultInjectProperties(String appKey, String rhinoKey, Configuration configuration) {
         super(appKey, rhinoKey, RhinoType.FaultInject, configuration);
-        this.faultBean = getBeanValue(configKeySuffix, FaultBean.class, new FaultBean(), true);
+//        this.faultBean = getBeanValue(configKeySuffix, FaultBean.class, new FaultBean(), true);
         this.faultInjectEventDispatcher = new FaultInjectEventDispatcher(rhinoKey);
     }
 
@@ -81,7 +81,8 @@ public class DefaultFaultInjectProperties extends RhinoConfigProperties implemen
         if (StringUtils.isNullOrEmpty(mockValue)) {
             return null;
         }
-        return SerializerUtils.read(mockValue, returnType);
+//        return SerializerUtils.read(mockValue, returnType);
+        return null;
     }
 
     @Override
@@ -127,7 +128,7 @@ public class DefaultFaultInjectProperties extends RhinoConfigProperties implemen
             public void invoke(String key, String oldValue, String newValue) {
                 synchronized (lock) {
                     FaultBean prevFaultBean = faultBean;
-                    faultBean = getBeanValue(configKeySuffix, FaultBean.class, prevFaultBean, true);
+//                    faultBean = getBeanValue(configKeySuffix, FaultBean.class, prevFaultBean, true);
                     logger.info("fault config changed. Prev value: " + prevFaultBean + ". Current value: " + faultBean);
                     // reset status
                     reset();
@@ -273,11 +274,11 @@ public class DefaultFaultInjectProperties extends RhinoConfigProperties implemen
 
     @Override
     public String toJson() {
-        try {
+       /* try {
             return "{\"enable\":" + enable + ",\"faultBean\":" + SerializerUtils.write(faultBean) + "}";
         } catch (Exception e) {
             logger.error("DefaultFaultInjectProperties to json failed", e);
-        }
+        }*/
         return "";
     }
 }

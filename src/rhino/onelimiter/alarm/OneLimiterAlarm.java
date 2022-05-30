@@ -1,8 +1,6 @@
 package src.rhino.onelimiter.alarm;
 
-import src.lion.client.ConfigEvent;
-import src.lion.client.ConfigListener;
-import src.lion.client.Lion;
+
 import src.rhino.config.ConfigChangedListener;
 import src.rhino.config.ConfigFactory;
 import src.rhino.config.Configuration;
@@ -41,10 +39,10 @@ public class OneLimiterAlarm {
      * 上报数据间隔（秒）
      */
     private static final String ALARM_INTERVAL_KEY = "rhino.oneLimiter.alarm.interval.seconds";
-    private static volatile int alarmIntervalSeconds = Lion.getIntValue(ALARM_INTERVAL_KEY, 60);
+    private static volatile int alarmIntervalSeconds = 60;
 
     static {
-        Lion.addConfigListener(ALARM_INTERVAL_KEY, new ConfigListener() {
+        /*Lion.addConfigListener(ALARM_INTERVAL_KEY, new ConfigListener() {
             @Override
             public void configChanged(ConfigEvent configEvent) {
                 try {
@@ -53,7 +51,7 @@ public class OneLimiterAlarm {
                     // ignore exception
                 }
             }
-        });
+        });*/
 
         config.addListener(ALARM_SWITCH_KEY, new ConfigChangedListener() {
             @Override

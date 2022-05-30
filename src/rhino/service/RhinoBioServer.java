@@ -12,8 +12,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-import src.cat.Cat;
-import src.lion.client.Lion;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
 import src.rhino.service.command.Command;
@@ -28,7 +26,7 @@ public class RhinoBioServer {
 
     private final static Logger logger = LoggerFactory.getLogger(RhinoBioServer.class);
     private final static String CAT_TYPE = "Rhino.Client.Server";
-    private static final int DEFAULT_PORT = Lion.getIntValue("rhino.server.port", 6680);
+    private static final int DEFAULT_PORT = 6680;
     private static final int DEFAULT_SO_TIMEOUT = 2000;
     private static RhinoBioServer Instance = new RhinoBioServer();
     private ExecutorService requestService = Executors.newFixedThreadPool(5);
@@ -51,12 +49,12 @@ public class RhinoBioServer {
         if (status.compareAndSet(Status.NOT_START, Status.RUNNING)) {
             try {
                 logger.info("rhino-client server starting...");
-                Cat.logEvent(CAT_TYPE, "STARTING");
+//                Cat.logEvent(CAT_TYPE, "STARTING");
                 runServer();
                 logger.info("rhino-client server start success on " + port);
-                Cat.logEvent(CAT_TYPE, "STARTED@" + port);
+//                Cat.logEvent(CAT_TYPE, "STARTED@" + port);
             } catch (Exception e) {
-                Cat.logEvent(CAT_TYPE, "FAILED");
+//                Cat.logEvent(CAT_TYPE, "FAILED");
                 logger.info("rhino-client server start failed...");
                 status.set(Status.NOT_START);
             }
@@ -126,7 +124,7 @@ public class RhinoBioServer {
                     //ignore exception
                 }
             }
-            Cat.logEvent(CAT_TYPE, "STOP");
+//            Cat.logEvent(CAT_TYPE, "STOP");
         }
     }
 
@@ -150,11 +148,11 @@ public class RhinoBioServer {
                 CommandResponse response = new CommandResponse();
                 try {
                     Object data = command.run();
-                    Cat.logEvent(CAT_TYPE, "HANDLE SUCCESS:" + command.getName());
+//                    Cat.logEvent(CAT_TYPE, "HANDLE SUCCESS:" + command.getName());
                     response.setSuccess(data);
                 } catch (Exception e) {
-                    Cat.logEvent(CAT_TYPE, "HANDLE FAILED:" + command.getName());
-                    Cat.logError(e);
+//                    Cat.logEvent(CAT_TYPE, "HANDLE FAILED:" + command.getName());
+//                    Cat.logError(e);
                     response.setError(e.getMessage());
                 }
                 rhinoServerHandler.encode(response, outputStream);

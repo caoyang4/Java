@@ -23,7 +23,8 @@ import src.rhino.util.PropertiesHolder;
  */
 public final class Rhino {
 
-    public static final String VERSION = PropertiesHolder.getVersion();
+    // public static final String VERSION = PropertiesHolder.getVersion();
+    public static final String VERSION = "rhino";
 
     static {
         RhinoManager.addHook();

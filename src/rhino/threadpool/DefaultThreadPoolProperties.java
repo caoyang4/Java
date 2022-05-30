@@ -1,6 +1,5 @@
 package src.rhino.threadpool;
 
-import src.cat.Cat;
 import src.rhino.RhinoConfigProperties;
 import src.rhino.RhinoType;
 import src.rhino.annotation.JsonIgnore;
@@ -10,7 +9,7 @@ import src.rhino.config.Configuration;
 import src.rhino.threadpool.bean.ThreadPoolBean;
 import src.rhino.threadpool.component.*;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -53,7 +52,7 @@ public class DefaultThreadPoolProperties extends RhinoConfigProperties implement
 
     public DefaultThreadPoolProperties(String appKey, String rhinoKey, Setter setter, Configuration configuration) {
         super(appKey, rhinoKey, RhinoType.ThreadPool, configuration);
-        ThreadPoolBean threadPoolBean = getBeanValue(configKeySuffix, ThreadPoolBean.class, null, true);
+//        ThreadPoolBean threadPoolBean = getBeanValue(configKeySuffix, ThreadPoolBean.class, null, true);
         if (setter == null) {
             setter = Setter();
         }
@@ -142,17 +141,15 @@ public class DefaultThreadPoolProperties extends RhinoConfigProperties implement
     }
 
     public void updateThreadPool(ThreadPool threadPool, String propStr) {
-        try {
+        /*try {
             threadPoolBean = SerializerUtils.read(URLDecoder.decode(propStr, "UTF-8"), ThreadPoolBean.class);
             threadPool.setCorePoolSize(threadPoolBean.getCoreSize());
             threadPool.setMaxPoolSize(threadPoolBean.getMaxSize());
             threadPool.setWorkQueueCapacity(threadPoolBean.getMaxQueueSize());
         } catch (Exception e) {
             logger.error("update thread pool properties error", e);
-            Cat.logError(e);
-        }
+        }*/
     }
-
     /**
      * 初始化阻塞队列
      *
@@ -192,18 +189,13 @@ public class DefaultThreadPoolProperties extends RhinoConfigProperties implement
 
     @Override
     public String toJson() {
-        try {
-            StringBuilder builder = new StringBuilder();
-            builder.append("{\"");
-            builder.append(configKeySuffix);
-            builder.append("\":");
-            builder.append(SerializerUtils.write(threadPoolBean));
-            builder.append("}");
-            return builder.toString();
-        } catch (IOException e) {
-            logger.warn("DefaultThreadPoolProperties toJson error" + e.getMessage());
-        }
-        return "";
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"");
+        builder.append(configKeySuffix);
+        builder.append("\":");
+//        builder.append(SerializerUtils.write(threadPoolBean));
+        builder.append("}");
+        return builder.toString();
     }
 
     public static class Setter {

@@ -2,13 +2,9 @@ package src.rhino.Switch;
 
 import com.mysql.cj.util.StringUtils;
 
-import src.cat.Cat;
-import src.cat.message.Event;
-import src.cat.message.Transaction;
 import src.rhino.RhinoConfigProperties;
 import src.rhino.RhinoType;
 import src.rhino.config.ConfigChangedListener;
-import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhen on 2019/1/10.
@@ -34,17 +30,7 @@ public class DefaultRhinoSwitchProperties extends RhinoConfigProperties implemen
             @Override
             public void invoke(String key, String oldValue, String newValue) {
                 synchronized (lock) {
-                    Transaction t = Cat.newTransaction(TRANSACTION_TYPE, rhinoKey);
-                    try {
-                        Cat.logEvent(TRANSACTION_TYPE, rhinoKey, Event.SUCCESS, "oldValue=" + oldValue + "&newValue=" + newValue);
-                        if (StringUtils.equals(oldValue, newValue)) {
-                            return;
-                        }
-                        rhinoSwitchBean = parse(newValue);
-                        t.setStatus(Transaction.SUCCESS);
-                    } finally {
-                        t.complete();
-                    }
+                    rhinoSwitchBean = parse(newValue);
                 }
             }
         });
@@ -136,7 +122,7 @@ public class DefaultRhinoSwitchProperties extends RhinoConfigProperties implemen
     }
 
     private RhinoSwitchBean parse(String value) {
-        if (StringUtils.isNullOrEmpty(value)) {
+        /*if (StringUtils.isNullOrEmpty(value)) {
             try {
                 RhinoSwitchBean rhinoSwitchBean = SerializerUtils.read(value, RhinoSwitchBean.class);
                 rhinoSwitchBean.createMatcher();
@@ -144,7 +130,7 @@ public class DefaultRhinoSwitchProperties extends RhinoConfigProperties implemen
             } catch (Exception e) {
                 logger.warn("fail to parse from configManager, value: " + value, e);
             }
-        }
+        }*/
         return new RhinoSwitchBean(false);
     }
 

@@ -15,7 +15,7 @@ import src.rhino.config.ConfigChangedListener;
 import src.rhino.config.PropertyChangedListener;
 import src.rhino.util.AppUtils;
 import src.rhino.util.Preconditions;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhen on 2019/2/20.
@@ -194,7 +194,8 @@ public class DefaultRetryProperties extends RhinoConfigProperties implements Ret
     private RetryPropertiesBean parseRetryPropertiesData(String value) {
         if (!StringUtils.isNullOrEmpty(value)) {
             try {
-                return SerializerUtils.read(value, RetryPropertiesBean.class);
+//                return SerializerUtils.read(value, RetryPropertiesBean.class);
+                return null;
             } catch (Exception e) {
                 logger.warn("fail to parse from configManager, value: " + value, e);
             }
@@ -204,16 +205,11 @@ public class DefaultRetryProperties extends RhinoConfigProperties implements Ret
 
     @Override
     public String toJson() {
-        try {
-            return "{\"" +
-                    configKeySuffix +
-                    "\":" +
-                    SerializerUtils.write(retryPropertiesBean) +
-                    "}";
-        } catch (IOException e) {
-            logger.warn("DefaultRetryProperties toJson error" + e.getMessage());
-        }
-        return "";
+        return "{\"" +
+                configKeySuffix +
+                "\":" +
+//                    SerializerUtils.write(retryPropertiesBean) +
+                "}";
     }
 
     public static final class Setter {

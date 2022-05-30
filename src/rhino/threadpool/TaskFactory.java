@@ -1,7 +1,5 @@
 package src.rhino.threadpool;
 
-import src.cat.thread.CatTraceCallable;
-import src.cat.thread.CatTraceRunnable;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
 import src.rhino.threadpool.component.RhinoProfilingCallable;
@@ -75,7 +73,8 @@ public class TaskFactory {
     }
 
     private static <T> Callable<T> CatWrapper(Callable<T> task) {
-        return CatTraceCallable.get(task);
+//        return CatTraceCallable.get(task);
+        return task;
     }
 
     private static <T> Callable<T> RhinoWrapper(Callable<T> origin, Callable<T> target, String rhinoKey) {
@@ -124,7 +123,8 @@ public class TaskFactory {
     }
 
     private static Runnable CatWrapper(Runnable task) {
-        return CatTraceRunnable.get(task);
+//        return CatTraceRunnable.get(task);
+        return task;
     }
 
     private static Runnable RhinoWrapper(Runnable orgin, Runnable target, String rhinoKey) {

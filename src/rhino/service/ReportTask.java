@@ -3,8 +3,7 @@ package src.rhino.service;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import src.cat.Cat;
-import src.lion.client.Lion;
+
 import src.rhino.Rhino;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
@@ -35,10 +34,7 @@ public class ReportTask implements Runnable {
             //ignore exception
         }
 
-        int delay = Lion.getIntValue(reportIntervalKey, reportInterval);
-        if (delay > 0) {
-            executor.schedule(this, delay, TimeUnit.MINUTES);
-        }
+        executor.schedule(this, 1, TimeUnit.MINUTES);
     }
 
     /**
@@ -74,7 +70,7 @@ public class ReportTask implements Runnable {
                 //ignore exception
             }
         }
-        Cat.logEvent("Rhino.Report", event + "&try=" + i);
+//        Cat.logEvent("Rhino.Report", event + "&try=" + i);
     }
 
     private static class ReportService extends RhinoService {

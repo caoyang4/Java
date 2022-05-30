@@ -7,7 +7,7 @@ import src.rhino.annotation.RateLimit;
 import src.rhino.config.ConfigChangedListener;
 import src.rhino.config.Configuration;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhanjun on 2017/4/24.
@@ -28,11 +28,10 @@ public class DefaultRequestLimiterProperties extends AbstractRequestLimiterPrope
         this(AppUtils.getAppName(), limit.rhinoKey(), limit, null);
     }
 
-    public DefaultRequestLimiterProperties(String appKey, String rhinoKey, RateLimit rateLimit,
-                                           Configuration configuration) {
+    public DefaultRequestLimiterProperties(String appKey, String rhinoKey, RateLimit rateLimit, Configuration configuration) {
         super(appKey, rhinoKey, RhinoType.SingleLimiter, configuration);
         RequestLimiterBean defaultRequestLimiterBean = createDefaultBean(rateLimit);
-        this.requestLimiterBean = getBeanValue(configKeySuffix, RequestLimiterBean.class, defaultRequestLimiterBean, true);
+//        this.requestLimiterBean = getBeanValue(configKeySuffix, RequestLimiterBean.class, defaultRequestLimiterBean, true);
     }
 
     @Override
@@ -88,8 +87,7 @@ public class DefaultRequestLimiterProperties extends AbstractRequestLimiterPrope
             public void invoke(String key, String oldValue, String newValue) {
                 synchronized (lock) {
                     RequestLimiterBean prevBean = requestLimiterBean;
-                    requestLimiterBean = getBeanValue(configKeySuffix, RequestLimiterBean.class,
-                            prevBean, true);
+//                    requestLimiterBean = getBeanValue(configKeySuffix, RequestLimiterBean.class, prevBean, true);
                 }
             }
         });
@@ -97,7 +95,7 @@ public class DefaultRequestLimiterProperties extends AbstractRequestLimiterPrope
 
     @Override
     public String toJson() {
-        try {
+       /* try {
             StringBuilder builder = new StringBuilder();
             builder.append("{");
             builder.append("\"");
@@ -109,7 +107,7 @@ public class DefaultRequestLimiterProperties extends AbstractRequestLimiterPrope
             return builder.toString();
         } catch (IOException e) {
             logger.warn("DefaultRequestLimiterProperties toJson error" + e.getMessage());
-        }
+        }*/
         return "";
     }
 

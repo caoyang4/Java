@@ -3,7 +3,7 @@ package src.rhino.limit.feature;
 import java.io.IOException;
 import java.util.List;
 
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhanjun on 2017/8/13.
@@ -116,12 +116,5 @@ public final class LimiterRule {
         this.featurePatterns = featurePatterns;
     }
 
-    @Override
-    public String toString() {
-        try {
-            return SerializerUtils.write(this);
-        } catch (IOException e) {
-            return "";
-        }
-    }
+
 }

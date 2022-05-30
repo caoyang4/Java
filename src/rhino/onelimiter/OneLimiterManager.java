@@ -24,7 +24,7 @@ import src.rhino.exception.RhinoOneLimiterInitException;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhanjun on 2018/4/13.
@@ -154,9 +154,9 @@ public class OneLimiterManager {
             return;
         }
 
-        OneLimiterConfig mainConfig = SerializerUtils.read(configJsonStr, OneLimiterConfig.class);
-        mainConfig.init(rhinoKey);
-        this.oneLimiterConfig = mainConfig;
+//        OneLimiterConfig mainConfig = SerializerUtils.read(configJsonStr, OneLimiterConfig.class);
+//        mainConfig.init(rhinoKey);
+//        this.oneLimiterConfig = mainConfig;
     }
 
     /**
@@ -292,7 +292,7 @@ public class OneLimiterManager {
         }
         String name = "unknown";
         String valuePairs = "key=" + key + "&value=" + value;
-        try {
+       /* try {
             OneLimiterRule oneLimiterRule = SerializerUtils.read(value, OneLimiterRule.class);
             String entrance = oneLimiterRule.getEntrance();
             name = rhinoKey + "#" + entrance;
@@ -308,7 +308,7 @@ public class OneLimiterManager {
             Exception error = new RhinoOneLimiterInitException(e);
             String message = EntranceConfigInitType + " " + name + " " + valuePairs;
             logger.error(message, error);
-        }
+        }*/
     }
 
     /**

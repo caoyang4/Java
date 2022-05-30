@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.mysql.cj.util.StringUtils;
 import src.rhino.circuit.CircuitBreakerProperties;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * Created by zhanjun on 2018/3/29.
@@ -40,9 +40,9 @@ public class ConstantDegradeStrategy extends AbstractDegradeStrategy {
 
         try {
             this.clazz = Class.forName(clazzName);
-            if (jsonValue != null && clazz != String.class) {
-                SerializerUtils.read(jsonValue, clazz);
-            }
+//            if (jsonValue != null && clazz != String.class) {
+//                SerializerUtils.read(jsonValue, clazz);
+//            }
         } catch (Exception e) {
             String msg = "降级策略[返回常量值]配置有误，当前配置的常量类型为：" + valueArray[0] + "，值为：" + valueArray[1];
             throw new IllegalArgumentException(msg, e);
@@ -59,11 +59,11 @@ public class ConstantDegradeStrategy extends AbstractDegradeStrategy {
             return jsonValue;
         }
 
-        try {
-            return SerializerUtils.read(jsonValue, clazz);
-        } catch (IOException e) {
-            // ignore exception
-        }
+//        try {
+//            return SerializerUtils.read(jsonValue, clazz);
+//        } catch (IOException e) {
+//            // ignore exception
+//        }
         return null;
     }
 }

@@ -13,7 +13,6 @@ import src.rhino.config.ConfigChangedListener;
 import src.rhino.config.Configuration;
 import src.rhino.config.PropertyChangedListener;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
 
 /**
  * @author zhanjun on 2017/4/21.
@@ -106,13 +105,13 @@ public class DefaultCircuitBreakerProperties extends RhinoConfigProperties imple
      * @return
      */
     public CircuitBreakerPropertyData parseCircuitBreakerPropertyData(String value) {
-        if (StringUtils.isNullOrEmpty(value)) {
+        /*if (StringUtils.isNullOrEmpty(value)) {
             try {
                 return SerializerUtils.read(URLDecoder.decode(value, "UTF-8"), CircuitBreakerPropertyData.class);
             } catch (IOException e) {
                 logger.warn("fail to parse from configManager, value: " + value, e);
             }
-        }
+        }*/
         return null;
     }
 
@@ -227,18 +226,13 @@ public class DefaultCircuitBreakerProperties extends RhinoConfigProperties imple
 
     @Override
     public String toJson() {
-        try {
-            StringBuilder builder = new StringBuilder();
-            builder.append("{\"");
-            builder.append(configKeySuffix);
-            builder.append("\":");
-            builder.append(SerializerUtils.write(circuitBreakerPropertyData));
-            builder.append("}");
-            return builder.toString();
-        } catch (IOException e) {
-            logger.warn("DefaultCircuitBreakerProperties toJson error" + e.getMessage());
-        }
-        return "";
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"");
+        builder.append(configKeySuffix);
+        builder.append("\":");
+//            builder.append(SerializerUtils.write(circuitBreakerPropertyData));
+        builder.append("}");
+        return builder.toString();
     }
 
     public final static class Setter {

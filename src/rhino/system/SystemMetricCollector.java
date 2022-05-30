@@ -1,6 +1,5 @@
 package src.rhino.system;
 
-import src.lion.client.util.NamedThreadFactory;
 import src.rhino.config.ConfigFactory;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
@@ -21,8 +20,7 @@ import java.util.concurrent.Executors;
  **/
 public class SystemMetricCollector {
 
-    private final ExecutorService executorService = Executors.
-            newSingleThreadExecutor(new NamedThreadFactory("rhino-system-metric-collector-task", true));
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public SystemMetricCollector() {
         this.executorService.submit(new SystemMetricCollectorTask());

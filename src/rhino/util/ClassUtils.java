@@ -9,7 +9,8 @@ public class ClassUtils {
         if (classLoader == null) {
             classLoader = Thread.currentThread().getContextClassLoader();
         }
-        return org.apache.commons.lang.ClassUtils.getClass(classLoader, className);
+//        return org.apache.commons.lang.ClassUtils.getClass(classLoader, className);
+        return null;
     }
 
     public static Class loadClass(String className) throws ClassNotFoundException {

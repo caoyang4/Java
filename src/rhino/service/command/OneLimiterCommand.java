@@ -12,7 +12,7 @@ import src.rhino.onelimiter.OneLimiterManager;
 import src.rhino.onelimiter.OneLimiterStrategy;
 import src.rhino.onelimiter.OneLimiterStrategyEnum;
 import src.rhino.onelimiter.alarm.OneLimiterQpsEntity;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 import com.google.common.collect.Maps;
 
 /**
@@ -69,13 +69,13 @@ public class OneLimiterCommand implements Command {
         } else {
             Map<String, String> paramsMap = null;
             String runParams = params.get("params");
-            if (StringUtils.isNullOrEmpty(runParams)) {
+            /*if (StringUtils.isNullOrEmpty(runParams)) {
                 try {
                     paramsMap = SerializerUtils.read(runParams, Map.class);
                 } catch (IOException e) {
                     //ignore exception
                 }
-            }
+            }*/
             List<OneLimiterStrategy> oneLimiterStrategyList = oneLimiterManager.getStrategyList(entrance, paramsMap);
             for (OneLimiterStrategy oneLimiterStrategy : oneLimiterStrategyList) {
                 if (oneLimiterStrategy.getStrategyEnum().getName().equals(strategyEnum)) {

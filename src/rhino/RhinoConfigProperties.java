@@ -21,7 +21,6 @@ import src.rhino.config.Configuration;
 import src.rhino.config.PropertyChangedListener;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
-import src.rhino.util.SerializerUtils;
 
 /**
  * @author zhanjun on 2017/5/9.
@@ -78,11 +77,11 @@ public abstract class RhinoConfigProperties {
         return configuration.getBooleanValue(getFullKey(name), defaultValue);
     }
 
-    public <T> T getBeanValue(String configKey, Class<T> clazz, T defaultValue) {
+   /* public <T> T getBeanValue(String configKey, Class<T> clazz, T defaultValue) {
         return getBeanValue(configKey, clazz, defaultValue, false);
-    }
+    }*/
 
-    public <T> T getBeanValue(String configKey, Class<T> clazz, T defaultValue, boolean isEncoded) {
+   /* public <T> T getBeanValue(String configKey, Class<T> clazz, T defaultValue, boolean isEncoded) {
         String ret = configuration.getStringValue(getFullKey(configKey), null);
         if (StringUtils.isNullOrEmpty(ret)) {
             return defaultValue;
@@ -104,7 +103,7 @@ public abstract class RhinoConfigProperties {
             }
         }
     }
-
+*/
     public void addPropertiesChangedListener(String name, ConfigChangedListener listener) {
         configuration.addListener(getFullKey(name), listener);
     }

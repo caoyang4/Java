@@ -1,6 +1,5 @@
 package src.rhino.system.reader;
 
-import src.lion.client.util.NamedThreadFactory;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
 import com.mysql.cj.util.StringUtils;
@@ -18,8 +17,7 @@ public class HulkSystemMetricReader {
 
     private static Logger logger = LoggerFactory.getLogger(HulkSystemMetricReader.class);
 
-    private final ExecutorService executorService = Executors.
-            newSingleThreadExecutor(new NamedThreadFactory("rhino-hulk-system-metric-reader-task", true));
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     /**
      * 容器cpu相关指标
      */

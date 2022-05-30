@@ -12,7 +12,7 @@ import src.rhino.threadpool.alarm.ThreadPoolAlarmData;
 import src.rhino.threadpool.alarm.ThreadPoolAlarmManager;
 import src.rhino.timewindow.threadpool.ThreadPoolTimeWindow;
 import src.rhino.util.AppUtils;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * 定时扫描并推送线程池告警
@@ -91,7 +91,8 @@ public class RhinoThreadPoolAlarmScanner implements RhinoScheduledTask {
         }
 
         try {
-            String alarmDetail = SerializerUtils.write(alarmList);
+//            String alarmDetail = SerializerUtils.write(alarmList);
+            String alarmDetail = "alarm";
             StringBuilder builder = new StringBuilder();
             builder.append("&ip=" + AppUtils.getLocalIp());
             builder.append("&appKey=" + AppUtils.getAppName());

@@ -14,7 +14,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
 
-import src.lion.client.Lion;
 import src.rhino.RhinoServiceFactory;
 import src.rhino.annotation.Rhino;
 import src.rhino.annotation.RhinoProxy;
@@ -28,7 +27,7 @@ import src.rhino.util.ClassUtils;
 public class RhinoBean implements BeanPostProcessor, BeanFactoryPostProcessor, ApplicationContextAware, Ordered {
 
     private static final Logger logger = LoggerFactory.getLogger(RhinoBean.class);
-    private String annotationPackage = Lion.get("rhino.annotation.package", "src,com.meituan,com.sankuai");
+    private String annotationPackage = "src,com.meituan,com.sankuai";
     private ApplicationContext applicationContext;
     private int order = Ordered.LOWEST_PRECEDENCE;
     private static final Pattern COMMA_SPLIT_PATTERN = Pattern.compile("\\s*[,]+\\s*");

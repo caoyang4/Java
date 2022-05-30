@@ -2,7 +2,6 @@ package src.rhino;
 
 import java.lang.reflect.Method;
 
-import src.cat.Cat;
 import src.rhino.cache.Cache;
 import src.rhino.fault.FaultInject;
 import src.rhino.threadpool.AsyncResult;
@@ -46,7 +45,6 @@ public class RhinoInnerCommand extends RhinoAbstractCommand<Object> {
         } catch (Throwable e) {
             //缓存操作异常处理，不要影响业务正常流程
             //https://tt.sankuai.com/ticket/detail?id=3801764
-            Cat.logError(e);
         }
         return result;
     }

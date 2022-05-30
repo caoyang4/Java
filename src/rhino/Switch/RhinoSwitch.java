@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.ClassUtils;
 
-import src.cat.Cat;
 import src.rhino.config.AppKey;
 import src.rhino.config.ConfigFactory;
 import src.rhino.service.RhinoManager;
@@ -138,7 +137,7 @@ public class RhinoSwitch {
     private static void register(String appKey, String fullKey, String configName, String key, Object value) {
         Integer bucket = switchBuckets.get(fullKey);
         if (bucket != null) {
-            Cat.logEvent("Rhino.Switch.Bucket-" + bucket, key + "=" + value);
+//            Cat.logEvent("Rhino.Switch.Bucket-" + bucket, key + "=" + value);
             return;
         }
         int num = Math.abs(hashFunc.newHasher().putString(key, Charset.defaultCharset()).hash().asInt() % 5);

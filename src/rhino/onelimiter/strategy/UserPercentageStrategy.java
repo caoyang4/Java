@@ -88,7 +88,7 @@ public class UserPercentageStrategy implements LimiterStrategy {
 
         // 请求被限流
         // 若接口在返回空文案的url集合中，则拦截文案置空
-        String msg = emptyMsgProcessor.contains(entrance) ? StringUtils.EMPTY : this.msg;
+        String msg = emptyMsgProcessor.contains(entrance) ? "" : this.msg;
         return ExecuteResult.createRejectResult(code, msg);
     }
 }

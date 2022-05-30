@@ -16,7 +16,7 @@ import src.rhino.limit.feature.LimiterRule;
 import src.rhino.util.AppUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author zhanjun on 2017/08/21.
@@ -88,7 +88,7 @@ public class FeatureRequestLimiterProperties extends AbstractRequestLimiterPrope
      * @return
      */
     private List<LimiterRule> parseLimiterRule(String value) {
-        if (StringUtils.isNullOrEmpty(value)) {
+        /*if (StringUtils.isNullOrEmpty(value)) {
             return new ArrayList<>();
         }
         ObjectMapper mapper = new ObjectMapper();
@@ -113,13 +113,13 @@ public class FeatureRequestLimiterProperties extends AbstractRequestLimiterPrope
             return activeRules;
         } catch (Exception e) {
             logger.error("limiter rule parse error", e);
-        }
+        }*/
         return new ArrayList<>();
     }
 
     @Override
     public String toJson() {
-        ObjectMapper mapper = new ObjectMapper();
+        /*ObjectMapper mapper = new ObjectMapper();
         try {
             StringBuilder builder = new StringBuilder();
             builder.append("{");
@@ -140,7 +140,7 @@ public class FeatureRequestLimiterProperties extends AbstractRequestLimiterPrope
             return builder.toString();
         } catch (JsonProcessingException e) {
             logger.warn("FeatureRequestLimiterProperties toJson error"+e.getMessage());
-        }
+        }*/
         return "";
 
     }

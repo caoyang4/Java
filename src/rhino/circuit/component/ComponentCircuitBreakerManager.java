@@ -12,7 +12,7 @@ import src.rhino.config.ConfigFactory;
 import src.rhino.config.Configuration;
 import src.rhino.log.Logger;
 import src.rhino.log.LoggerFactory;
-import src.rhino.util.SerializerUtils;
+//import src.rhino.util.SerializerUtils;
 
 /**
  * 中间件熔断器管理
