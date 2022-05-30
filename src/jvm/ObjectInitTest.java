@@ -1,10 +1,11 @@
 package src.jvm;
 
 /**
+ * 对象初始化
  * @author caoyang
  * @create 2022-05-30 21:34
  */
-public class InitTest {
+public class ObjectInitTest {
     static class Father{
         public Father() {
             System.out.println("Father init");
