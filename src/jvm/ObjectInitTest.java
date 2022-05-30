@@ -9,7 +9,8 @@ public class ObjectInitTest {
     static class Father{
         public Father() {
             System.out.println("Father init");
-            // 不一定调用父类的 eat() 方法，多态机制
+            // 即使在父类构造器，也不一定调用自己的 eat() 方法，
+            // 多态机制，可能调用子类的 eat() 方法，
             eat();
         }
         public void eat(){
