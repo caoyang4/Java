@@ -58,5 +58,8 @@
     <orderEntry type="library" name="apache.groovy" level="project" />
     <orderEntry type="library" name="software.amazon.awssdk.netty.nio.client" level="project" />
     <orderEntry type="library" name="io.netty.all" level="project" />
+    <orderEntry type="library" name="de.danielbechler.java.object.diff" level="project" />
+    <orderEntry type="library" name="hibernate.validator" level="project" />
+    <orderEntry type="library" name="eclipse.che.core.commons.lang" level="project" />
   </component>
 </module>
