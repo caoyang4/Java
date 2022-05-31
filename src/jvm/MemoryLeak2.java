@@ -25,6 +25,7 @@ public class MemoryLeak2 {
         set.add(p);
         // size: 2
         System.out.println("add p, set size: " + set.size());
+        System.out.println(set);
     }
 }
 class Point{
@@ -45,5 +46,12 @@ class Point{
         if (obj == null || obj.getClass() != getClass()) return false;
         Point o = (Point) obj;
         return x == o.x;
+    }
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "x=" + x +
+                '}';
     }
 }
