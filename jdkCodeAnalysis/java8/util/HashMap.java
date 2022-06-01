@@ -519,6 +519,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 
     // 键集合
     public Set<K> keySet() {
+        // 延迟创建 keySet, 每次调用keySet()，返回都是同一个对象
         Set<K> ks = keySet;
         if (ks == null) {
             ks = new KeySet();

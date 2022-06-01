@@ -18,6 +18,7 @@ public class CloneTest implements Cloneable{
     public static void main(String[] args) throws CloneNotSupportedException {
         CloneTest test = new CloneTest();
         System.out.println("test: " + test);
+        // clone()不会调用构造器
         CloneTest testClone = test.clone();
         System.out.println("testClone: " + testClone);
     }
