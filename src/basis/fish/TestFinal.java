@@ -1,5 +1,6 @@
 package src.basis.fish;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -9,7 +10,8 @@ public class TestFinal {
 
     // 编译期常量
     final int i = 1;
-    final static int J = 1;
+    static final int J = 1;
+    static final int[] ARR = {1,2};
     final int[] a = {1,2,3,4};
     // 非编译期常量
     static Random r = new Random();
@@ -29,6 +31,10 @@ public class TestFinal {
         System.out.println(a.i);
         a.i = 2;
         System.out.println(a.i);
+
+        System.out.println(Arrays.toString(ARR));
+        ARR[0] = 6;
+        System.out.println(Arrays.toString(ARR));
     }
     static class A {
         public int i;

@@ -18,18 +18,22 @@ public class ObjectInitTest {
         }
     }
     static class Child extends Father{
+        int i;
         public Child() {
+            i = 5;
             System.out.println("Child init");
         }
 
         @Override
         public void eat() {
+            System.out.println("i = " + i);
             System.out.println("child eat sugar");
         }
     }
 
     public static void main(String[] args) {
         // 子类创建实例，也会调用父类的构造器
-        new Child();
+        Child child = new Child();
+        child.eat();
     }
 }
