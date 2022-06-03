@@ -57,4 +57,8 @@ public class Leetcode622 {
             return list.size() == capacity;
         }
     }
+
+    public static void main(String[] args) {
+
+    }
 }
