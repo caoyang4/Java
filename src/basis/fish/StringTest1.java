@@ -2,6 +2,10 @@ package src.basis.fish;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 /**
  * new String("a")创建几个对象？
  * 2个： new String() 和 常量"a"
@@ -92,6 +96,17 @@ public class StringTest1 {
         System.out.println("cost "+(System.currentTimeMillis()-start));
     }
 
+    private void printStrings(String... strs){
+        for (String str : strs) {
+            System.out.print(str + " ");
+        }
+        System.out.println();
+    }
+    @Test
+    public void stringTest7(){
+        printStrings("a","b","c");
+        printStrings(new String[]{"1", "2", "3"});
+    }
 
     public static void main(String[] args) {
         String s1 = new String("1");
