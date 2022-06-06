@@ -240,6 +240,8 @@ public final class System {
         Runtime.getRuntime().load0(Reflection.getCallerClass(), filename);
     }
 
+    // System.loadLibrary()调用 dll
+    // 装载库文件，不JNI库文件或者非JNI库文件
     @CallerSensitive
     public static void loadLibrary(String libname) {
         Runtime.getRuntime().loadLibrary0(Reflection.getCallerClass(), libname);
