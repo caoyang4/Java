@@ -10,7 +10,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * 所有获取锁的方法，都返回一个邮戳（Stamp），Stamp为0表示获取失败，其余都表示成功；
  * 所有释放锁的方法，都需要一个邮戳（Stamp），这个Stamp必须是和成功获取锁时得到的Stamp一致；
- * StampedLock是不可重入的；（如果一个线程已经持有了写锁，再去获取写锁的话就会造成死锁）
+ * StampedLock是基于state和队列实现，不可重入的；（若线程已经持有了写锁，该线程再去尝试获取写锁会造成死锁）
  * StampedLock有三种访问模式：
  * ① Reading（读模式）：功能和ReentrantReadWriteLock的读锁类似
  * ② Writing（写模式）：功能和ReentrantReadWriteLock的写锁类似
@@ -21,6 +21,7 @@ import java.util.concurrent.locks.LockSupport;
  * 无论写锁还是读锁，都不支持Conditon等待，不可重入
  *
  * StampedLock并未实现AQS框架，但是StampedLock的基本实现思路还是利用CLH队列进行线程的管理，通过同步状态值来表示锁的状态和类型
+ * StampedLock中的连续申请的读锁节点通过cowaiter新起了一个维度链表来存放，而ReentrantReadWriteLock的读锁节点是一个一个的排列在队列中的
  */
 public class StampedLock implements java.io.Serializable {
 
