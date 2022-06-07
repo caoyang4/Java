@@ -10,7 +10,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * 所有获取锁的方法，都返回一个邮戳（Stamp），Stamp为0表示获取失败，其余都表示成功；
  * 所有释放锁的方法，都需要一个邮戳（Stamp），这个Stamp必须是和成功获取锁时得到的Stamp一致；
- * StampedLock是基于state和队列实现，不可重入的；（若线程已经持有了写锁，该线程再去尝试获取写锁会造成死锁）
+ * StampedLock是基于state和队列实现，不可重入的；（若线程已经持有了写锁，还未释放，该线程再去尝试获取写锁会造成死锁）
  * StampedLock有三种访问模式：
  * ① Reading（读模式）：功能和ReentrantReadWriteLock的读锁类似
  * ② Writing（写模式）：功能和ReentrantReadWriteLock的写锁类似
