@@ -1,8 +1,10 @@
 package src.db.redis;
 
+import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 import org.openjdk.jol.info.ClassLayout;
+import redis.clients.jedis.Transaction;
 
 import java.util.List;
 import java.util.Set;
@@ -62,6 +64,27 @@ public class RedisMainTest {
         jedis.hset("user", "age","10000");
         jedis.hset("user", "nation","China");
         System.out.println(jedis.hmget("user", "name", "age", "nation"));
+    }
+
+    @Test
+    public void testTransaction(){
+        JSONObject object = new JSONObject();
+        object.put("name", "young");
+        object.put("city", "shangahi");
+        object.put("age", 18);
+        String jsonString = object.toJSONString();
+        Transaction transaction = jedis.multi();
+        try {
+            transaction.set("transaction", jsonString);
+            transaction.set("json", jsonString);
+            transaction.exec();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println(jedis.get("transaction"));
+            System.out.println(jedis.get("json"));
+            transaction.close();
+        }
 
     }
 }
