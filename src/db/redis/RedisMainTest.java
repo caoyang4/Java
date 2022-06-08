@@ -59,6 +59,17 @@ public class RedisMainTest {
     }
 
     @Test
+    public void testSortedSet(){
+        jedis.zadd("players", 100, "james");
+        jedis.zadd("players", 100, "jordan");
+        jedis.zadd("players", 60, "paul");
+        jedis.zadd("players", 90, "kobe");
+        jedis.zadd("players", 80, "kurry");
+        jedis.zadd("players", 50, "park");
+        System.out.println(jedis.zrangeByScore("players", 0, 100));
+    }
+
+    @Test
     public void testHash(){
         jedis.hset("user", "name","wukong");
         jedis.hset("user", "age","10000");
