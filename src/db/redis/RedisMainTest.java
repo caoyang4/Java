@@ -5,7 +5,7 @@ import org.junit.Test;
 import redis.clients.jedis.Jedis;
 import org.openjdk.jol.info.ClassLayout;
 import redis.clients.jedis.Transaction;
-
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -94,7 +94,11 @@ public class RedisMainTest {
         } finally {
             System.out.println(jedis.get("transaction"));
             System.out.println(jedis.get("json"));
-            transaction.close();
+            try {
+                transaction.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }

@@ -17,7 +17,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="openjdk.jol.core" level="project" />
-    <orderEntry type="library" exported="" name="redis.clients.jedis" level="project" />
     <orderEntry type="library" exported="" name="mysql.connector.java" level="project" />
     <orderEntry type="library" exported="" name="ch.qos.logback.classic" level="project" />
     <orderEntry type="library" exported="" name="cglib" level="project" />
@@ -49,7 +48,6 @@
     <orderEntry type="library" name="javax.javaee.web.api" level="project" />
     <orderEntry type="library" name="javax.javaee.api" level="project" />
     <orderEntry type="library" name="springframework.boot.spring.starter.jta.atomikos" level="project" />
-    <orderEntry type="library" name="springframework.boot.spring" level="project" />
     <orderEntry type="library" name="jboss.netty" level="project" />
     <orderEntry type="library" name="google.auto.service" level="project" />
     <orderEntry type="library" name="net.sf.ehcache.internal.core" level="project" />
@@ -61,5 +59,6 @@
     <orderEntry type="library" name="de.danielbechler.java.object.diff" level="project" />
     <orderEntry type="library" name="hibernate.validator" level="project" />
     <orderEntry type="library" name="eclipse.che.core.commons.lang" level="project" />
+    <orderEntry type="library" name="dromara.hmily.spring.boot.starter.parent" level="project" />
   </component>
 </module>
