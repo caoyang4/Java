@@ -3,7 +3,6 @@ package src.basis.io;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.*;
@@ -16,7 +15,7 @@ import java.util.UUID;
  * @author caoyang
  * @create 2022-06-10 18:31
  */
-public class TestInputStream {
+public class TestIO2 {
 
     @Data
     @AllArgsConstructor
