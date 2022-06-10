@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
 package java.io;
 
 import java.io.ObjectStreamClass.WeakClassKey;
@@ -55,49 +30,8 @@ import sun.security.action.GetBooleanAction;
 import sun.security.action.GetIntegerAction;
 
 /**
- * An ObjectInputStream deserializes primitive data and objects previously
- * written using an ObjectOutputStream.
  *
- * <p>ObjectOutputStream and ObjectInputStream can provide an application with
- * persistent storage for graphs of objects when used with a FileOutputStream
- * and FileInputStream respectively.  ObjectInputStream is used to recover
- * those objects previously serialized. Other uses include passing objects
- * between hosts using a socket stream or for marshaling and unmarshaling
- * arguments and parameters in a remote communication system.
- *
- * <p>ObjectInputStream ensures that the types of all objects in the graph
- * created from the stream match the classes present in the Java Virtual
- * Machine.  Classes are loaded as required using the standard mechanisms.
- *
- * <p>Only objects that support the java.io.Serializable or
- * java.io.Externalizable interface can be read from streams.
- *
- * <p>The method <code>readObject</code> is used to read an object from the
- * stream.  Java's safe casting should be used to get the desired type.  In
- * Java, strings and arrays are objects and are treated as objects during
- * serialization. When read they need to be cast to the expected type.
- *
- * <p>Primitive data types can be read from the stream using the appropriate
- * method on DataInput.
- *
- * <p>The default deserialization mechanism for objects restores the contents
- * of each field to the value and type it had when it was written.  Fields
- * declared as transient or static are ignored by the deserialization process.
- * References to other objects cause those objects to be read from the stream
- * as necessary.  Graphs of objects are restored correctly using a reference
- * sharing mechanism.  New objects are always allocated when deserializing,
- * which prevents existing objects from being overwritten.
- *
- * <p>Reading an object is analogous to running the constructors of a new
- * object.  Memory is allocated for the object and initialized to zero (NULL).
- * No-arg constructors are invoked for the non-serializable classes and then
- * the fields of the serializable classes are restored from the stream starting
- * with the serializable class closest to java.lang.object and finishing with
- * the object's most specific class.
- *
- * <p>For example to read from a stream as written by the example in
  * ObjectOutputStream:
- * <br>
  * <pre>
  *      FileInputStream fis = new FileInputStream("t.tmp");
  *      ObjectInputStream ois = new ObjectInputStream(fis);
@@ -109,114 +43,8 @@ import sun.security.action.GetIntegerAction;
  *      ois.close();
  * </pre>
  *
- * <p>Classes control how they are serialized by implementing either the
- * java.io.Serializable or java.io.Externalizable interfaces.
- *
- * <p>Implementing the Serializable interface allows object serialization to
- * save and restore the entire state of the object and it allows classes to
- * evolve between the time the stream is written and the time it is read.  It
- * automatically traverses references between objects, saving and restoring
- * entire graphs.
- *
- * <p>Serializable classes that require special handling during the
- * serialization and deserialization process should implement the following
- * methods:
- *
- * <pre>
- * private void writeObject(java.io.ObjectOutputStream stream)
- *     throws IOException;
- * private void readObject(java.io.ObjectInputStream stream)
- *     throws IOException, ClassNotFoundException;
- * private void readObjectNoData()
- *     throws ObjectStreamException;
- * </pre>
- *
- * <p>The readObject method is responsible for reading and restoring the state
- * of the object for its particular class using data written to the stream by
- * the corresponding writeObject method.  The method does not need to concern
- * itself with the state belonging to its superclasses or subclasses.  State is
- * restored by reading data from the ObjectInputStream for the individual
- * fields and making assignments to the appropriate fields of the object.
- * Reading primitive data types is supported by DataInput.
- *
- * <p>Any attempt to read object data which exceeds the boundaries of the
- * custom data written by the corresponding writeObject method will cause an
- * OptionalDataException to be thrown with an eof field value of true.
- * Non-object reads which exceed the end of the allotted data will reflect the
- * end of data in the same way that they would indicate the end of the stream:
- * bytewise reads will return -1 as the byte read or number of bytes read, and
- * primitive reads will throw EOFExceptions.  If there is no corresponding
- * writeObject method, then the end of default serialized data marks the end of
- * the allotted data.
- *
- * <p>Primitive and object read calls issued from within a readExternal method
- * behave in the same manner--if the stream is already positioned at the end of
- * data written by the corresponding writeExternal method, object reads will
- * throw OptionalDataExceptions with eof set to true, bytewise reads will
- * return -1, and primitive reads will throw EOFExceptions.  Note that this
- * behavior does not hold for streams written with the old
- * <code>ObjectStreamConstants.PROTOCOL_VERSION_1</code> protocol, in which the
- * end of data written by writeExternal methods is not demarcated, and hence
- * cannot be detected.
- *
- * <p>The readObjectNoData method is responsible for initializing the state of
- * the object for its particular class in the event that the serialization
- * stream does not list the given class as a superclass of the object being
- * deserialized.  This may occur in cases where the receiving party uses a
- * different version of the deserialized instance's class than the sending
- * party, and the receiver's version extends classes that are not extended by
- * the sender's version.  This may also occur if the serialization stream has
- * been tampered; hence, readObjectNoData is useful for initializing
- * deserialized objects properly despite a "hostile" or incomplete source
- * stream.
- *
- * <p>Serialization does not read or assign values to the fields of any object
- * that does not implement the java.io.Serializable interface.  Subclasses of
- * Objects that are not serializable can be serializable. In this case the
- * non-serializable class must have a no-arg constructor to allow its fields to
- * be initialized.  In this case it is the responsibility of the subclass to
- * save and restore the state of the non-serializable class. It is frequently
- * the case that the fields of that class are accessible (public, package, or
- * protected) or that there are get and set methods that can be used to restore
- * the state.
- *
- * <p>Any exception that occurs while deserializing an object will be caught by
- * the ObjectInputStream and abort the reading process.
- *
- * <p>Implementing the Externalizable interface allows the object to assume
- * complete control over the contents and format of the object's serialized
- * form.  The methods of the Externalizable interface, writeExternal and
- * readExternal, are called to save and restore the objects state.  When
- * implemented by a class they can write and read their own state using all of
- * the methods of ObjectOutput and ObjectInput.  It is the responsibility of
- * the objects to handle any versioning that occurs.
- *
- * <p>Enum constants are deserialized differently than ordinary serializable or
- * externalizable objects.  The serialized form of an enum constant consists
- * solely of its name; field values of the constant are not transmitted.  To
- * deserialize an enum constant, ObjectInputStream reads the constant name from
- * the stream; the deserialized constant is then obtained by calling the static
- * method <code>Enum.valueOf(Class, String)</code> with the enum constant's
- * base type and the received constant name as arguments.  Like other
- * serializable or externalizable objects, enum constants can function as the
- * targets of back references appearing subsequently in the serialization
- * stream.  The process by which enum constants are deserialized cannot be
- * customized: any class-specific readObject, readObjectNoData, and readResolve
- * methods defined by enum types are ignored during deserialization.
- * Similarly, any serialPersistentFields or serialVersionUID field declarations
- * are also ignored--all enum types have a fixed serialVersionUID of 0L.
- *
- * @author      Mike Warres
- * @author      Roger Riggs
- * @see java.io.DataInput
- * @see java.io.ObjectOutputStream
- * @see java.io.Serializable
- * @see <a href="../../../platform/serialization/spec/input.html"> Object Serialization Specification, Section 3, Object Input Classes</a>
- * @since   JDK1.1
  */
-public class ObjectInputStream
-    extends InputStream implements ObjectInput, ObjectStreamConstants
-{
+public class ObjectInputStream extends InputStream implements ObjectInput, ObjectStreamConstants {
     /** handle value representing null */
     private static final int NULL_HANDLE = -1;
 
@@ -240,20 +68,17 @@ public class ObjectInputStream
 
     private static class Caches {
         /** cache of subclass security audit results */
-        static final ConcurrentMap<WeakClassKey,Boolean> subclassAudits =
-            new ConcurrentHashMap<>();
+        static final ConcurrentMap<WeakClassKey,Boolean> subclassAudits = new ConcurrentHashMap<>();
 
         /** queue for WeakReferences to audited subclasses */
-        static final ReferenceQueue<Class<?>> subclassAuditsQueue =
-            new ReferenceQueue<>();
+        static final ReferenceQueue<Class<?>> subclassAuditsQueue = new ReferenceQueue<>();
 
         /**
          * Property to permit setting a filter after objects
          * have been read.
          * See {@link #setObjectInputFilter(ObjectInputFilter)}
          */
-        static final boolean SET_FILTER_AFTER_READ =
-                privilegedGetProperty("jdk.serialSetFilterAfterRead");
+        static final boolean SET_FILTER_AFTER_READ = privilegedGetProperty("jdk.serialSetFilterAfterRead");
 
         /**
          * Property to override the implementation limit on the number
