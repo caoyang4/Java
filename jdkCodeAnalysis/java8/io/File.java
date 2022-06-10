@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 1994, 2021, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
- */
-
 package java.io;
 
 import java.net.URI;
@@ -37,118 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.FileSystems;
 import sun.security.action.GetPropertyAction;
 
-/**
- * An abstract representation of file and directory pathnames.
- *
- * <p> User interfaces and operating systems use system-dependent <em>pathname
- * strings</em> to name files and directories.  This class presents an
- * abstract, system-independent view of hierarchical pathnames.  An
- * <em>abstract pathname</em> has two components:
- *
- * <ol>
- * <li> An optional system-dependent <em>prefix</em> string,
- *      such as a disk-drive specifier, <code>"/"</code>&nbsp;for the UNIX root
- *      directory, or <code>"\\\\"</code>&nbsp;for a Microsoft Windows UNC pathname, and
- * <li> A sequence of zero or more string <em>names</em>.
- * </ol>
- *
- * The first name in an abstract pathname may be a directory name or, in the
- * case of Microsoft Windows UNC pathnames, a hostname.  Each subsequent name
- * in an abstract pathname denotes a directory; the last name may denote
- * either a directory or a file.  The <em>empty</em> abstract pathname has no
- * prefix and an empty name sequence.
- *
- * <p> The conversion of a pathname string to or from an abstract pathname is
- * inherently system-dependent.  When an abstract pathname is converted into a
- * pathname string, each name is separated from the next by a single copy of
- * the default <em>separator character</em>.  The default name-separator
- * character is defined by the system property <code>file.separator</code>, and
- * is made available in the public static fields <code>{@link
- * #separator}</code> and <code>{@link #separatorChar}</code> of this class.
- * When a pathname string is converted into an abstract pathname, the names
- * within it may be separated by the default name-separator character or by any
- * other name-separator character that is supported by the underlying system.
- *
- * <p> A pathname, whether abstract or in string form, may be either
- * <em>absolute</em> or <em>relative</em>.  An absolute pathname is complete in
- * that no other information is required in order to locate the file that it
- * denotes.  A relative pathname, in contrast, must be interpreted in terms of
- * information taken from some other pathname.  By default the classes in the
- * <code>java.io</code> package always resolve relative pathnames against the
- * current user directory.  This directory is named by the system property
- * <code>user.dir</code>, and is typically the directory in which the Java
- * virtual machine was invoked.
- *
- * <p> The <em>parent</em> of an abstract pathname may be obtained by invoking
- * the {@link #getParent} method of this class and consists of the pathname's
- * prefix and each name in the pathname's name sequence except for the last.
- * Each directory's absolute pathname is an ancestor of any <tt>File</tt>
- * object with an absolute abstract pathname which begins with the directory's
- * absolute pathname.  For example, the directory denoted by the abstract
- * pathname <tt>"/usr"</tt> is an ancestor of the directory denoted by the
- * pathname <tt>"/usr/local/bin"</tt>.
- *
- * <p> The prefix concept is used to handle root directories on UNIX platforms,
- * and drive specifiers, root directories and UNC pathnames on Microsoft Windows platforms,
- * as follows:
- *
- * <ul>
- *
- * <li> For UNIX platforms, the prefix of an absolute pathname is always
- * <code>"/"</code>.  Relative pathnames have no prefix.  The abstract pathname
- * denoting the root directory has the prefix <code>"/"</code> and an empty
- * name sequence.
- *
- * <li> For Microsoft Windows platforms, the prefix of a pathname that contains a drive
- * specifier consists of the drive letter followed by <code>":"</code> and
- * possibly followed by <code>"\\"</code> if the pathname is absolute.  The
- * prefix of a UNC pathname is <code>"\\\\"</code>; the hostname and the share
- * name are the first two names in the name sequence.  A relative pathname that
- * does not specify a drive has no prefix.
- *
- * </ul>
- *
- * <p> Instances of this class may or may not denote an actual file-system
- * object such as a file or a directory.  If it does denote such an object
- * then that object resides in a <i>partition</i>.  A partition is an
- * operating system-specific portion of storage for a file system.  A single
- * storage device (e.g. a physical disk-drive, flash memory, CD-ROM) may
- * contain multiple partitions.  The object, if any, will reside on the
- * partition <a name="partName">named</a> by some ancestor of the absolute
- * form of this pathname.
- *
- * <p> A file system may implement restrictions to certain operations on the
- * actual file-system object, such as reading, writing, and executing.  These
- * restrictions are collectively known as <i>access permissions</i>.  The file
- * system may have multiple sets of access permissions on a single object.
- * For example, one set may apply to the object's <i>owner</i>, and another
- * may apply to all other users.  The access permissions on an object may
- * cause some methods in this class to fail.
- *
- * <p> Instances of the <code>File</code> class are immutable; that is, once
- * created, the abstract pathname represented by a <code>File</code> object
- * will never change.
- *
- * <h3>Interoperability with {@code java.nio.file} package</h3>
- *
- * <p> The <a href="../../java/nio/file/package-summary.html">{@code java.nio.file}</a>
- * package defines interfaces and classes for the Java virtual machine to access
- * files, file attributes, and file systems. This API may be used to overcome
- * many of the limitations of the {@code java.io.File} class.
- * The {@link #toPath toPath} method may be used to obtain a {@link
- * Path} that uses the abstract path represented by a {@code File} object to
- * locate a file. The resulting {@code Path} may be used with the {@link
- * java.nio.file.Files} class to provide more efficient and extensive access to
- * additional file operations, file attributes, and I/O exceptions to help
- * diagnose errors when an operation on a file fails.
- *
- * @author  unascribed
- * @since   JDK1.0
- */
-
-public class File
-    implements Serializable, Comparable<File>
-{
+public class File implements Serializable, Comparable<File> {
 
     /**
      * The FileSystem object representing the platform's local file system.
@@ -185,8 +49,7 @@ public class File
     final boolean isInvalid() {
         PathStatus s = status;
         if (s == null) {
-            s = (this.path.indexOf('\u0000') < 0) ? PathStatus.CHECKED
-                                                  : PathStatus.INVALID;
+            s = (this.path.indexOf('\u0000') < 0) ? PathStatus.CHECKED : PathStatus.INVALID;
             status = s;
         }
         return s == PathStatus.INVALID;
