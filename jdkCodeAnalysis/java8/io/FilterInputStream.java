@@ -17,8 +17,7 @@ package java.io;
  * @author  Jonathan Payne
  * @since   JDK1.0
  */
-public
-class FilterInputStream extends InputStream {
+public class FilterInputStream extends InputStream {
     /**
      * The input stream to be filtered.
      */

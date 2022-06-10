@@ -5,7 +5,7 @@ import src.basis.reflection.Young;
 import java.io.*;
 import java.util.*;
 
-public class TestIO {
+public class TestIO1 {
     public static void main(String[] args) throws Exception {
         // try-with-resource 用法
         try(FileInputStream input = new FileInputStream("/Users/caoyang/caoyang_dev/stu")) {
