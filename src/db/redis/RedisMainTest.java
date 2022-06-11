@@ -94,11 +94,7 @@ public class RedisMainTest {
         } finally {
             System.out.println(jedis.get("transaction"));
             System.out.println(jedis.get("json"));
-            try {
-                transaction.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            transaction.close();
         }
 
     }

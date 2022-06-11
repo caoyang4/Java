@@ -23,7 +23,6 @@
     <orderEntry type="library" exported="" name="aspectj.aspectjweaver" level="project" />
     <orderEntry type="library" exported="" name="ow2.asm" level="project" />
     <orderEntry type="library" exported="" name="projectlombok.lombok" level="project" />
-    <orderEntry type="library" exported="" name="springframework.spring.context" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -42,7 +41,6 @@
     <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="io.netty" level="project" />
     <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
-    <orderEntry type="library" name="springframework.spring.tx" level="project" />
     <orderEntry type="library" name="springframework.spring.jdbc" level="project" />
     <orderEntry type="library" name="springframework.spring.webmvc" level="project" />
     <orderEntry type="library" name="javax.javaee.web.api" level="project" />
@@ -61,5 +59,6 @@
     <orderEntry type="library" name="eclipse.che.core.commons.lang" level="project" />
     <orderEntry type="library" name="dromara.hmily.spring.boot.starter.parent" level="project" />
     <orderEntry type="library" name="springframework.data.spring.redis" level="project" />
+    <orderEntry type="library" name="redis.clients.jedis" level="project" />
   </component>
 </module>
