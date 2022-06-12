@@ -60,6 +60,6 @@
     <orderEntry type="library" name="dromara.hmily.spring.boot.starter.parent" level="project" />
     <orderEntry type="library" name="springframework.data.spring.redis" level="project" />
     <orderEntry type="library" name="redis.clients.jedis" level="project" />
-    <orderEntry type="library" name="fasterxml.jackson.datatype.hibernate4" level="project" />
+    <orderEntry type="library" name="redisson" level="project" />
   </component>
 </module>
