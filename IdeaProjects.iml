@@ -61,5 +61,6 @@
     <orderEntry type="library" name="springframework.data.spring.redis" level="project" />
     <orderEntry type="library" name="redis.clients.jedis" level="project" />
     <orderEntry type="library" name="redisson" level="project" />
+    <orderEntry type="library" name="cn.hutool.all" level="project" />
   </component>
 </module>
