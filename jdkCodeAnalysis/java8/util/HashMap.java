@@ -29,7 +29,8 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
     // 最大容量
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
-    // 扩容因子
+    // 扩容因子，扩容因子过大，影响查找效率，过小会增加 rehash 的次数，
+    // 树转链表和树化的阈值之比刚好也是 6/8 = 0.75，接近泊松分布，且方便计算 0.75 = 1 - 1 >> 2
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     // 链表转树的阈值
