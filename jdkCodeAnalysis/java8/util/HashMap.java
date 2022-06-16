@@ -14,8 +14,8 @@ import java.util.function.Function;
 import sun.misc.SharedSecrets;
 
 /**
- * JDK1.7及之前：数组+链表
- * JDK1.8:数组+链表+红黑树
+ * JDK1.7及之前：数组+链表，头插法
+ * JDK1.8:数组+链表+红黑树，尾插法，避免扩容死循环
  * HashMap 允许 null 键和 null 值
  */
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable {
