@@ -34,7 +34,7 @@ public class RedisResp {
             sendRequest("get", "name");
             // 4、解析响应
             Object obj = handleResponse();
-//            System.out.println("obj = " + obj);
+            System.out.println("obj = " + obj);
             // 5、关闭连接
         } catch (IOException e) {
             e.printStackTrace();
