@@ -15,10 +15,10 @@ import sun.misc.Unsafe;
  *     4. 一个用来避免竞态条件的不变量
  * AQS由三部分组成:
  *   state同步状态
- *   Node组成的CLH队列
+ *   Node组成的CLH队列，CLH队列是一个虚拟的双向队列，即不存在队列实例，仅存在节点间的关联关系
  *   ConditionObject条件变量（包含Node组成的条件单向队列）
  *
- * AQS中，排在阻塞队列第一位的使用自旋等待，而排在后面的线程则挂起。
+ * AQS中，将每个请求共享资源的线程封装成CLH队列的一个节点(Node)来实现锁的分配，排在阻塞队列第一位的使用自旋等待，而排在后面的线程则挂起。
  * AQS是抽象的队列式同步器框架，是除了java自带的synchronized关键字之外的锁机制。
  * 其底层采用乐观锁，大量使用了CAS操作，同时采用自旋方式重试，以实现轻量级和高效地获取锁。
  */
@@ -38,7 +38,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
      *
      * AQS本身是基于【模板方法模式】设计的，在使用时无需关注具体的维护和实现（如获取资源失败、入队、出队、唤醒等），只需要重写获取和释放共享资源state的方法即可。
      * 目前AQS定义了两种资源共享方式：Exclusive（独占，如：ReentrantLock）和Share（共享，如：Semaphore、CountDownLatch）
-     * 目前实现了AQS的组件有：ReentrantLock、ReentrantReadWriteLock、Semaphore、CountDownLatch、CyclicBarrier
+     * 目前实现了AQS的组件有：ReentrantLock、ReentrantReadWriteLock、Semaphore、CountDownLatch、CyclicBarrier，以及 ThreadPoolExecutor.Worker
      */
     static final class Node {
         // 共享模式
