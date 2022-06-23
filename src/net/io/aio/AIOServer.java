@@ -26,11 +26,11 @@ public class AIOServer {
     final static int READ_NUM = 8192;
     public static void main(String[] args) throws IOException, InterruptedException {
         /*
-         * 对于使用的线程池技术，我一定要多说几句
-         * 1、Executors是线程池生成工具，通过这个工具我们可以很轻松的生成“固定大小的线程池”、“调度池”、“可伸缩线程数量的池”。具体请看API Doc
-         * 2、当然您也可以通过ThreadPoolExecutor直接生成池。
+         * 对于使用的线程池技术，注意点：
+         * 1、Executors是线程池生成工具，通过这个工具我们可以很轻松的生成“固定大小的线程池”、“调度池”、“可伸缩线程数量的池”。
+         * 2、当然也可以通过ThreadPoolExecutor直接生成池。
          * 3、这个线程池是用来得到操作系统的“IO事件通知”的，不是用来进行“得到IO数据后的业务处理的”。要进行后者的操作，您可以再使用一个池(最好不要混用)
-         * 4、您也可以不使用线程池(不推荐)，如果决定不使用线程池，直接AsynchronousServerSocketChannel.open()就行了。
+         * 4、也可以不使用线程池(不推荐)，如果决定不使用线程池，直接AsynchronousServerSocketChannel.open()就行了。
          * */
         ExecutorService threadPool = Executors.newFixedThreadPool(4);
         AsynchronousChannelGroup group = AsynchronousChannelGroup.withThreadPool(threadPool);
@@ -96,7 +96,6 @@ class ServerSocketChannelHandle implements CompletionHandler<AsynchronousSocketC
  *
  * 但是最重要的，用于生成channel的对象: AsynchronousChannelProvider是单例模式，无论在哪组socketchannel，
  * 对是一个对象引用(但这没关系，因为您不会直接操作这个AsynchronousChannelProvider对象)。
- * @author yinwenjie
  */
 class SocketChannelReadHandle implements CompletionHandler<Integer, StringBuffer> {
 
