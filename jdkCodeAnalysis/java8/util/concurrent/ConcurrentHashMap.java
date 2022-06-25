@@ -48,8 +48,7 @@ import java.util.stream.Stream;
  * 在锁的实现上，采用 CAS 操作和 synchronized 锁实现更加低粒度的锁，将锁的级别控制在了更细粒度的 table 元素级别，
  * 也就是说只需要锁住这个链表的首节点，并不会影响其他的 table 元素的读写，大大提高了并发度
  */
-public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
-    implements ConcurrentMap<K,V>, Serializable {
+public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 7249069246763182397L;
 
     private static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -626,9 +625,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         Segment(float lf) { this.loadFactor = lf; }
     }
 
-
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+    // 序列化采用分段思想
+    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
         // For serialization compatibility
         // Emulate segment calculation from previous version of this class
         int sshift = 0;
