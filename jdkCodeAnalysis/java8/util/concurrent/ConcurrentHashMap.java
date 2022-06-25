@@ -264,11 +264,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
         this.sizeCtl = cap;
     }
 
-    /**
-     * Creates a new map with the same mappings as the given map.
-     *
-     * @param m the map
-     */
+    // Creates a new map with the same mappings as the given map
     public ConcurrentHashMap(Map<? extends K, ? extends V> m) {
         this.sizeCtl = DEFAULT_CAPACITY;
         putAll(m);
@@ -278,8 +274,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
         this(initialCapacity, loadFactor, 1);
     }
 
-    public ConcurrentHashMap(int initialCapacity,
-                             float loadFactor, int concurrencyLevel) {
+    public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
         if (!(loadFactor > 0.0f) || initialCapacity < 0 || concurrencyLevel <= 0)
             throw new IllegalArgumentException();
         if (initialCapacity < concurrencyLevel)   // Use at least as many bins
@@ -304,7 +299,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
     /**
      * get()方法没有加锁
      * get操作可以无锁是由于Node的元素val和指针next是用volatile修饰的，在多线程环境下线程A修改结点的val或者新增节点的时候是对线程B可见的。
-     * get操作全程不需要加锁是因为Node的成员val是用volatile修饰的和数组用volatile修饰没有关系。
+     * get操作全程不需要加锁是因为Node的成员val是用volatile修饰的，和数组用volatile修饰没有关系。
      * 数组用volatile修饰主要是保证在数组扩容的时候保证可见性
      */
     public V get(Object key) {
@@ -638,8 +633,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
         int segmentShift = 32 - sshift;
         int segmentMask = ssize - 1;
         @SuppressWarnings("unchecked")
-        Segment<K,V>[] segments = (Segment<K,V>[])
-            new Segment<?,?>[DEFAULT_CONCURRENCY_LEVEL];
+        Segment<K,V>[] segments = (Segment<K,V>[]) new Segment<?,?>[DEFAULT_CONCURRENCY_LEVEL];
         for (int i = 0; i < segments.length; ++i)
             segments[i] = new Segment<K,V>(LOAD_FACTOR);
         s.putFields().put("segments", segments);
@@ -660,8 +654,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
         segments = null; // throw away
     }
 
-    private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
 
         sizeCtl = -1; // force exclusion for table construction
         s.defaultReadObject();
@@ -1323,8 +1316,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
             if (as == null || (m = as.length - 1) < 0 ||
                 // Random并发场景有性能问题，可能产生相同的随机数
                 (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
-                !(uncontended =
-                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                !(uncontended = U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
                 // counterCells 为空，或其长度小于1
                 // 或当前线程探针哈希到的数组元素为空
                 // 或当前线程探针哈希到的数组元素非空，但 CAS 数组元素失败
@@ -1523,7 +1515,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements Concurre
             else {
                 // 说明这个位置有实际值了，且不是占位符。对桶头上锁，防止 putVal 的时候向链表插入数据
                 synchronized (f) {
-                    // 类似双重校验锁，防止获得锁后，该桶内数据被别的线程插入了新的数据，因为这个f是在未加锁之前获取的node对象，在这期间，可能这个下标处插入了新数据
+                    // 类似双重校验锁，防止获得锁后，该桶内数据被别的线程插入了新的数据，
+                    // 因为这个f是在未加锁之前获取的node对象，在这期间，可能这个下标处插入了新数据
                     if (tabAt(tab, i) == f) {
                         // 高低位的划分，使得不需要再扩容的时候重新计算哈希
                         Node<K,V> ln, hn;
