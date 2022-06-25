@@ -380,8 +380,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    private void doAcquireInterruptibly(int arg)
-        throws InterruptedException {
+    private void doAcquireInterruptibly(int arg) throws InterruptedException {
         final Node node = addWaiter(Node.EXCLUSIVE);
         boolean failed = true;
         try {
@@ -407,8 +406,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    private boolean doAcquireNanos(int arg, long nanosTimeout)
-            throws InterruptedException {
+    private boolean doAcquireNanos(int arg, long nanosTimeout) throws InterruptedException {
         if (nanosTimeout <= 0L)
             return false;
         final long deadline = System.nanoTime() + nanosTimeout;
@@ -478,8 +476,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    private void doAcquireSharedInterruptibly(int arg)
-        throws InterruptedException {
+    private void doAcquireSharedInterruptibly(int arg) throws InterruptedException {
         final Node node = addWaiter(Node.SHARED);
         boolean failed = true;
         try {
@@ -505,8 +502,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    private boolean doAcquireSharedNanos(int arg, long nanosTimeout)
-            throws InterruptedException {
+    private boolean doAcquireSharedNanos(int arg, long nanosTimeout) throws InterruptedException {
         if (nanosTimeout <= 0L)
             return false;
         final long deadline = System.nanoTime() + nanosTimeout;
@@ -640,8 +636,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    public final void acquireSharedInterruptibly(int arg)
-            throws InterruptedException {
+    public final void acquireSharedInterruptibly(int arg) throws InterruptedException {
         if (Thread.interrupted())
             throw new InterruptedException();
         if (tryAcquireShared(arg) < 0)
@@ -649,8 +644,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     }
 
 
-    public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
-            throws InterruptedException {
+    public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout) throws InterruptedException {
         if (Thread.interrupted())
             throw new InterruptedException();
         return tryAcquireShared(arg) >= 0 ||
@@ -777,8 +771,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
     public String toString() {
         int s = getState();
         String q  = hasQueuedThreads() ? "non" : "";
-        return super.toString() +
-            "[State = " + s + ", " + q + "empty queue]";
+        return super.toString() + "[State = " + s + ", " + q + "empty queue]";
     }
 
     final boolean isOnSyncQueue(Node node) {
@@ -1039,8 +1032,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
                 reportInterruptAfterWait(interruptMode);
         }
 
-        public final long awaitNanos(long nanosTimeout)
-                throws InterruptedException {
+        public final long awaitNanos(long nanosTimeout) throws InterruptedException {
             if (Thread.interrupted())
                 throw new InterruptedException();
             Node node = addConditionWaiter();
@@ -1067,8 +1059,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             return deadline - System.nanoTime();
         }
 
-        public final boolean awaitUntil(Date deadline)
-                throws InterruptedException {
+        public final boolean awaitUntil(Date deadline) throws InterruptedException {
             long abstime = deadline.getTime();
             if (Thread.interrupted())
                 throw new InterruptedException();
@@ -1094,8 +1085,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             return !timedout;
         }
 
-        public final boolean await(long time, TimeUnit unit)
-                throws InterruptedException {
+        public final boolean await(long time, TimeUnit unit) throws InterruptedException {
             long nanosTimeout = unit.toNanos(time);
             if (Thread.interrupted())
                 throw new InterruptedException();
@@ -1191,16 +1181,11 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
         return unsafe.compareAndSwapObject(this, tailOffset, expect, update);
     }
 
-    private static final boolean compareAndSetWaitStatus(Node node,
-                                                         int expect,
-                                                         int update) {
-        return unsafe.compareAndSwapInt(node, waitStatusOffset,
-                                        expect, update);
+    private static final boolean compareAndSetWaitStatus(Node node, int expect, int update) {
+        return unsafe.compareAndSwapInt(node, waitStatusOffset, expect, update);
     }
 
-    private static final boolean compareAndSetNext(Node node,
-                                                   Node expect,
-                                                   Node update) {
+    private static final boolean compareAndSetNext(Node node, Node expect, Node update) {
         return unsafe.compareAndSwapObject(node, nextOffset, expect, update);
     }
 }
