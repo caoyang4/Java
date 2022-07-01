@@ -286,7 +286,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                 V oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
-                // 子类实现，用于扩展回调
+                // LinkedHashMap实现
                 afterNodeAccess(e);
                 // 返回旧值
                 return oldValue;
