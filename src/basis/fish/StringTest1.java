@@ -108,6 +108,12 @@ public class StringTest1 {
         printStrings(new String[]{"1", "2", "3"});
     }
 
+    @Test
+    public void stringTest8() {
+        String s = "abc";
+        System.out.println(s.getClass().equals(String.class));
+    }
+
     public static void main(String[] args) {
         String s1 = new String("1");
         s1.intern();
