@@ -38,7 +38,6 @@
     <orderEntry type="library" name="google.code.findbugs.annotations" level="project" />
     <orderEntry type="library" name="lmax.disruptor" level="project" />
     <orderEntry type="library" name="alibaba.fastjson" level="project" />
-    <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="io.netty" level="project" />
     <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
     <orderEntry type="library" name="springframework.spring.jdbc" level="project" />
@@ -64,5 +63,7 @@
     <orderEntry type="library" name="cn.hutool.all" level="project" />
     <orderEntry type="library" name="github.ben.manes.caffeine" level="project" />
     <orderEntry type="library" name="top.javatool.canal.spring.boot.starter" level="project" />
+    <orderEntry type="library" name="io.github.openfeign.feign.okhttp" level="project" />
+    <orderEntry type="library" name="netflix.feign.gson" level="project" />
   </component>
 </module>
