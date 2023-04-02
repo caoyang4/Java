@@ -1,7 +1,8 @@
 package src.basis.collections;
 
-import java.util.HashMap;
-import java.util.Hashtable;
+import org.junit.Test;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HashMapTest {
@@ -18,5 +19,16 @@ public class HashMapTest {
         System.out.println("concurrentHashmap");
         ConcurrentHashMap<String, String> concurrentHashMap = new ConcurrentHashMap<>();
         concurrentHashMap.put("null", "null");
+    }
+
+    @Test
+    public void testAddAll(){
+        List<String> list = new ArrayList<>();
+        List<String> list1 = Arrays.asList("a","b","c");
+        List<String> list2 = Arrays.asList("1","2","3");
+        list.addAll(list1);
+        System.out.println(list);
+        list.addAll(list2);
+        System.out.println(list);
     }
 }

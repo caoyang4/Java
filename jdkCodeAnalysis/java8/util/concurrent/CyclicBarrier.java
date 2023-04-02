@@ -1,4 +1,8 @@
-
+/**
+ * CyclicBarrier 则利用 ReentrantLock 和 Condition，自身维护了 count 和 parties 变量。
+ * 每次调用 await 将 count-1，并将线程加入到 condition 队列上。
+ * 等到 count 为 0 时，则将 condition 队列的节点移交至 AQS 队列，并全部释放。
+ */
 
 package java.util.concurrent;
 import java.util.concurrent.locks.Condition;

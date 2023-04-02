@@ -20,7 +20,7 @@ public class Leetcode4 {
         int j = 0;
         int mergeIndex = 0;
         while ( i < nums1.length && j< nums2.length){
-            mergeArray[mergeIndex] = nums1[i] <= nums2[j] ? nums1[i] : nums2[j];
+            mergeArray[mergeIndex] = Math.min(nums1[i], nums2[j]);
             if (mid == mergeIndex){
                 return isEven ? ((double) mergeArray[mid-1] + (double) mergeArray[mid]) / 2 : mergeArray[mid];
             }

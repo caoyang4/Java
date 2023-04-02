@@ -66,6 +66,10 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * }}
  */
 
+/**
+ * CountDownlatch 基于 AQS 实现，会将构造 CountDownLatch 的入参传递至 state，countDown() 就是在利用 CAS 将 state 减 - 1，
+ * await() 实际就是让头节点一直在等待 state 为 0 时，释放所有等待的线程
+ */
 public class CountDownLatch {
 
     private static final class Sync extends AbstractQueuedSynchronizer {
