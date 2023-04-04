@@ -80,6 +80,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     private final ReentrantLock mainLock = new ReentrantLock();
 
+    /**
+     * 线程池使用一张 Hash 表去持有线程的引用，这样可以通过添加引用、移除引用这样的操作来控制线程的生命周期
+     */
     private final HashSet<Worker> workers = new HashSet<Worker>();
 
     private final Condition termination = mainLock.newCondition();
@@ -114,6 +117,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * 基于AQS，实现不可重入锁
+     * Worker 是通过继承 AQS，使用 AQS 来实现独占锁这个功能。
+     * 没有使用可重入锁 ReentrantLock，而是使用 AQS，为的就是实现不可重入的特性去反应线程现在的执行状态
      * 本质上是一个被封装起来的线程，用来运行提交到线程池里面的任务，当没有任务的时候就去队列里面 take 或者 poll 等着
      * worker 类存在的主要意义就是为了维护线程的中断状态
      */
@@ -460,6 +465,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         }
     }
 
+    /**
+     * 线程池中线程的销毁依赖 JVM 自动的回收，
+     * 线程池做的工作是根据当前线程池的状态维护一定数量的线程引用，防止这部分线程被 JVM 回收，
+     * 当线程池决定哪些线程需要回收时，只需要将其引用消除即可
+     */
     private void processWorkerExit(Worker w, boolean completedAbruptly) {
         /*
          * 异常的情况下，需要在本方法里给workCount减1。
@@ -473,6 +483,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         try {
             // 累加completedTaskCount,从工作线程集合移除自己
             completedTaskCount += w.completedTasks;
+            // 消除引用，等待 gc 销毁
             workers.remove(w);
         } finally {
             mainLock.unlock();
@@ -621,7 +632,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             completedAbruptly = false;
         } finally {
             /*
-             * 处理工作线程退出。
+             * 获取不到任务时，主动回收自己，处理工作线程退出。
              * 上面主循环中的前置处理、任务调用、后置处理都是可能会抛出异常的。
              */
             processWorkerExit(w, completedAbruptly);

@@ -17,6 +17,13 @@ import sun.misc.SharedSecrets;
  * JDK1.7及之前：数组+链表，头插法
  * JDK1.8:数组+链表+红黑树，尾插法，避免扩容死循环
  * HashMap 允许 null 键和 null 值
+ *
+ * jdk1.8 对 HashMap 主要优化：
+ * 数据结构：数组 + 链表改成了数组 + 链表或红黑树
+ * 链表插入方式：链表的插入方式从头插法改成了尾插法
+ * 扩容 rehash
+ * 扩容时机
+ * 散列函数
  */
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable {
 
@@ -353,6 +360,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
+                    // gc
                     oldTab[j] = null;
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
@@ -360,7 +368,9 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
                         // 重新映射时，需要对红黑树进行拆分
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { // preserve order
+                        // 低位
                         Node<K,V> loHead = null, loTail = null;
+                        // 高位
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
                         // 遍历链表，并将链表节点按原顺序进行分组

@@ -19,6 +19,11 @@ import java.util.Spliterator;
  *  1、ArrayBlockingQueue基于数组，LinkedBlockingQueue基于链表
  *  2、ArrayBlockingQueue只有一个ReentrantLock，出队和入队是不能同时进行的，
  *    而LInkedBlockingQueue有两个ReentrantLock，出队和入队是可以同时进行的
+ *
+ *  ArrayBlockingQueue，LinkedBlockingQueue 两个队列，他们两个都是用 ReentrantLock 控制的线程安全，
+ *  他们两个的区别一个是数组，一个是链表，在队列中，一般获取这个队列元素之后紧接着会获取下一个元素，或者一次获取多个队列元素都有可能，
+ *  而数组在内存中地址是连续的，在操作系统中会有缓存的优化，所以访问的速度会略胜一筹，我们也会尽量去选择 ArrayBlockingQueue。
+ *  而事实证明在很多第三方的框架中，比如早期的 log4j 异步，都是选择的 ArrayBlockingQueue。
  */
 public class ArrayBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
 

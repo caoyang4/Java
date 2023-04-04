@@ -235,6 +235,7 @@ public class LinkedHashMap<K,V> extends HashMap<K,V> implements Map<K,V> {
         head = tail = null;
     }
 
+    // 开发人员可以继承 LinkedHashMap，重写该方法，实现LRU
     protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
         return false;
     }

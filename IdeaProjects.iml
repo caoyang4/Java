@@ -65,5 +65,6 @@
     <orderEntry type="library" name="top.javatool.canal.spring.boot.starter" level="project" />
     <orderEntry type="library" name="io.github.openfeign.feign.okhttp" level="project" />
     <orderEntry type="library" name="netflix.feign.gson" level="project" />
+    <orderEntry type="library" name="db4j.kilim" level="project" />
   </component>
 </module>

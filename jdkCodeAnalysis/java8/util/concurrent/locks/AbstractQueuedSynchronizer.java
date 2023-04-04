@@ -562,7 +562,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
 
 
     public final void acquire(int arg) {
-        // tryAcquire方法由继承AQS的子类实现, 为获取锁的具体逻辑。
+        // 模版方法，tryAcquire方法由继承AQS的子类实现, 为获取锁的具体逻辑。
         if (!tryAcquire(arg) &&
             // 执行addWaiter
             // 传入的mode值为Node.EXCLUSIVE，所以节点的nextWaiter属性被设为null
