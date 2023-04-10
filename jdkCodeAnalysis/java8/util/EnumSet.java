@@ -8,6 +8,7 @@ import sun.misc.SharedSecrets;
 public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E> implements Cloneable, java.io.Serializable {
     final Class<E> elementType;
 
+    // 数组存储
     final Enum<?>[] universe;
 
     private static Enum<?>[] ZERO_LENGTH_ENUM_ARRAY = new Enum<?>[0];

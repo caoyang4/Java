@@ -7,8 +7,8 @@ import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
 /**
- * HashMap对4个key执行put操作时，使用hashCode作为hash值，使用equals进行相等判断
- * IdentityHashMap对4个key执行put操作时，使用System.identityHashCode作为hash值，使用==进行相等判断
+ * HashMap执行put操作时，使用hashCode作为hash值，使用equals进行相等判断
+ * IdentityHashMap执行put操作时，使用System.identityHashCode作为hash值，使用==进行相等判断
  *
  * IdentityHashMap是一致性哈希表，容量为32，加载因子为2/3，使用引用相等，而不是equals方法来比较两个对象的相等性
  *

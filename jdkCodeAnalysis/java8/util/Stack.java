@@ -1,7 +1,7 @@
 package java.util;
 
 /**
- * 栈，继承Vector，不推荐使用
+ * 栈，继承Vector，线程安全，不推荐使用
  * @param <E>
  */
 public class Stack<E> extends Vector<E> {
