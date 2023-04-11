@@ -23,7 +23,7 @@ public class Leetcode102 {
     }
     public void traverse(Map<Integer, List<Integer>> map, TreeNode root, int level){
         if (root != null){
-            List<Integer> tmp = map.getOrDefault(level, map.getOrDefault(level, new ArrayList<>()));
+            List<Integer> tmp = map.getOrDefault(level, new ArrayList<>());
             tmp.add(root.val);
             map.put(level, tmp);
             traverse(map, root.left, level+1);

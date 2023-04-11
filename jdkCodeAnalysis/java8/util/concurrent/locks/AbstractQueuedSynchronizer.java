@@ -252,6 +252,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             // 既然当前线程已经拿到共享锁了，那么就可以直接通知后继节点来拿锁，而不必等待锁被释放的时候再通知
             Node s = node.next;
             if (s == null || s.isShared())
+                // 继续尝试让其他线程获取共享锁
                 doReleaseShared();
         }
     }
@@ -455,6 +456,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
                 final Node p = node.predecessor();
                 if (p == head) {
                     int r = tryAcquireShared(arg);
+                    // 获取到锁
                     if (r >= 0) {
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
@@ -560,7 +562,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
         throw new UnsupportedOperationException();
     }
 
-
+    // 获取独占锁
     public final void acquire(int arg) {
         // 模版方法，tryAcquire方法由继承AQS的子类实现, 为获取锁的具体逻辑。
         if (!tryAcquire(arg) &&
@@ -569,7 +571,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
             // 每一个处于独占锁模式下的节点，它的nextWaiter一定是null。
 
             // 执行acquireQueued
-            // (1) 能执行到该方法, 说明addWaiter 方法已经成功将包装了当前Thread的节点添加到了等待队列的队尾
+            // (1) 能执行到该方法, 说明addWaiter方法已经成功将包装了当前Thread的节点，且添加到了等待队列的队尾
             // (2) 该方法中将再次尝试去获取锁: 基于当前节点的前驱节点就是HEAD节点
             // (3) 在再次尝试获取锁失败后, 判断是否需要把当前线程挂起
             // 独占模式节点的 nextWaiter 不存在，static final Node EXCLUSIVE = null;

@@ -30,7 +30,7 @@ public class Leetcode39 {
         if (target == 0) {
             List<Integer> list = new ArrayList<>(path);
             // 排序之后去重
-            list.sort((o1,o2) -> { return o1-o2;});
+            list.sort((o1,o2) -> o1-o2);
             res.add(new ArrayList<>(list));
             return;
         }

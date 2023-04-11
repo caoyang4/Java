@@ -1,4 +1,6 @@
-
+/**
+ * 可重入锁、独占锁
+ */
 package java.util.concurrent.locks;
 import java.util.concurrent.TimeUnit;
 import java.util.Collection;
@@ -13,6 +15,9 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 
         abstract void lock();
 
+        /**
+         * 非公平实现
+         */
         final boolean nonfairTryAcquire(int acquires) {
             final Thread current = Thread.currentThread();
             int c = getState();
@@ -85,7 +90,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                 // cas失败则排队获取
                 acquire(1);
         }
-
+        // 实现 AQS 的模板方法
         protected final boolean tryAcquire(int acquires) {
             return nonfairTryAcquire(acquires);
         }
@@ -114,6 +119,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
                     return true;
                 }
             }
+            // 是否已经获取锁，此处即表示可重入
             else if (current == getExclusiveOwnerThread()) {
                 int nextc = c + acquires;
                 if (nextc < 0)

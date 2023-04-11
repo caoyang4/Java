@@ -39,7 +39,8 @@ public class Leetcode20 {
             }else if(bracket == '{'){
                 deque.push('}');
             }else if(deque.isEmpty() || deque.peek() != bracket){
-                // 情况 2 和 3
+                // deque.isEmpty():情况3
+                // deque.peek() != bracket: 情况2
                 return false;
             }else {
                 deque.pop();

@@ -155,6 +155,7 @@ public class ReentrantReadWriteLock implements ReadWriteLock, java.io.Serializab
                 "attempt to unlock read lock, not locked by current thread");
         }
 
+        // 获取共享锁
         protected final int tryAcquireShared(int unused) {
             Thread current = Thread.currentThread();
             int c = getState();

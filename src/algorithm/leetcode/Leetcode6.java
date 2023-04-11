@@ -1,5 +1,9 @@
 package src.algorithm.leetcode;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 6. Z 字形变换
  *
@@ -7,7 +11,29 @@ package src.algorithm.leetcode;
  * @author caoyang
  */
 public class Leetcode6 {
+
     public static String convert(String s, int numRows) {
+        if (numRows == 1) {
+            return s;
+        }
+        List<StringBuilder> list = new ArrayList<>();
+        for (int i = 0; i < numRows; i++) {
+            list.add(new StringBuilder());
+        }
+        int i = 0;
+        int flag = -1;
+        for (char c : s.toCharArray()) {
+            list.get(i).append(c);
+            if (i == 0 || i == numRows - 1) {
+                flag = -flag;
+            }
+            i += flag;
+        }
+        return list.stream().map(StringBuilder::toString).collect(Collectors.joining());
+    }
+
+
+    public static String convert1(String s, int numRows) {
         int sLen = s.length();
         if(sLen == 1 || numRows == 1){
             return s;
