@@ -9,7 +9,7 @@
  * 3.所有的CompletionStage方法都是独立于其他共有方法实现的，因此一个方法的行为不会受到子类中其他
  *     方法的覆盖。
  *
- * CompletableFuture实现了Futurre接口的如下策略：
+ * CompletableFuture实现了Future接口的如下策略：
  * 1.CompletableFuture无法直接控制完成，所以cancel操作被视为是另一种异常完成形式。
  *     方法isCompletedExceptionally可以用来确定一个CompletableFuture是否以任何异常的方式完成。
  * 2.以一个CompletionException为例，方法get()和get(long,TimeUnit)抛出一个ExecutionException，
@@ -54,7 +54,7 @@ import java.util.concurrent.locks.LockSupport;
  *  CompletableFuture<Void> thenRunAsync(Runnable action)
  *  CompletableFuture<Void> thenRunAsync(Runnable action, Executor executor)
  *  <U> CompletableFuture<U> thenApply(Function fn)
- *  <U> CompletableFuture<U> thenApplyAsync(Functio fn)
+ *  <U> CompletableFuture<U> thenApplyAsync(Function fn)
  *  <U> CompletableFuture<U> thenApplyAsync(Function fn, Executor executor)
  *  CompletableFuture<Void> thenAccept(Consumer action)
  *  CompletableFuture<Void> thenAcceptAsync(Consumer action)
@@ -69,14 +69,14 @@ import java.util.concurrent.locks.LockSupport;
  *  <U,V> CompletableFuture<V> thenCombineAsync(CompletionStage other, BiFunction fn, Executor executor)
  *  <U> CompletableFuture<Void> thenAcceptBoth(CompletionStage other, BiConsumer action)
  *  <U> CompletableFuture<Void> thenAcceptBothAsync(CompletionStage other, BiConsumer action)
- *  <U> CompletableFuture<Void> thenAcceptBothAsync( CompletionStage other, BiConsumer action, Executor executor)
+ *  <U> CompletableFuture<Void> thenAcceptBothAsync(CompletionStage other, BiConsumer action, Executor executor)
  *  CompletableFuture<Void> runAfterBoth(CompletionStage other, Runnable action)
  *  CompletableFuture<Void> runAfterBothAsync(CompletionStage other, Runnable action)
  *  CompletableFuture<Void> runAfterBothAsync(CompletionStage other, Runnable action, Executor executor)
  *
  * 聚合 Or 关系
  *  <U> CompletableFuture<U> applyToEither(CompletionStage other, Function fn)
- *  <U> CompletableFuture<U> applyToEitherAsync(、CompletionStage other, Function fn)
+ *  <U> CompletableFuture<U> applyToEitherAsync(CompletionStage other, Function fn)
  *  <U> CompletableFuture<U> applyToEitherAsync(CompletionStage other, Function fn, Executor executor)
  *  CompletableFuture<Void> acceptEither(CompletionStage other, Consumer action)
  *  CompletableFuture<Void> acceptEitherAsync(CompletionStage other, Consumer action)
@@ -102,7 +102,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * 按功能分类
  *   xxx()：表示该方法将继续在已有的线程中执行；
- *   xxxAsync()：表示将异步在线程池中执行。
+ *   xxxAsync()：表示将异步在线程池中执行，如果未指定线程池，默认ForkJoinPool
  *   异步执行方法默认一个参数的话任务是在 ForkJoinPool.commonPool() 线程池中执行的，带executor参数的使用executor线程池异步执行
  * 按逻辑和组织方式分类
  *   then逻辑，即前一个计算完成的时候调度后一个计算

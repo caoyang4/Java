@@ -40,6 +40,13 @@ import java.util.function.Function;
  *
  * Node节点代表了真正存储数据的节点，包含了key、value、指向下一个节点的指针next
  * Index节点代表了跳表的层级，包含了当前节点node、下一层down、当前层的下一个节点right
+ *
+ * ConcurrentSkipListMap 的应用场景如下：
+ * 1. 高并发、多线程的排序和检索操作，例如日志高并发队列的实现；
+ * 2. 对于有序的数据集合进行操作，例如排行榜、成绩单等；
+ * 3. 需要基于范围查找、获取子集、迭代方式查找等操作的场景。
+ *
+ * 需要注意的是，ConcurrentSkipListMap 在插入、删除等操作时可能会产生比较高的内存开销，在内存使用较为紧张的情况下需要谨慎使用。
  */
 public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V> implements ConcurrentNavigableMap<K,V>, Cloneable, Serializable {
     /*

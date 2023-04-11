@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  *
  * jdk1.8之后，对整个策略进行了重构：ConcurrentHashMap 选择了与 HashMap 相同的数组+链表+红黑树结构，
  * 在锁的实现上，采用 CAS 操作和 synchronized 锁实现更加低粒度的锁，将锁的级别控制在了更细粒度的 table 元素级别，
- * 也就是说只需要锁住这个链表的首节点，并不会影响其他的 table 元素的读写，大大提高了并发度
+ * 也就是说只需要锁住这个链表的首节点，即桶头，并不会影响其他的 table 元素的读写，大大提高了并发度
  */
 public class ConcurrentHashMap<K,V> extends AbstractMap<K,V> implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 7249069246763182397L;

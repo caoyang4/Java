@@ -19,6 +19,14 @@ import java.util.function.Consumer;
  * 采用非阻塞算法，允许队列处于不一致状态（head/tail），通过保证不变式和可变式，来维护非阻塞算法的正确性。
  *
  * 由于是非阻塞队列，无法使用在线程池中。
+ *
+ * ConcurrentLinkedQueue 的应用场景如下：
+ * 1. 生产者-消费者模式：ConcurrentLinkedQueue 可以被用作生产者与消费者之间的共享队列，保证数据的高并发、线程安全；
+ * 2. 广度优先搜索算法：ConcurrentLinkedQueue 可以用于广度优先搜索（BFS）算法中作为存储待处理节点的队列；
+ * 3. 计算密集型任务的调度：ConcurrentLinkedQueue 可以被用作任务调度器中的任务队列，保证任务调度的高效、安全。
+ *
+ * 需要注意的是，ConcurrentLinkedQueue 不支持并发批量操作，如取出指定数量的元素等，也不支持按照优先级处理元素等特殊操作。
+ * 因此在特定的业务场景下，需要根据实际需求选择合适的队列实现。
  */
 public class ConcurrentLinkedQueue<E> extends AbstractQueue<E> implements Queue<E>, java.io.Serializable {
     private static final long serialVersionUID = 196745693267521676L;
