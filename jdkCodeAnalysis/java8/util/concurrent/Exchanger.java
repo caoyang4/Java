@@ -3,6 +3,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Exchanger 是 Java 并发包中的一个工具类，它可以实现两个线程之间的数据交换。
+ * 当一个线程执行到 Exchanger 的 exchange() 方法时，它会将自己的数据传递给另一个线程，并等待对方的数据。
+ * 当两个线程都执行到 exchange() 方法时，它们会进行数据交换。
+ *
+ * Exchanger 的应用场景如下：
+ * 1. 两线程之间需要一次性交换大量数据时；
+ * 2. 两线程之间需要相互协作完成某项任务时；
+ * 3. 异步数据流中两个线程之间需要交换数据，一个线程扮演生产者角色，另一个线程扮演消费者角色。
+ *
+ * 需要注意的是，Exchanger 可以实现一对一的数据交换，如果有多个线程需要交换数据，需要使用多个 Exchanger 来协调。
+ * 同时，由于 Exchanger 是一种同步机制，如果某个线程在交换数据时发生异常，可能会出现死锁等情况，需要谨慎使用。
+ */
 public class Exchanger<V> {
 
     /**

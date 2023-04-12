@@ -2,6 +2,14 @@
  * CyclicBarrier 则利用 ReentrantLock 和 Condition，自身维护了 count 和 parties 变量。
  * 每次调用 await 将 count-1，并将线程加入到 condition 队列上。
  * 等到 count 为 0 时，则将 condition 队列的节点移交至 AQS 队列，并全部释放。
+ *
+ * CyclicBarrier 的应用场景如下：
+ * 1. 一组线程需要等待彼此到达某个节点再进行下一步操作，例如商城搭建时，需要等前置条件完成后才能启动服务器；
+ * 2. 一项任务需要分解成多个子任务进行处理，每个子任务的结果相互依赖，只有当所有子任务完成后才能进行下一步操作。
+ *
+ * 需要注意的是，CyclicBarrier 的计数器可以重置，因此可以被多次使用。
+ * 同时，由于 CyclicBarrier 可以阻塞线程，因此可能会出现线程一直等待的情况，需要根据实际场景使用超时等控制策略。
+ *
  */
 
 package java.util.concurrent;

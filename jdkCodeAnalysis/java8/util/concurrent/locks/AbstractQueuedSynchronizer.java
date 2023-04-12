@@ -38,7 +38,7 @@ public abstract class AbstractQueuedSynchronizer extends AbstractOwnableSynchron
      *
      * AQS本身是基于【模板方法模式】设计的，在使用时无需关注具体的维护和实现（如获取资源失败、入队、出队、唤醒等），只需要重写获取和释放共享资源state的方法即可。
      * 目前AQS定义了两种资源共享方式：Exclusive（独占，如：ReentrantLock、CyclicBarrier）和Share（共享，如：Semaphore、CountDownLatch）
-     * 目前实现了AQS的组件有：ReentrantLock、ReentrantReadWriteLock、Semaphore、CountDownLatch、CyclicBarrier，以及 ThreadPoolExecutor.Worker
+     * 目前实现了AQS的组件有：ReentrantLock、ReentrantReadWriteLock、Semaphore、CountDownLatch，以及 ThreadPoolExecutor.Worker
      */
     static final class Node {
         // 共享模式

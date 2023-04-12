@@ -39,7 +39,7 @@ import java.security.Permissions;
  *
  * 提交的任务主要有两种：
  *   外部直接提交的（submission task），通过execute()、submit()、invoke()等方法提交的任务
- *   工作线程 ork 出来的（worker task）
+ *   工作线程 worker 创建出来的（worker task）
  *   两种任务都会存放在WorkQueue数组中，Submission task存放在WorkQueue数组的偶数索引位置，Worker task存放在奇数索引位置。
  *   工作线程只会分配在奇数索引的工作队列
  * 每个任务执行时间都是不一样的（当然是在 CPU 眼里），执行快的线程的工作队列的任务就可能是空的，
@@ -62,7 +62,7 @@ import java.security.Permissions;
  *     在 Java8 中，ConcrurentHashMap 对每个桶的锁隔离，每个桶的写入更新只影响该桶的锁，对其他桶没有影响。
  *     同理，ForkJoinPool 也是采取这种思想。ThreadPoolExecutor 所有线程共享一个队列，
  *     而 ForkJoinPool 每个 worker 都有与之绑定的 queue，大部分情况下没有竞争问题。
- *     尽管是窃取机制，但此时是重队列的另一端 pop。在一定程度上获取任务的速度远远比一般线程池要快。
+ *     尽管是窃取机制，但此时是从队列的另一端 pop。在一定程度上获取任务的速度远远比一般线程池要快。
  *  2、在并发计算中，一个任务分成的子任务。普通线程池没法保证子任务优先执行，导致子任务的父级任务一直阻塞。
  *     而 ForkJoinPool 可以保证，被 fork 出来的子任务会优先执行，充分利用 cpu 资源。
  *  3、ThreadPoolExecutor 提交任务时，如果 workerCount >= corePoolSize，且线程池内的阻塞队列未满，

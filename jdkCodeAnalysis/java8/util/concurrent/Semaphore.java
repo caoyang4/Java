@@ -5,7 +5,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
  * Semaphore是一个有效的流量控制工具，它基于AQS共享锁实现。
- * 我们常常用它来控制对有限资源的访问。
+ * 我们常常用它来控制对有限资源的访问，限流
  * 每次使用资源前，先申请一个信号量，如果资源数不够，就会阻塞等待；每次释放资源后，就释放一个信号量
  * 内部采用了公平锁与非公平锁两种实现
  */
