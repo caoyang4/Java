@@ -31,7 +31,7 @@ public class Leetcode93 {
             return;
         }
 
-        if (ip.size() >= 4 || start > len){
+        if (ip.size() >= 4){
             return;
         }
 

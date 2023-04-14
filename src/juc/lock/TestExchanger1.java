@@ -4,7 +4,7 @@ import java.util.concurrent.Exchanger;
 
 /**
  * Exchanger是一种线程间安全交换数据的机制
- * SynchronousQueue是交给一个数据，Exchanger是交换两个数据
+ * SynchronousQueue是传递一个数据，Exchanger是互相交换数据
  * 场景：游戏中交换装备
  *
  * 有2条线程A和B，A线程交换数据时，发现slot为空，则将需要交换的数据放在slot中等待其它线程进来交换数据，

@@ -14,6 +14,7 @@ package src.algorithm.leetcode;
  * @author caoyang
  */
 public class Leetcode122 {
+    // 多次买卖
     public static int maxProfit(int[] prices) {
         if(prices == null || prices.length <= 1){
             return 0;

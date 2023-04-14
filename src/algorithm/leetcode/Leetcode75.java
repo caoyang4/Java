@@ -19,8 +19,8 @@ public class Leetcode75 {
      */
     public static void sortColors(int[] nums) {
         int[] colors = new int[3];
-        for (int i = 0; i < nums.length; i++) {
-            colors[nums[i]]++;
+        for (int num : nums) {
+            colors[num]++;
         }
         int index = 0;
         for (int i = 0; i < 3; i++) {

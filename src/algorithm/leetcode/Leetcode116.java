@@ -1,7 +1,7 @@
 package src.algorithm.leetcode;
 
 /**
- * 116. 填充每个节点的下一个右侧节点指针
+ * 116. 给定一个 完美二叉树 ，其所有叶子节点都在同一层，每个父节点都有两个子节点，填充每个节点的下一个右侧节点指针
  * @author caoyang
  */
 public class Leetcode116 {

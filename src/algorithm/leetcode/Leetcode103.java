@@ -30,6 +30,7 @@ public class Leetcode103 {
         }
         return result;
     }
+    // dfs
     public void traverse(Map<Integer, List<Integer>> map, TreeNode root, int level){
         if (root != null){
             List<Integer> tmp = map.getOrDefault(level, new ArrayList<>());
@@ -39,6 +40,40 @@ public class Leetcode103 {
             traverse(map, root.right, level+1);
         }
     }
+
+    // bfs
+    public List<List<Integer>> bfs(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        Deque<TreeNode> queue = new LinkedList<>();
+        if (root != null) {
+            queue.add(root);
+        }
+        // 遍历方向
+        boolean direction = true;
+        while (!queue.isEmpty()){
+            List<TreeNode> levelNodes = new ArrayList<>(queue);
+            Deque<Integer> list = new LinkedList<>();
+            for (TreeNode node : levelNodes) {
+                queue.pop();
+                if (direction) {
+                    list.addLast(node.val);
+                } else {
+                    list.addFirst(node.val);
+                }
+                if (node.left != null) {
+                    queue.add(node.left);
+                }
+                if (node.right != null) {
+                    queue.add(node.right);
+                }
+
+            }
+            direction = !direction;
+            result.add(new ArrayList<>(list));
+        }
+        return result;
+    }
+
 
     public static void main(String[] args) {
 

@@ -60,7 +60,7 @@ public class Leetcode84 {
      * @param heights
      * @return
      */
-    public int largestRectangleAreaByStack(int[] heights) {
+    public static int largestRectangleAreaByStack(int[] heights) {
         // 在柱体数组的头和尾加了两个高度为 0 的柱体。
         int[] tmp = new int[heights.length + 2];
         System.arraycopy(heights, 0, tmp, 1, heights.length);
@@ -82,8 +82,8 @@ public class Leetcode84 {
     }
 
     public static void main(String[] args) {
-        int[] heights = {2,1,5,6,2,3};
-        int result = largestRectangleArea(heights);
+        int[] heights = {2,3,4,5,4,3,2};
+        int result = largestRectangleAreaByStack(heights);
         System.out.println(result);
     }
 

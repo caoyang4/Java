@@ -31,6 +31,30 @@ public class Leetcode102 {
         }
     }
 
+    // 广度优先搜索
+    public List<List<Integer>> bfs(TreeNode root){
+        List<List<Integer>> result = new ArrayList<>();
+        if(root == null){return result;}
+        Deque<TreeNode> queue = new ArrayDeque<>();
+        queue.add(root);
+        while (!queue.isEmpty()){
+            List<TreeNode> list = new ArrayList<>(queue);
+            List<Integer> tmp = new ArrayList<>();
+            for (TreeNode node : list) {
+                tmp.add(node.val);
+                if (node.left != null) {
+                    queue.add(node.left);
+                }
+                if (node.right != null) {
+                    queue.add(node.right);
+                }
+                queue.pop();
+            }
+            result.add(tmp);
+        }
+        return result;
+    }
+
 
     public static void main(String[] args) {
 

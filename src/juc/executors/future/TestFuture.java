@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 public class TestFuture {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         ExecutorService executorService = Executors.newCachedThreadPool();
-        Future future = executorService.submit(new Callable<Integer>() {
+        Future<Integer> future = executorService.submit(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
                 int x = 0;
@@ -20,7 +20,7 @@ public class TestFuture {
                 return x;
             }
         });
-        Integer res = (Integer) future.get();
+        Integer res = future.get();
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         System.out.println("final: " + res);

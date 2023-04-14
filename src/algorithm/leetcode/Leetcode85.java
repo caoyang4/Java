@@ -1,5 +1,8 @@
 package src.algorithm.leetcode;
 
+import java.util.ArrayDeque;
+import java.util.Stack;
+
 /**
  * 85. 最大矩形
  * 给定一个仅包含 0 和 1 、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积
@@ -29,9 +32,24 @@ public class Leetcode85 {
                     heights[j] = 0;
                 }
             }
-            result = Math.max(result, maxTangleArea(heights));
+            result = Math.max(result, maxTangleAreaStack(heights));
         }
         return result;
+    }
+
+    public static int maxTangleAreaStack(int[] heights){
+        int[] tmp = new int[heights.length+2];
+        System.arraycopy(heights, 0, tmp, 1, heights.length);
+        Stack<Integer> stack = new Stack<>();
+        int area = 0;
+        for (int i = 0; i < tmp.length; i++) {
+            while (!stack.isEmpty() && tmp[i] < tmp[stack.peek()]){
+                int h = tmp[stack.pop()];
+                area = Math.max(area, (i - stack.peek() -1) * h);
+            }
+            stack.push(i);
+        }
+        return area;
     }
 
     public static int maxTangleArea(int[] heights){

@@ -60,6 +60,7 @@ public class Leetcode76 {
         int len = Integer.MAX_VALUE;
         int left = 0;
         int right = 0;
+        // 字符种类数量
         int size = 0;
         while (right < sLen){
             char c1 = s.charAt(right);
@@ -67,6 +68,7 @@ public class Leetcode76 {
             // 进入窗口
             if (tMap.containsKey(c1)){
                 window.put(c1, window.getOrDefault(c1, 0) + 1);
+                // 字符数量一致，
                 if(tMap.get(c1).equals(window.get(c1))){
                     size++;
                 }

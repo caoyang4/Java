@@ -2,6 +2,7 @@ package src.algorithm.leetcode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
 public class Leetcode118 {
     public List<List<Integer>> generate(int numRows) {
         List<List<Integer>> result = new ArrayList<>();
-        result.add(Arrays.asList(1));
+        result.add(Collections.singletonList(1));
         for (int i = 1; i < numRows; i++) {
             List<Integer> pre = result.get(i-1);
             List<Integer> tmp = new ArrayList<>();

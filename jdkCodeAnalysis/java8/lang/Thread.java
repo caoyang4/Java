@@ -10,7 +10,7 @@
  *   每一栈帧由一个局部变量数组、方法返回地址、操作数栈和动态连接组成
  *   一些支持本机方法的 jvm 也会分配一个本机堆栈
  *   每个线程获得一个程序计数器，告诉它当前处理器执行的指令是什么
- *   系统创建一个与Java线程对应的本机线程
+ *   内核创建一个与Java线程对应的本机线程，1:1模型
  *   将与线程相关的描述符添加到JVM内部数据结构中
  *   线程共享堆和方法区域
  *
@@ -310,12 +310,13 @@ public class Thread implements Runnable {
 
     /**
      * Object的方法
-     *
      * wait()
      * wait(long)
      * wait(long, int)
-     * Thread的方法
      *
+     * ==================
+     *
+     * Thread的方法
      * join()
      * join(long)
      * join(long, int)

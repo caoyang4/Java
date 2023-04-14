@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 
 /**
+ * 句柄访问
  * @author caoyang
  */
 public class TestMethodHandle {

@@ -25,12 +25,9 @@ public class Leetcode82 {
             cursor = cursor.next;
             while (cursor != null && before == cursor.val){
                 cursor = cursor.next;
-                if (cursor == null){
-                    deque.removeLast();
-                }
-
             }
             if (cursor == null){
+                deque.removeLast();
                 break;
             } else {
                 if (tmp.next != cursor) {
