@@ -4,7 +4,6 @@ package src.algorithm.leetcode;
  * 231. 2 的幂
  * 输入：n = 16
  * 输出：true
- * 解释：24 = 16
  * @author caoyang
  */
 public class Leetcode231 {

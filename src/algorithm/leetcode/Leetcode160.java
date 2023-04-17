@@ -18,11 +18,12 @@ public class Leetcode160 {
             }
             diff--;
         }
-        while (headA != headB && headA != null && headB != null){
+        while (headA != null && headB != null){
+            if(headA == headB){return headA;}
             headA = headA.next;
             headB = headB.next;
         }
-        return headA != null && headB != null ? headA : null;
+        return null;
     }
     public int size(ListNode head){
         int size = 0;

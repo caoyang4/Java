@@ -2,7 +2,7 @@ package src.algorithm.leetcode;
 
 /**
  * 154. 寻找旋转排序数组中的最小值 II
- * 给你一个可能存在 重复 元素值的数组 nums
+ * 给你一个可能存在重复元素值的数组 nums
  * @author caoyang
  */
 public class Leetcode154 {

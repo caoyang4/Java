@@ -21,7 +21,7 @@ public class Leetcode132 {
         int[] dp = new int[size+1];
         for (int i = 1; i <= size; i++) {
             dp[i] = i;
-            for (int j = 0; j < size; j++) {
+            for (int j = 0; j < i; j++) {
                 if(isPalindrome[j][i-1]){
                     dp[i] = Math.min(dp[j]+1, dp[i]);
                 }
@@ -40,7 +40,7 @@ public class Leetcode132 {
     }
 
     public static void main(String[] args) {
-        String s = "coder";
+        String s = "aab";
         int result = minCut(s);
         System.out.println(result);
     }

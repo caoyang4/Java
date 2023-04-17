@@ -25,7 +25,7 @@ public class Leetcode337 {
         int[] res = new int[2];
         // 偷根节点
         res[0] = leftVal[1] + rightVal[1] + root.val;
-        // 不偷根节点
+        // 不偷根节点，偷左右子节点
         res[1] =  Math.max(leftVal[0], leftVal[1]) + Math.max(rightVal[0], rightVal[1]);
         return res;
     }

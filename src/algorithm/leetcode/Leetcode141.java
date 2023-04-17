@@ -13,7 +13,9 @@ public class Leetcode141 {
         ListNode tmp1 = head;
         ListNode tmp2 = head;
         while (tmp1 != null && tmp2 != null){
+            // 慢指针
             tmp1 = tmp1.next;
+            // 快指针
             tmp2 = tmp2.next;
             tmp2 = tmp2 == null ? null : tmp2.next;
             if(tmp1 == tmp2 && tmp1 != null){

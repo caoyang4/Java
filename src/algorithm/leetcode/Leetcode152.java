@@ -10,6 +10,7 @@ public class Leetcode152 {
     public static int maxProduct(int[] nums) {
         int product = nums[0];
         int index = 1;
+        // 左右两路贪心
         for (int i = 0; i < nums.length; i++) {
             index = index != 0 ? index*nums[i] : nums[i];
             product = Math.max(product, index);

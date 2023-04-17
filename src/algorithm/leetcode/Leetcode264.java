@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * 264. 丑数 II
  * 给你一个整数 n ，请你找出并返回第 n 个 丑数
- * 丑数 就是只包含质因数 2、3 和/或 5 的正整数
+ * 丑数 就是只包含质因数 2、3 或 5 的正整数
  * @author caoyang
  */
 public class Leetcode264 {

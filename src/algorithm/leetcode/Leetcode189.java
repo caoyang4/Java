@@ -13,8 +13,11 @@ public class Leetcode189 {
         int n = nums.length;
         k = k % n;
         if (k == 0){ return; }
+        // 翻转所有元素 [7 6 5 4 3 2 1]
         traverse(nums, 0, n-1);
+        // 翻转 [0,k-1] 区间的元素 [5 6 7 4 3 2 1]
         traverse(nums, 0, k-1);
+        // 翻转 [k,n-1] 区间的元素 [5 6 7 1 2 3 4]
         traverse(nums, k, n-1);
     }
     public static void traverse(int[] nums, int start, int end){

@@ -2,7 +2,7 @@ package src.algorithm.leetcode;
 
 /**
  * 153. 寻找旋转排序数组中的最小值
- * 给你一个元素值 互不相同 的数组 nums
+ * 给你一个元素值互不相同的数组 nums
  * 输入：nums = [3,4,5,1,2]
  * 输出：1
  * @author caoyang

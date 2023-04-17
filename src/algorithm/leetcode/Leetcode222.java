@@ -5,18 +5,15 @@ package src.algorithm.leetcode;
  * @author caoyang
  */
 public class Leetcode222 {
-    int count = 0;
     public int countNodes(TreeNode root) {
-        traverse(root);
-        return count;
+        return traverse(root);
     }
-    public void traverse(TreeNode root){
+    public int traverse(TreeNode root){
         if (root == null){
-            return;
+            return 0;
         }
-        count++;
-        traverse(root.left);
-        traverse(root.right);
+        return 1 + traverse(root.left) + traverse(root.right);
+
     }
 
     public static void main(String[] args) {

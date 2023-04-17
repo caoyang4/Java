@@ -5,6 +5,8 @@ import java.util.List;
 
 /**
  * 139. 单词拆分
+ * 给你一个字符串 s 和一个字符串列表 wordDict 作为字典。请你判断是否可以利用字典中出现的单词拼接出 s 。
+ * 注意：不要求字典中出现的单词全部都使用，并且字典中的单词可以重复使用。
  *
  * 输入: s = "applepenapple", wordDict = ["apple", "pen"]
  * 输出: true
@@ -14,6 +16,7 @@ public class Leetcode139 {
     public static boolean wordBreak(String s, List<String> wordDict) {
         int n = s.length();
         boolean[] dp = new boolean[n+1];
+        // dp[i]表示 s[0:i] 子串是否能被拼接
         for (int i = 1; i <= n; i++) {
             // wordDict含有当整个子串
             if (wordDict.contains(s.substring(0, i))){
