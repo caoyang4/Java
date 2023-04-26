@@ -51,7 +51,7 @@ public class Leetcode10 {
                     }
                 } else {
                     if (j > 1){
-                        // 直接忽略，形如 "a" 与 "ab*"
+                        // *表示0 个字符，直接忽略，形如 "a" 与 "ab*"
                         dp[i][j] |= dp[i][j-2];
                         // p[i-1]='*'时，判断前一个字符是否是'.'，或是否两两匹配
                         if (i > 0 && (chars1[i-1] == chars2[j-2] || chars2[j-2] == '.')){

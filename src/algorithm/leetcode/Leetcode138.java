@@ -1,5 +1,6 @@
 package src.algorithm.leetcode;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,59 +10,18 @@ import java.util.Map;
  * @author caoyang
  */
 public class Leetcode138 {
+    Map<Node, Node> map = new HashMap<>();
     public Node copyRandomList(Node head) {
         if (head == null){
             return null;
         }
-
-        Node tmp = head;
-        // 记录节点索引和random节点索引的映射关系
-        Map<Integer, Integer> map = new HashMap<>();
-        int index = 0;
-        while (tmp != null){
-            Node ra = tmp.random;
-            int randomIndex;
-            if (ra == null){
-                randomIndex = Integer.MIN_VALUE;
-            } else {
-                Node rb = head;
-                int step = 0;
-                while (ra != rb && rb != null){
-                    step++;
-                    rb = rb.next;
-                }
-                randomIndex = step;
-            }
-            map.put(index++, randomIndex);
-            tmp = tmp.next;
+        if (!map.containsKey(head)) {
+            Node node = new Node(head.val);
+            map.put(head, node);
+            node.next = copyRandomList(head.next);
+            node.random = copyRandomList(head.random);
         }
-
-        tmp = head;
-        Node result = new Node(0);
-        Node cursor = result;
-        while (tmp != null){
-            cursor.next = new Node(tmp.val);
-            cursor = cursor.next;
-            tmp = tmp.next;
-        }
-        cursor = result.next;
-        index = 0;
-        while (cursor != null){
-            int step = map.get(index++);
-            if (step == Integer.MAX_VALUE) {
-                cursor.random = null;
-            } else {
-                int start = 0;
-                Node r = result.next;
-                while (step != start && r != null){
-                    r = r.next;
-                    start++;
-                }
-                cursor.random = r;
-            }
-            cursor = cursor.next;
-        }
-        return result.next;
+        return map.get(head);
     }
 
     public static void main(String[] args) {

@@ -28,7 +28,7 @@ public class Leetcode22 {
      * @param n
      * @return
      */
-    public List<String> generateParenthesis(int n) {
+    public static List<String> generateParenthesis(int n) {
         if (n == 0){
             return new ArrayList<>();
         }
@@ -60,6 +60,8 @@ public class Leetcode22 {
 
 
     public static void main(String[] args) {
-
+        int n = 3;
+        List<String> parenthesis = generateParenthesis(n);
+        System.out.println(parenthesis);
     }
 }
