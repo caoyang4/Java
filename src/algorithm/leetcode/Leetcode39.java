@@ -21,12 +21,11 @@ public class Leetcode39 {
         // 先排序
         Arrays.sort(candidates);
         Set<List<Integer>> res = new HashSet<>();
-        trackBack(res, new ArrayList<>(), candidates, target, 0);
-        List<List<Integer>> result = new ArrayList<>(res);
-        return result;
+        trackBack(res, new ArrayList<>(), candidates, target);
+        return new ArrayList<>(res);
     }
 
-    public static void trackBack(Set<List<Integer>> res, List<Integer> path, int[] candidates, int target, int start){
+    public static void trackBack(Set<List<Integer>> res, List<Integer> path, int[] candidates, int target){
         if (target == 0) {
             List<Integer> list = new ArrayList<>(path);
             // 排序之后去重
@@ -34,13 +33,13 @@ public class Leetcode39 {
             res.add(new ArrayList<>(list));
             return;
         }
-        for (int i = start; i < candidates.length; i++) {
-            if(target < candidates[i]){
+        for (int candidate : candidates) {
+            if (target < candidate) {
                 break;
             }
-            path.add(candidates[i]);
-            trackBack(res, path, candidates, target-candidates[i], start);
-            path.remove(path.size()-1);
+            path.add(candidate);
+            trackBack(res, path, candidates, target - candidate);
+            path.remove(path.size() - 1);
         }
     }
 

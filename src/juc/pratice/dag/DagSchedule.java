@@ -24,7 +24,7 @@ public class DagSchedule {
         // 获取可以独立执行的任务
         Set<DagTask> independentTasks = new HashSet<>();
         for (DagTask task : tasks) {
-            // 任务未完成，且父类任务都完成
+            // 任务未完成 && 不存在父任务，或父类任务都完成
             if (!finishedTask.contains(task) && finishedTask.containsAll(task.getFathers())) {
                 independentTasks.add(task);
             }
