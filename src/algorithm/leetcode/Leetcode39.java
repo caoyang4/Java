@@ -15,31 +15,29 @@ import java.util.*;
  */
 public class Leetcode39 {
     public static List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> result = new ArrayList<>();
         if(candidates == null || candidates.length == 0){
-            return new ArrayList<>();
+            return result;
         }
         // 先排序
         Arrays.sort(candidates);
-        Set<List<Integer>> res = new HashSet<>();
-        trackBack(res, new ArrayList<>(), candidates, target);
-        return new ArrayList<>(res);
+        trackBack(result, new LinkedList<>(), candidates, target, 0);
+        return result;
     }
 
-    public static void trackBack(Set<List<Integer>> res, List<Integer> path, int[] candidates, int target){
+    public static void trackBack(List<List<Integer>> res, Deque<Integer> path, int[] candidates, int target, int start){
         if (target == 0) {
-            List<Integer> list = new ArrayList<>(path);
             // 排序之后去重
-            list.sort((o1,o2) -> o1-o2);
-            res.add(new ArrayList<>(list));
+            res.add(new ArrayList<>(path));
             return;
         }
-        for (int candidate : candidates) {
-            if (target < candidate) {
-                break;
+        for (int i = start; i < candidates.length; i++) {
+            if (target < candidates[i]){
+                return;
             }
-            path.add(candidate);
-            trackBack(res, path, candidates, target - candidate);
-            path.remove(path.size() - 1);
+            path.add(candidates[i]);
+            trackBack(res, path, candidates, target - candidates[i], i);
+            path.removeLast();
         }
     }
 
