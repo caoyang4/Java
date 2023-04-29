@@ -127,5 +127,14 @@ public class StringTest1 {
         String s4 = "11"; // 返回new String("11")在字符串常量池的地址
         // true
         System.out.println(s3 == s4);
+
     }
+
+    @Test
+    public void byteTest1() {
+        char c = '好';
+        System.out.println(c);
+        System.out.println(c-'0');
+    }
+
 }

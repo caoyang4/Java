@@ -143,9 +143,9 @@ public class RBTreeOperation {
     }
 
     public static void main(String[] args) {
-        // showInput();
+         showInput();
 
-        showRemove();
+//        showRemove();
 
     }
 }

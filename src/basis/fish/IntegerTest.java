@@ -98,5 +98,30 @@ public class IntegerTest {
         System.out.println((1.0)/(0.0));
     }
 
+    @Test
+    public void divTest(){
+        int a = 10 / 3;
+        int b = 10 / -3;
+        int c = -10 / 3;
+        int d = -10 / -3;
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(c);
+        System.out.println(d);
+    }
+
+    @Test
+    public void modTest(){
+        // a % b -> a - a/b*b
+        int a = 10 % 3;
+        int b = 10 % -3;
+        int c = -10 % 3;
+        int d = -10 % -3;
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(c);
+        System.out.println(d);
+    }
+
 
 }
