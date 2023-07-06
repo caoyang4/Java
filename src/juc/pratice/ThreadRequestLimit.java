@@ -1,4 +1,4 @@
-package src.juc.pratice.limit;
+package src.juc.pratice;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,14 +12,14 @@ import java.util.concurrent.Executors;
  * @create 2023-05-06 11:22
  */
 @Slf4j(topic = "limit")
-public class Limit {
+public class ThreadRequestLimit {
 
     private final int totalRequests;
     private ExecutorService executorService;
     private static final Object lock = new Object();
     private int count;
 
-    public Limit(int workersNum, int totalRequests) {
+    public ThreadRequestLimit(int workersNum, int totalRequests) {
         this.totalRequests = totalRequests;
         this.executorService = Executors.newFixedThreadPool(workersNum);
         this.count = 0;
@@ -35,7 +35,7 @@ public class Limit {
     }
 
     public static void main(String[] args) {
-        Limit limit = new Limit(5, 10);
+        ThreadRequestLimit limit = new ThreadRequestLimit(5, 10);
         while (true){
             limit.execute();
         }
