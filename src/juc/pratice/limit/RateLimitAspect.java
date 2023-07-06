@@ -78,7 +78,7 @@ public class RateLimitAspect {
             message = "false";
         }
         // 执行Lua脚本
-        List<String> keyList = new ArrayList();
+        List<String> keyList = new ArrayList<>();
         // 设置key值为注解中的值
         keyList.add(limitKey);
         // 调用脚本并执行
