@@ -24,7 +24,7 @@ public class Leetcode115 {
         int[][] dp = new int[m+1][n+1];
         for (int i = 0; i <= m; i++) {
             for (int j = 0; j <= n; j++) {
-                // t空串边界
+                // t空串边界，相当于删成空串
                 if(j == 0){
                     dp[i][j] = 1;
                     continue;
