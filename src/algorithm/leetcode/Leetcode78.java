@@ -17,10 +17,8 @@ public class Leetcode78 {
     public static List<List<Integer>> subsets(int[] nums) {
         int n = nums.length;
         List<List<Integer>> result = new ArrayList<>();
-        result.add(new ArrayList<>());
-        result.add(Arrays.stream(nums).boxed().collect(Collectors.toList()));
         boolean[] used = new boolean[n];
-        for (int i = 1; i < n; i++) {
+        for (int i = 0; i <= n; i++) {
             List<List<Integer>> iRes = new ArrayList<>();
             trackBack(iRes, new LinkedList<>(), nums, used, i, 0, 0);
             result.addAll(iRes);
