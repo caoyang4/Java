@@ -1,9 +1,6 @@
 package src.disruptor;
 
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.WorkHandler;
-import com.lmax.disruptor.YieldingWaitStrategy;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import lombok.Data;
@@ -18,10 +15,11 @@ import java.util.concurrent.Executors;
  */
 public class DisruptorMainTest {
     public static void main(String[] args) {
-        Disruptor<OrderEvent> disruptor = new Disruptor<>(
-                OrderEvent::new,
+        OrderEvent orderEvent = new OrderEvent().newInstance();
+        Disruptor disruptor = new Disruptor<>(
+                orderEvent,
                 1024 * 1024,
-                Executors.defaultThreadFactory(),
+                command -> System.out.println("command"),
                 // 枚举修改为多生产者
                 ProducerType.MULTI,
                 new YieldingWaitStrategy()
@@ -38,8 +36,14 @@ public class DisruptorMainTest {
 
     }
     @Data
-    static class OrderEvent {
+    static class OrderEvent implements EventFactory<OrderEvent> {
+
         private String msg;
+
+        @Override
+        public OrderEvent newInstance() {
+            return new OrderEvent();
+        }
     }
     static class OrderEventProducer {
         private final RingBuffer<OrderEvent> ringBuffer;
@@ -49,7 +53,7 @@ public class DisruptorMainTest {
         public void onData(String msg) {
             long sequence = ringBuffer.next();
             try {
-                OrderEvent orderEvent = ringBuffer.get(sequence);
+                OrderEvent orderEvent = ringBuffer.getPublished(sequence);
                 orderEvent.setMsg(msg);
             } finally {
                 ringBuffer.publish(sequence);

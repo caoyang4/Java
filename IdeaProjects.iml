@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="FacetManager">
-    <facet type="Spring" name="Spring">
-      <configuration />
-    </facet>
-  </component>
+<module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/../target/classes" />
     <output-test url="file://$MODULE_DIR$/../target/test-classes" />
@@ -14,7 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/jdkCodeAnalysis/java8/util" />
       <excludeFolder url="file://$MODULE_DIR$/jdkCodeAnalysis/java8/lang" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="openjdk.jol.core" level="project" />
     <orderEntry type="library" exported="" name="mysql.connector.java" level="project" />
@@ -23,48 +18,40 @@
     <orderEntry type="library" exported="" name="aspectj.aspectjweaver" level="project" />
     <orderEntry type="library" exported="" name="ow2.asm" level="project" />
     <orderEntry type="library" exported="" name="projectlombok.lombok" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="mybatis" level="project" />
-    <orderEntry type="library" name="tk.mybatis.mapper" level="project" />
-    <orderEntry type="library" name="alibaba.druid.wrapper" level="project" />
-    <orderEntry type="library" name="google.code.findbugs.annotations" level="project" />
-    <orderEntry type="library" name="lmax.disruptor" level="project" />
-    <orderEntry type="library" name="alibaba.fastjson" level="project" />
-    <orderEntry type="library" name="io.netty" level="project" />
-    <orderEntry type="library" name="apache.kafka.kafka_2.10" level="project" />
-    <orderEntry type="library" name="springframework.spring.jdbc" level="project" />
-    <orderEntry type="library" name="springframework.spring.webmvc" level="project" />
-    <orderEntry type="library" name="javax.javaee.web.api" level="project" />
-    <orderEntry type="library" name="javax.javaee.api" level="project" />
-    <orderEntry type="library" name="springframework.boot.spring.starter.jta.atomikos" level="project" />
-    <orderEntry type="library" name="jboss.netty" level="project" />
-    <orderEntry type="library" name="google.auto.service" level="project" />
-    <orderEntry type="library" name="net.sf.ehcache.internal.core" level="project" />
-    <orderEntry type="library" name="googlecode.junit.toolbox" level="project" />
-    <orderEntry type="library" name="fasterxml.jackson.core" level="project" />
-    <orderEntry type="library" name="apache.groovy" level="project" />
-    <orderEntry type="library" name="software.amazon.awssdk.netty.nio.client" level="project" />
-    <orderEntry type="library" name="io.netty.all" level="project" />
-    <orderEntry type="library" name="de.danielbechler.java.object.diff" level="project" />
-    <orderEntry type="library" name="hibernate.validator" level="project" />
-    <orderEntry type="library" name="eclipse.che.core.commons.lang" level="project" />
-    <orderEntry type="library" name="dromara.hmily.spring.boot.starter.parent" level="project" />
-    <orderEntry type="library" name="springframework.data.spring.redis" level="project" />
-    <orderEntry type="library" name="redis.clients.jedis" level="project" />
-    <orderEntry type="library" name="redisson" level="project" />
-    <orderEntry type="library" name="cn.hutool.all" level="project" />
-    <orderEntry type="library" name="github.ben.manes.caffeine" level="project" />
-    <orderEntry type="library" name="top.javatool.canal.spring.boot.starter" level="project" />
-    <orderEntry type="library" name="io.github.openfeign.feign.okhttp" level="project" />
-    <orderEntry type="library" name="netflix.feign.gson" level="project" />
-    <orderEntry type="library" name="db4j.kilim" level="project" />
+    <orderEntry type="library" exported="" name="mybatis" level="project" />
+    <orderEntry type="library" exported="" name="tk.mybatis.mapper" level="project" />
+    <orderEntry type="library" exported="" name="alibaba.druid.wrapper" level="project" />
+    <orderEntry type="library" exported="" name="google.code.findbugs.annotations" level="project" />
+    <orderEntry type="library" exported="" name="lmax.disruptor" level="project" />
+    <orderEntry type="library" exported="" name="io.netty" level="project" />
+    <orderEntry type="library" exported="" name="apache.kafka.kafka_2.10" level="project" />
+    <orderEntry type="library" exported="" name="springframework.spring.jdbc" level="project" />
+    <orderEntry type="library" exported="" name="springframework.spring.webmvc" level="project" />
+    <orderEntry type="library" exported="" name="javax.javaee.web.api" level="project" />
+    <orderEntry type="library" exported="" name="javax.javaee.api" level="project" />
+    <orderEntry type="library" exported="" name="springframework.boot.spring.starter.jta.atomikos" level="project" />
+    <orderEntry type="library" exported="" name="jboss.netty" level="project" />
+    <orderEntry type="library" exported="" name="google.auto.service" level="project" />
+    <orderEntry type="library" exported="" name="net.sf.ehcache.internal.core" level="project" />
+    <orderEntry type="library" exported="" name="googlecode.junit.toolbox" level="project" />
+    <orderEntry type="library" exported="" name="fasterxml.jackson.core" level="project" />
+    <orderEntry type="library" exported="" name="apache.groovy" level="project" />
+    <orderEntry type="library" exported="" name="software.amazon.awssdk.netty.nio.client" level="project" />
+    <orderEntry type="library" exported="" name="io.netty.all" level="project" />
+    <orderEntry type="library" exported="" name="de.danielbechler.java.object.diff" level="project" />
+    <orderEntry type="library" exported="" name="hibernate.validator" level="project" />
+    <orderEntry type="library" exported="" name="eclipse.che.core.commons.lang" level="project" />
+    <orderEntry type="library" exported="" name="dromara.hmily.spring.boot.starter.parent" level="project" />
+    <orderEntry type="library" exported="" name="springframework.data.spring.redis" level="project" />
+    <orderEntry type="library" exported="" name="redis.clients.jedis" level="project" />
+    <orderEntry type="library" exported="" name="redisson" level="project" />
+    <orderEntry type="library" exported="" name="cn.hutool.all" level="project" />
+    <orderEntry type="library" exported="" name="top.javatool.canal.spring.boot.starter" level="project" />
+    <orderEntry type="library" exported="" name="io.github.openfeign.feign.okhttp" level="project" />
+    <orderEntry type="library" exported="" name="netflix.feign.gson" level="project" />
+    <orderEntry type="library" exported="" name="db4j.kilim" level="project" />
+    <orderEntry type="library" exported="" name="mybatis.spring.boot.starter" level="project" />
+    <orderEntry type="library" exported="" name="alibaba.fastjson2" level="project" />
+    <orderEntry type="library" exported="" name="github.ben.manes.caffeine" level="project" />
   </component>
 </module>

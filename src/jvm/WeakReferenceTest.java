@@ -19,6 +19,7 @@ public class WeakReferenceTest {
     static class User{
         String name;
         int id;
+
     }
 
     public static void main(String[] args) {

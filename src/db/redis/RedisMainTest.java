@@ -78,7 +78,7 @@ public class RedisMainTest {
     }
 
     @Test
-    public void testTransaction(){
+    public void testTransaction() throws IOException {
         JSONObject object = new JSONObject();
         object.put("name", "young");
         object.put("city", "shangahi");
