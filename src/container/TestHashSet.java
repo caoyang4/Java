@@ -29,6 +29,7 @@ public class TestHashSet {
         Set<String> set = new HashSet<>();
         set.add("james");
         set.add("kobe");
+        set.add(null);
         Iterator<String> it = set.iterator();
         while (it.hasNext()){
             String tmp = it.next();

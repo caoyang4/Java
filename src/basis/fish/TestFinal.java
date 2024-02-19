@@ -23,9 +23,9 @@ public class TestFinal {
         // k1 变化， k2 变化
         // static final所修饰的字段仅占据内存的一个一份空间，一旦被初始化之后便不会被更改
         TestFinal t1 = new TestFinal();
-        System.out.println("k="+t1.k1+" k2="+t1.k2);
+        System.out.println("k1="+t1.k1+" k2="+t1.k2);
         TestFinal t2 = new TestFinal();
-        System.out.println("k="+t2.k1+" k2="+t2.k2);
+        System.out.println("k1="+t2.k1+" k2="+t2.k2);
         // 引用不可变，引用指向的对象可能会变
         final A a = new A();
         System.out.println(a.i);

@@ -51,7 +51,7 @@ public class Leetcode4 {
         int m = A.length;
         int n = B.length;
         if (m > n) {
-            return findMedianSortedArrays(B,A); // 保证 m <= n
+            return findMedianSortedArraysBinary(B,A); // 保证 m <= n
         }
         int iMin = 0, iMax = m;
         while (iMin <= iMax) {

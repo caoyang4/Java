@@ -15,10 +15,7 @@ public class Leetcode71 {
      * @return
      */
     public static String simplifyPath(String path) {
-        while (path.contains("/./") || path.contains("//")){
-            path = path.replace("/./", "/").replace("//", "/");
-        }
-
+        path = path.replaceAll("/./", "/").replaceAll("//", "/");
         Deque<String> deque = new LinkedList<>();
         for (String s : path.split("/")) {
             System.out.println(s);

@@ -1,5 +1,7 @@
 package src.container;
 
+import src.juc.JucUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -34,11 +36,7 @@ public class TestLockSupport {
         });
 
         t2.start();
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        JucUtils.sleepSeconds(1);
         t1.start();
     }
 }

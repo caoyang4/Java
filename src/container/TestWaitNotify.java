@@ -1,5 +1,7 @@
 package src.container;
 
+import src.juc.JucUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,11 +33,7 @@ public class TestWaitNotify {
             }
         }, "Thread2").start();
 
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        JucUtils.sleepSeconds(1);
 
         new Thread(() -> {
             synchronized (test.lock){

@@ -11,7 +11,7 @@ public class StringReflectionTest {
         String str0 = "young";
         String name = "young";
         // name 和 str0 指向同一个内存地址  常量池
-        System.out.println("str0: " + name);
+        System.out.println("str0: " + str0);
         System.out.println("name: " + name);
 
         // 获取字符数组： char[] value
@@ -23,8 +23,8 @@ public class StringReflectionTest {
         value[0] = 'Y';
         System.out.println("after reflection");
         // name的地址指向的内容被改变，str0由于地址一样，内容也会随name变化
-        System.out.println("name：" + name);
         System.out.println("str0：" + str0);
+        System.out.println("name：" + name);
 
         String str1 = "Young";
         String str2 = "young";

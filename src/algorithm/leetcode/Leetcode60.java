@@ -1,9 +1,7 @@
 package src.algorithm.leetcode;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 60. 排列序列
@@ -32,11 +30,7 @@ public class Leetcode60 {
         Deque<Integer> path =new LinkedList<>();
         boolean[] used = new boolean[n];
         trackBack(result, path, used, arr,0, n, k);
-        StringBuilder string = new StringBuilder();
-        for (Integer integer : result.get(k - 1)) {
-            string.append(integer);
-        }
-        return string.toString();
+        return result.get(k-1).stream().map(String::valueOf).collect(Collectors.joining(""));
     }
 
     public static void trackBack(List<List<Integer>> result, Deque<Integer> path, boolean[] used, int[] arr, int depth, int n, int k){

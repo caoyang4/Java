@@ -31,6 +31,7 @@ public class Leetcode47 {
         int len = nums.length;
         if(depth == len){
             result.add(new ArrayList<>(path));
+            return;
         }
         for (int i = 0; i < len; i++) {
             if(used[i]){
@@ -50,7 +51,7 @@ public class Leetcode47 {
 
 
     public static void main(String[] args) {
-        int[] nums = {3,3,0,3};
+        int[] nums = {3,3,0,3,3};
         List<List<Integer>> result = permuteUnique(nums);
         for (List<Integer> integers : result) {
             System.out.println(integers);
